@@ -142,4 +142,11 @@ importDetails.after(tools);
 const note=account.querySelector('p:last-child');if(note)note.classList.add('account-note');
 const authStatus=$('authStatus');if(authStatus)authStatus.setAttribute('aria-live','polite');
 })();
-</script></html>
+</script><style>
+#deckGallery .deck-entry{position:relative;overflow:hidden;min-height:165px!important;display:flex!important;align-items:flex-end!important;padding:0!important;background:#1e293b!important}
+.deck-entry-art{position:absolute;inset:0;background:linear-gradient(135deg,#134e4a,#0f172a)}
+.deck-entry-art img{width:100%;height:100%;object-fit:cover;object-position:center 35%;display:block;transition:transform .25s ease}
+#deckGallery .deck-entry:hover .deck-entry-art img{transform:scale(1.06)}
+.deck-entry-details{position:relative;z-index:1;width:100%;box-sizing:border-box;padding:35px 15px 15px;background:linear-gradient(transparent,rgba(2,6,23,.94));display:flex;flex-direction:column;gap:5px;text-shadow:0 1px 3px #000}
+.deck-entry-details strong{font-size:17px;color:white}.deck-entry-details span{font-size:13px;color:#cbd5e1}
+</style></html>
