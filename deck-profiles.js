@@ -87,7 +87,20 @@ decks=data||[];
 const gallery=$('deckGallery');gallery.replaceChildren();gallery.hidden=false;$('deckProfile').hidden=true;
 if(!decks.length){gallery.textContent='No cloud decks yet. Import one from Moxfield to see its profile.';return}
 for(const deck of decks){
- const link=document.createElement('a');link.className='deck-entry';link.href='./deck.html?id='+encodeURIComponent(deck.id);link.textContent=deck.name+' · '+deck.commander;link.style.cssText='display:block;background:#047857;color:white;text-decoration:none;border-radius:7px';gallery.append(link)
+ const link=document.createElement('a');link.className='deck-entry';link.href='./deck.html?id='+encodeURIComponent(deck.id);
+ const image=document.createElement('div');image.className='deck-entry-art';
+ const details=document.createElement('div');details.className='deck-entry-details';
+ const title=document.createElement('strong');title.textContent=deck.name;
+ const subtitle=document.createElement('span');subtitle.textContent=deck.commander;
+ details.append(title,subtitle);link.append(image,details);gallery.append(link);
+ const commander=deck.commander.split(/\s+\/\s+|\s+&\s+/)[0].trim();
+ if(commander){
+ const url='https://api.scryfall.com/cards/named?exact='+encodeURIComponent(commander);
+ fetch(url,{headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():null).then(card=>{
+ const art=card?.image_uris?.art_crop||card?.card_faces?.[0]?.image_uris?.art_crop;
+ if(art){const img=document.createElement('img');img.src=art;img.alt='Artwork for '+commander;img.loading='lazy';image.append(img)}
+ }).catch(()=>{});
+ }
 }
 }
 $('refreshProfiles').onclick=refresh;
