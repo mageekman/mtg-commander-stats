@@ -4,7 +4,7 @@
 <h1>Command Ledger</h1><p>Commander game tracker. Data is stored in this browser only.</p>
 <section id="account"><h2>Cloud account</h2><p id="authStatus">Checking session…</p><form id="signupForm"><input name="display" placeholder="Display name" required><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password (6+ characters)" minlength="6" required><button>Create account</button></form><form id="loginForm"><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password" required><button>Sign in</button></form><button id="logout" type="button" hidden>Sign out</button><p id="authMessage" role="status"></p><p>Cloud decks are private to your account. Your existing local decks and games remain in this browser.</p></section>
 <section id="cloudSection" hidden><h2>My cloud decks</h2><form id="cloudDeckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Save cloud deck</button></form><p id="cloudMessage" role="status"></p><div id="cloudDeckList"></div></section>
-<section id="profiles"><h2>My deck profiles</h2><p>View your imported decks and their cards. No deck editing or mana-curve analysis.</p><button id="refreshProfiles" type="button">Refresh decks</button><div id="deckGallery"></div><div id="deckProfile" hidden></div></section><section id="moxImport"><h2>Import from Moxfield</h2><p>In Moxfield, open your deck, choose More → Export → Plain Text, and paste the complete list here. Commander sections are recognized; sideboard and maybeboard cards are excluded.</p><input id="importDeckName" placeholder="Deck name"><input id="importCommander" placeholder="Commander (auto-filled when marked)"><textarea id="importText" style="height:220px" placeholder="COMMANDER:&#10;1 Atraxa, Praetors' Voice (2X2) 169&#10;MAINBOARD:&#10;1 Sol Ring (CMM) 410&#10;1 Arcane Signet (CMM) 951"></textarea><button id="parseImported" type="button">Preview and validate deck</button><p id="importStatus" role="status"></p><div id="importPreview"></div><button id="saveImported" type="button" disabled>Save imported deck to cloud</button></section><section id="scryfall"><h2>Scryfall card search</h2><p>Search cards and choose a commander. Card information is supplied by Scryfall.</p><form id="scrySearch"><input id="cardQuery" placeholder="e.g. Atraxa, Praetors' Voice" required minlength="2"><button>Find card</button></form><p id="scryMessage" role="status"></p><div id="scryResult"></div></section><section><h2>Add deck (local)</h2><form id="deckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><input name="owner" placeholder="Owner" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Add deck</button></form><div id="decks"></div></section>
+<section id="profiles"><h2>My deck profiles</h2><p>View your imported decks and their cards. No deck editing or mana-curve analysis.</p><button id="refreshProfiles" type="button">Refresh decks</button><div id="deckGallery"></div><div id="deckProfile" hidden></div></section><section id="moxImport"><h2>Import deck from text</h2><p>Paste a decklist from Moxfield, Archidekt, MTGGoldfish, or another source that uses one card per line. Commander sections are recognized; sideboard and maybeboard cards are excluded.</p><input id="importDeckName" placeholder="Deck name"><input id="importCommander" placeholder="Commander (auto-filled when marked)"><textarea id="importText" style="height:220px" placeholder="COMMANDER:&#10;1 Atraxa, Praetors' Voice (2X2) 169&#10;MAINBOARD:&#10;1 Sol Ring (CMM) 410&#10;1 Arcane Signet (CMM) 951"></textarea><button id="parseImported" type="button">Preview and validate deck</button><p id="importStatus" role="status"></p><div id="importPreview"></div><button id="saveImported" type="button" disabled>Save imported deck to cloud</button></section><section id="scryfall"><h2>Scryfall card search</h2><p>Search cards and choose a commander. Card information is supplied by Scryfall.</p><form id="scrySearch"><input id="cardQuery" placeholder="e.g. Atraxa, Praetors' Voice" required minlength="2"><button>Find card</button></form><p id="scryMessage" role="status"></p><div id="scryResult"></div></section><section><h2>Add deck (local)</h2><form id="deckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><input name="owner" placeholder="Owner" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Add deck</button></form><div id="decks"></div></section>
 <section><h2>Record game</h2><form id="gameForm"><input name="date" type="date" required><p>Choose 2 to 6 distinct decks</p><div id="players"></div><button type="button" id="addPlayer">Add player</button><p>Winner: <select id="winner" required></select></p><button>Save game</button></form><p id="message"></p></section>
 <section><h2>Deck standings</h2><div id="standings"></div></section><section><h2>History</h2><div id="history"></div></section>
 <section><h2>Backup</h2><button id="export">Export JSON</button><label>Import JSON <input id="import" type="file" accept=".json"></label><p>Import replaces existing data. Back up before switching devices.</p></section>
@@ -119,15 +119,15 @@ const heading=document.querySelector('body > h1'),tagline=heading?.nextElementSi
 const header=document.createElement('header');header.id='mainHeader';
 const title=document.createElement('div');title.append(heading);if(tagline){tagline.textContent='Your Commander decks, all in one place.';title.append(tagline)}
 const actions=document.createElement('div');actions.id='quickActions';
-const add=document.createElement('button');add.id='newDeckButton';add.type='button';add.textContent='+ Import deck';
+const add=document.createElement('button');add.id='newDeckButton';add.type='button';add.textContent='+ Import deck from text';
 actions.append(add);header.append(title,actions);document.body.prepend(header);
 const profiles=$('profiles'),importer=$('moxImport'),account=$('account');
 profiles.querySelector('h2').textContent='My decks';
 profiles.querySelector('p').textContent='Choose a deck to view its cards.';
 const importDetails=document.createElement('details');importDetails.id='importDetails';
-const importSummary=document.createElement('summary');importSummary.textContent='Import a deck from Moxfield';
-importDetails.append(importSummary);importer.before(importDetails);importDetails.append(importer);
-add.onclick=()=>{importDetails.open=true;importDetails.scrollIntoView({behavior:'smooth',block:'start'});$('importDeckName').focus({preventScroll:true})};
+const importSummary=document.createElement('summary');importSummary.textContent='Import deck from text';
+importDetails.append(importSummary);actions.append(importDetails);importDetails.append(importer);
+add.setAttribute('aria-expanded','false');add.setAttribute('aria-controls','importDetails');add.onclick=()=>{importDetails.open=!importDetails.open;add.setAttribute('aria-expanded',String(importDetails.open));if(importDetails.open)$('importDeckName').focus({preventScroll:true})};
 const tools=document.createElement('details');tools.id='toolsDetails';
 const summary=document.createElement('summary');summary.textContent='More tools and local game history';
 tools.append(summary);
@@ -138,7 +138,7 @@ const standings=$('standings')?.closest('section');
 const history=$('history')?.closest('section');
 const search=$('scryfall'),cloud=$('cloudSection');
 for(const section of [search,cloud,legacy,game,standings,history,backup])if(section)tools.append(section);
-importDetails.after(tools);
+profiles.after(tools);
 const note=account.querySelector('p:last-child');if(note)note.classList.add('account-note');
 const authStatus=$('authStatus');if(authStatus)authStatus.setAttribute('aria-live','polite');
 })();
@@ -149,4 +149,13 @@ const authStatus=$('authStatus');if(authStatus)authStatus.setAttribute('aria-liv
 #deckGallery .deck-entry:hover .deck-entry-art img{transform:scale(1.06)}
 .deck-entry-details{position:relative;z-index:1;width:100%;box-sizing:border-box;padding:35px 15px 15px;background:linear-gradient(transparent,rgba(2,6,23,.94));display:flex;flex-direction:column;gap:5px;text-shadow:0 1px 3px #000}
 .deck-entry-details strong{font-size:17px;color:white}.deck-entry-details span{font-size:13px;color:#cbd5e1}
+</style><style>
+#quickActions{position:relative}
+#quickActions #importDetails{display:none;position:absolute;top:100%;right:0;width:min(520px,calc(100vw - 32px));max-height:75vh;overflow-y:auto;z-index:30;box-shadow:0 20px 50px rgba(0,0,0,.55);margin:8px 0;background:#1e293b}
+#quickActions #importDetails[open]{display:block}
+#quickActions #importDetails>summary{display:none}
+#quickActions #moxImport{padding:12px;margin:0;background:transparent}
+#quickActions #moxImport input,#quickActions #moxImport textarea{box-sizing:border-box;max-width:100%;width:100%;margin:6px 0}
+#quickActions #moxImport button{margin:8px 4px 8px 0}
+@media(max-width:600px){#quickActions{width:100%}#quickActions #importDetails{left:0;right:auto;width:calc(100vw - 56px)}}
 </style></html>
