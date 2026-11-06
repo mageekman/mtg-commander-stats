@@ -103,6 +103,6 @@ for(const deck of decks){
  }
 }
 }
-$('refreshProfiles').onclick=refresh;
+const refreshButton=$('refreshProfiles');if(refreshButton)refreshButton.onclick=refresh;
 sb.auth.onAuthStateChange(()=>setTimeout(refresh,0));
 refresh();
