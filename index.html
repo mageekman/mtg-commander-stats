@@ -122,6 +122,16 @@ const actions=document.createElement('div');actions.id='quickActions';
 const add=document.createElement('button');add.id='newDeckButton';add.type='button';add.textContent='+ Import deck from text';
 actions.append(add);header.append(title,actions);document.body.prepend(header);
 const profiles=$('profiles'),account=$('account');
+const accountButton=document.createElement('button');accountButton.type='button';accountButton.id='accountButton';accountButton.textContent='Sign in';accountButton.setAttribute('aria-expanded','false');accountButton.setAttribute('aria-controls','account');
+actions.append(accountButton);actions.append(account);
+account.hidden=true;
+accountButton.onclick=()=>{account.hidden=!account.hidden;accountButton.setAttribute('aria-expanded',String(!account.hidden))};
+const authLabel=$('authStatus');
+if(authLabel){
+ const updateAccountButton=()=>{const signedIn=authLabel.textContent.startsWith('Signed in as ');accountButton.textContent=signedIn?'My account':'Sign in / Create account'};
+ new MutationObserver(updateAccountButton).observe(authLabel,{childList:true,characterData:true,subtree:true});
+ updateAccountButton();
+}
 profiles.querySelector('h2').textContent='My decks';
 profiles.querySelector('p').textContent='Choose a deck to view its cards.';
 add.onclick=()=>{window.location.href='./import.html'};
@@ -159,4 +169,13 @@ const authStatus=$('authStatus');if(authStatus)authStatus.setAttribute('aria-liv
 </style><style>
 #deckForm,#deckForm + #decks{display:none!important}
 #cloudSection{display:none!important}
+</style><style>
+#quickActions{position:relative}
+#accountButton{background:#1e293b;border-color:#475569}
+#quickActions #account{position:absolute;z-index:40;right:0;top:calc(100% + 8px);width:min(420px,calc(100vw - 40px));box-sizing:border-box;margin:0;border:1px solid #475569;box-shadow:0 18px 48px rgba(0,0,0,.5);max-height:75vh;overflow-y:auto}
+#quickActions #account[hidden]{display:none!important}
+#quickActions #account form{display:flex;flex-direction:column;align-items:stretch}
+#quickActions #account input{min-width:0;width:100%;box-sizing:border-box;margin:5px 0}
+#quickActions #account button{margin:6px 0}
+@media(max-width:600px){#quickActions #account{left:0;right:auto;width:min(420px,calc(100vw - 28px))}}
 </style></html>
