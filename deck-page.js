@@ -63,15 +63,28 @@ async function run(){
  const entries=buckets.get(group);if(!entries?.length)continue;
  const section=element('section'),total=entries.reduce((n,i)=>n+i.qty,0);
  section.append(element('h2',group+' ('+total+')'));
- const grid=element('div');grid.className='grid';
+ const grid=element('div');grid.className='card-list';
  for(const item of entries){
- const tile=element('div');tile.className='card';const c=cards.get(item.name.toLowerCase());
- const link=element('a');if(c?.scryfall_uri){link.href=c.scryfall_uri;link.target='_blank';link.rel='noopener noreferrer'}
- const url=cardImage(c);if(url){const img=document.createElement('img');img.src=url;img.alt=item.name;img.loading='lazy';link.append(img)}
- link.append(element('p',item.qty+'× '+item.name));tile.append(link);grid.append(tile);
+ const row=element('div');row.className='card-row';
+ const card=cards.get(item.name.toLowerCase());
+ const link=element('a',item.qty+'× '+item.name);link.href=card?.scryfall_uri||'#';link.target='_blank';link.rel='noopener noreferrer';
+ if(!card?.scryfall_uri)link.removeAttribute('href');
+ const url=cardImage(card);
+ if(url){
+ link.addEventListener('pointerenter',e=>showCardPreview(url,item.name,e));
+ link.addEventListener('pointermove',moveCardPreview);
+ link.addEventListener('pointerleave',hideCardPreview);
+ link.addEventListener('focus',e=>showCardPreview(url,item.name,e));
+ link.addEventListener('blur',hideCardPreview);
+ }
+ row.append(link);grid.append(row);
  }
  section.append(grid);root.append(section);
  }
  if($('status').textContent==='Loading card artwork…')$('status').textContent='';
 }
+const hover=document.createElement('div');hover.id='cardHoverPreview';hover.setAttribute('aria-hidden','true');hover.style.cssText='position:fixed;display:none;pointer-events:none;z-index:1000;width:260px;max-width:60vw;filter:drop-shadow(0 8px 22px rgba(0,0,0,.75))';const hoverImg=document.createElement('img');hoverImg.style.cssText='width:100%;border-radius:12px;display:block';hover.append(hoverImg);document.body.append(hover);
+function moveCardPreview(e){if(hover.style.display==='none')return;const width=hover.getBoundingClientRect().width,height=hover.getBoundingClientRect().height;let x=(e.clientX??window.innerWidth/2)+20,y=(e.clientY??window.innerHeight/2)+12;if(x+width>window.innerWidth-8)x=(e.clientX??window.innerWidth/2)-width-20;if(y+height>window.innerHeight-8)y=window.innerHeight-height-8;hover.style.left=Math.max(8,x)+'px';hover.style.top=Math.max(8,y)+'px'}
+function showCardPreview(url,name,e){hoverImg.src=url;hoverImg.alt=name;hover.style.display='block';moveCardPreview(e)}
+function hideCardPreview(){hover.style.display='none';hoverImg.removeAttribute('src')}
 run().catch(e=>$('status').textContent='Unable to load deck: '+e.message);
