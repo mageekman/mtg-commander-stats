@@ -2,7 +2,9 @@
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Command Ledger</title>
 <style>body{font:16px system-ui;background:#101827;color:#f1f5f9;max-width:850px;margin:auto;padding:24px}section{background:#1e293b;padding:20px;border-radius:12px;margin:16px 0}input,textarea,select,button{padding:9px;margin:5px;background:#0f172a;color:white;border:1px solid #64748b;border-radius:6px}button{background:#047857;cursor:pointer}textarea{display:block;width:90%;height:100px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #475569;text-align:left}</style>
 <h1>Command Ledger</h1><p>Commander game tracker. Data is stored in this browser only.</p>
-<section><h2>Add deck</h2><form id="deckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><input name="owner" placeholder="Owner" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Add deck</button></form><div id="decks"></div></section>
+<section id="account"><h2>Cloud account</h2><p id="authStatus">Checking session…</p><form id="signupForm"><input name="display" placeholder="Display name" required><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password (6+ characters)" minlength="6" required><button>Create account</button></form><form id="loginForm"><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password" required><button>Sign in</button></form><button id="logout" type="button" hidden>Sign out</button><p id="authMessage" role="status"></p><p>Cloud decks are private to your account. Your existing local decks and games remain in this browser.</p></section>
+<section id="cloudSection" hidden><h2>My cloud decks</h2><form id="cloudDeckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Save cloud deck</button></form><p id="cloudMessage" role="status"></p><div id="cloudDeckList"></div></section>
+<section><h2>Add deck (local)</h2><form id="deckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><input name="owner" placeholder="Owner" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Add deck</button></form><div id="decks"></div></section>
 <section><h2>Record game</h2><form id="gameForm"><input name="date" type="date" required><p>Choose 2 to 6 distinct decks</p><div id="players"></div><button type="button" id="addPlayer">Add player</button><p>Winner: <select id="winner" required></select></p><button>Save game</button></form><p id="message"></p></section>
 <section><h2>Deck standings</h2><div id="standings"></div></section><section><h2>History</h2><div id="history"></div></section>
 <section><h2>Backup</h2><button id="export">Export JSON</button><label>Import JSON <input id="import" type="file" accept=".json"></label><p>Import replaces existing data. Back up before switching devices.</p></section>
@@ -25,4 +27,28 @@ $('gameForm').onsubmit=e=>{e.preventDefault();let ids=playerSelects().map(s=>s.v
 $('export').onclick=()=>{let url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='command-ledger.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 $('import').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!Array.isArray(d.decks)||!Array.isArray(d.games)||!d.decks.every(x=>typeof x.id==='string'&&typeof x.name==='string'&&Array.isArray(x.list))||!d.games.every(x=>Array.isArray(x.players)&&typeof x.winner==='string'))throw Error('Invalid backup');if(confirm('Replace all existing data?')){data=d;save();render()}}catch(err){alert(err.message)}e.target.value=''};
 $('gameForm').elements.date.value=new Date().toLocaleDateString('en-CA');render();
+</script><script type="module">
+import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+const supabase=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
+const $=id=>document.getElementById(id);
+const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let currentUser=null;
+async function refresh(){
+const {data:{user},error}=await supabase.auth.getUser();
+currentUser=error?null:user;
+$('signupForm').hidden=!!currentUser;$('loginForm').hidden=!!currentUser;$('logout').hidden=!currentUser;$('cloudSection').hidden=!currentUser;
+$('authStatus').textContent=currentUser?'Signed in as '+currentUser.email:'Not signed in';
+if(currentUser)await loadDecks();else $('cloudDeckList').textContent='';
+}
+async function loadDecks(){
+const {data,error}=await supabase.from('decks').select('id,name,commander,decklist,created_at').order('created_at',{ascending:false});
+if(error){$('cloudMessage').textContent=error.message;return}
+$('cloudDeckList').innerHTML=data.length?data.map(d=>'<p><strong>'+escapeHtml(d.name)+'</strong> — '+escapeHtml(d.commander)+' ('+d.decklist.split(/\r?\n/).filter(Boolean).length+' lines)</p>').join(''):'No cloud decks yet.';
+}
+$('signupForm').onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target);$('authMessage').textContent='Creating account…';const {error}=await supabase.auth.signUp({email:String(f.get('email')).trim(),password:String(f.get('password')),options:{data:{display_name:String(f.get('display')).trim()},emailRedirectTo:location.origin+location.pathname}});$('authMessage').textContent=error?error.message:'Account created. Check your email for a confirmation link, then sign in.';await refresh()};
+$('loginForm').onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target);const {error}=await supabase.auth.signInWithPassword({email:String(f.get('email')).trim(),password:String(f.get('password'))});$('authMessage').textContent=error?error.message:'Signed in.';await refresh()};
+$('logout').onclick=async()=>{const {error}=await supabase.auth.signOut();$('authMessage').textContent=error?error.message:'Signed out.';await refresh()};
+$('cloudDeckForm').onsubmit=async e=>{e.preventDefault();if(!currentUser)return;let f=new FormData(e.target);const {error}=await supabase.from('decks').insert({owner_id:currentUser.id,name:String(f.get('name')).trim(),commander:String(f.get('commander')).trim(),decklist:String(f.get('list'))});$('cloudMessage').textContent=error?error.message:'Deck saved to cloud.';if(!error){e.target.reset();await loadDecks()}};
+supabase.auth.onAuthStateChange(()=>{setTimeout(refresh,0)});
+refresh();
 </script></html>
