@@ -4,7 +4,7 @@
 <h1>Command Ledger</h1><p>Commander game tracker. Data is stored in this browser only.</p>
 <section id="account"><h2>Cloud account</h2><p id="authStatus">Checking session…</p><form id="signupForm"><input name="display" placeholder="Display name" required><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password (6+ characters)" minlength="6" required><button>Create account</button></form><form id="loginForm"><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password" required><button>Sign in</button></form><button id="logout" type="button" hidden>Sign out</button><p id="authMessage" role="status"></p><p>Cloud decks are private to your account. Your existing local decks and games remain in this browser.</p></section>
 <section id="cloudSection" hidden><h2>My cloud decks</h2><form id="cloudDeckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Save cloud deck</button></form><p id="cloudMessage" role="status"></p><div id="cloudDeckList"></div></section>
-<section><h2>Add deck (local)</h2><form id="deckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><input name="owner" placeholder="Owner" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Add deck</button></form><div id="decks"></div></section>
+<section id="scryfall"><h2>Scryfall card search</h2><p>Search cards and choose a commander. Card information is supplied by Scryfall.</p><form id="scrySearch"><input id="cardQuery" placeholder="e.g. Atraxa, Praetors' Voice" required minlength="2"><button>Find card</button></form><p id="scryMessage" role="status"></p><div id="scryResult"></div></section><section><h2>Add deck (local)</h2><form id="deckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><input name="owner" placeholder="Owner" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Add deck</button></form><div id="decks"></div></section>
 <section><h2>Record game</h2><form id="gameForm"><input name="date" type="date" required><p>Choose 2 to 6 distinct decks</p><div id="players"></div><button type="button" id="addPlayer">Add player</button><p>Winner: <select id="winner" required></select></p><button>Save game</button></form><p id="message"></p></section>
 <section><h2>Deck standings</h2><div id="standings"></div></section><section><h2>History</h2><div id="history"></div></section>
 <section><h2>Backup</h2><button id="export">Export JSON</button><label>Import JSON <input id="import" type="file" accept=".json"></label><p>Import replaces existing data. Back up before switching devices.</p></section>
@@ -51,4 +51,36 @@ $('logout').onclick=async()=>{const {error}=await supabase.auth.signOut();$('aut
 $('cloudDeckForm').onsubmit=async e=>{e.preventDefault();if(!currentUser)return;let f=new FormData(e.target);const {error}=await supabase.from('decks').insert({owner_id:currentUser.id,name:String(f.get('name')).trim(),commander:String(f.get('commander')).trim(),decklist:String(f.get('list'))});$('cloudMessage').textContent=error?error.message:'Deck saved to cloud.';if(!error){e.target.reset();await loadDecks()}};
 supabase.auth.onAuthStateChange(()=>{setTimeout(refresh,0)});
 refresh();
+</script><script type="module">
+const $=id=>document.getElementById(id);
+const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cache=new Map();
+let last=0;
+async function cardLookup(q){
+const key=q.toLowerCase().trim();
+if(cache.has(key))return cache.get(key);
+const wait=Math.max(0,150-(Date.now()-last));if(wait)await new Promise(r=>setTimeout(r,wait));last=Date.now();
+const url='https://api.scryfall.com/cards/named?fuzzy='+encodeURIComponent(q);
+const response=await fetch(url,{headers:{Accept:'application/json'}});
+const card=await response.json();
+if(!response.ok)throw Error(card.details||'Scryfall request failed ('+response.status+')');
+cache.set(key,card);return card;
+}
+$('scrySearch').onsubmit=async e=>{
+e.preventDefault();const q=$('cardQuery').value.trim();if(!q)return;
+$('scryMessage').textContent='Searching Scryfall…';$('scryResult').replaceChildren();
+try{
+const card=await cardLookup(q);
+const image=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal;
+const isCommander=String(card.type_line||'').includes('Legendary Creature')||String(card.oracle_text||'').includes('can be your commander');
+const wrap=document.createElement('div');
+const title=document.createElement('h3');title.textContent=card.name;wrap.append(title);
+if(image){const img=document.createElement('img');img.src=image;img.alt=card.name;img.loading='lazy';img.style.cssText='width:240px;max-width:100%;border-radius:12px';wrap.append(img)}
+const info=document.createElement('p');info.textContent=[card.mana_cost||card.card_faces?.map(x=>x.mana_cost).filter(Boolean).join(' // '),card.type_line].filter(Boolean).join(' · ');wrap.append(info);
+const oracle=document.createElement('p');oracle.textContent=card.oracle_text||card.card_faces?.map(x=>x.oracle_text).filter(Boolean).join(' // ')||'';wrap.append(oracle);
+const link=document.createElement('a');link.href=card.scryfall_uri;link.target='_blank';link.rel='noopener noreferrer';link.textContent='View on Scryfall';link.style.color='#a7f3d0';wrap.append(link);
+if(isCommander){const button=document.createElement('button');button.type='button';button.textContent='Use as commander';button.onclick=()=>{document.querySelector('#deckForm [name="commander"]').value=card.name;document.querySelector('#cloudDeckForm [name="commander"]').value=card.name;$('scryMessage').textContent='Commander selected: '+card.name};wrap.append(document.createTextNode(' '),button)}
+$('scryResult').append(wrap);$('scryMessage').textContent='Card found.';
+}catch(err){$('scryMessage').textContent='Lookup failed: '+err.message}
+};
 </script></html>
