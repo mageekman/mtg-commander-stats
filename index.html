@@ -2,9 +2,9 @@
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Command Ledger</title>
 <style>body{font:16px system-ui;background:#101827;color:#f1f5f9;max-width:850px;margin:auto;padding:24px}section{background:#1e293b;padding:20px;border-radius:12px;margin:16px 0}input,textarea,select,button{padding:9px;margin:5px;background:#0f172a;color:white;border:1px solid #64748b;border-radius:6px}button{background:#047857;cursor:pointer}textarea{display:block;width:90%;height:100px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #475569;text-align:left}</style>
 <h1>Command Ledger</h1><p>Commander game tracker. Data is stored in this browser only.</p>
-<section id="account"><h2>Cloud account</h2><p id="authStatus">Checking session…</p><form id="signupForm"><input name="display" placeholder="Display name" required><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password (6+ characters)" minlength="6" required><button>Create account</button></form><form id="loginForm"><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password" required><button>Sign in</button></form><button id="logout" type="button" hidden>Sign out</button><p id="authMessage" role="status"></p><p>Cloud decks are private to your account. Your existing local decks and games remain in this browser.</p></section>
+<section id="account"><h2>Cloud account</h2><p id="authStatus">Checking session…</p><form id="signupForm"><input name="display" placeholder="Display name" required><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password (6+ characters)" minlength="6" required><button>Create account</button></form><form id="loginForm"><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password" required><button>Sign in</button></form><button id="logout" type="button" hidden>Sign out</button><p id="authMessage" role="status"></p><p>All new decks are saved to your signed-in account in the cloud. Older browser-only data is preserved but no longer used for new decks.</p></section>
 <section id="cloudSection" hidden><h2>My cloud decks</h2><form id="cloudDeckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Save cloud deck</button></form><p id="cloudMessage" role="status"></p><div id="cloudDeckList"></div></section>
-<section id="profiles"><h2>My deck profiles</h2><p>View your imported decks and their cards. No deck editing or mana-curve analysis.</p><button id="refreshProfiles" type="button">Refresh decks</button><div id="deckGallery"></div><div id="deckProfile" hidden></div></section><section id="scryfall"><h2>Scryfall card search</h2><p>Search cards and choose a commander. Card information is supplied by Scryfall.</p><form id="scrySearch"><input id="cardQuery" placeholder="e.g. Atraxa, Praetors' Voice" required minlength="2"><button>Find card</button></form><p id="scryMessage" role="status"></p><div id="scryResult"></div></section><section><h2>Add deck (local)</h2><form id="deckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><input name="owner" placeholder="Owner" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Add deck</button></form><div id="decks"></div></section>
+<section id="profiles"><h2>My deck profiles</h2><p>View your imported decks and their cards. No deck editing or mana-curve analysis.</p><button id="refreshProfiles" type="button">Refresh decks</button><div id="deckGallery"></div><div id="deckProfile" hidden></div></section><section id="scryfall"><h2>Scryfall card search</h2><p>Search cards and choose a commander. Card information is supplied by Scryfall.</p><form id="scrySearch"><input id="cardQuery" placeholder="e.g. Atraxa, Praetors' Voice" required minlength="2"><button>Find card</button></form><p id="scryMessage" role="status"></p><div id="scryResult"></div></section><section><h2>Legacy local decks (archived)</h2><p>Previously saved browser-only decks are retained for reference. New decks must be imported to your signed-in cloud account.</p><form id="deckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><input name="owner" placeholder="Owner" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Add deck</button></form><div id="decks"></div></section>
 <section><h2>Record game</h2><form id="gameForm"><input name="date" type="date" required><p>Choose 2 to 6 distinct decks</p><div id="players"></div><button type="button" id="addPlayer">Add player</button><p>Winner: <select id="winner" required></select></p><button>Save game</button></form><p id="message"></p></section>
 <section><h2>Deck standings</h2><div id="standings"></div></section><section><h2>History</h2><div id="history"></div></section>
 <section><h2>Backup</h2><button id="export">Export JSON</button><label>Import JSON <input id="import" type="file" accept=".json"></label><p>Import replaces existing data. Back up before switching devices.</p></section>
@@ -121,7 +121,7 @@ const title=document.createElement('div');title.append(heading);if(tagline){tagl
 const actions=document.createElement('div');actions.id='quickActions';
 const add=document.createElement('button');add.id='newDeckButton';add.type='button';add.textContent='+ Import deck from text';
 actions.append(add);header.append(title,actions);document.body.prepend(header);
-const profiles=$('profiles'),importer=$('moxImport'),account=$('account');
+const profiles=$('profiles'),account=$('account');
 profiles.querySelector('h2').textContent='My decks';
 profiles.querySelector('p').textContent='Choose a deck to view its cards.';
 add.onclick=()=>{window.location.href='./import.html'};
@@ -134,7 +134,8 @@ const game=$('gameForm')?.closest('section');
 const standings=$('standings')?.closest('section');
 const history=$('history')?.closest('section');
 const search=$('scryfall'),cloud=$('cloudSection');
-for(const section of [search,cloud,legacy,game,standings,history,backup])if(section)tools.append(section);
+for(const section of [search,cloud,game,standings,history,backup])if(section)tools.append(section);
+if(legacy){legacy.hidden=true;legacy.setAttribute('aria-hidden','true')}
 profiles.after(tools);
 const note=account.querySelector('p:last-child');if(note)note.classList.add('account-note');
 const authStatus=$('authStatus');if(authStatus)authStatus.setAttribute('aria-live','polite');
@@ -155,4 +156,7 @@ const authStatus=$('authStatus');if(authStatus)authStatus.setAttribute('aria-liv
 #quickActions #moxImport input,#quickActions #moxImport textarea{box-sizing:border-box;max-width:100%;width:100%;margin:6px 0}
 #quickActions #moxImport button{margin:8px 4px 8px 0}
 @media(max-width:600px){#quickActions{width:100%}#quickActions #importDetails{left:0;right:auto;width:calc(100vw - 56px)}}
+</style><style>
+#deckForm,#deckForm + #decks{display:none!important}
+#cloudSection{display:none!important}
 </style></html>
