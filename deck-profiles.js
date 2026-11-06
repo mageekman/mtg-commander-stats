@@ -87,7 +87,7 @@ decks=data||[];
 const gallery=$('deckGallery');gallery.replaceChildren();gallery.hidden=false;$('deckProfile').hidden=true;
 if(!decks.length){gallery.textContent='No cloud decks yet. Import one from Moxfield to see its profile.';return}
 for(const deck of decks){
- const button=document.createElement('button');button.className='deck-entry';button.textContent=deck.name+' · '+deck.commander;button.onclick=()=>openDeck(deck.id);gallery.append(button)
+ const link=document.createElement('a');link.className='deck-entry';link.href='./deck.html?id='+encodeURIComponent(deck.id);link.textContent=deck.name+' · '+deck.commander;link.style.cssText='display:block;background:#047857;color:white;text-decoration:none;border-radius:7px';gallery.append(link)
 }
 }
 $('refreshProfiles').onclick=refresh;
