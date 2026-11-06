@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Command Ledger</title>
+<style>body{font:16px system-ui;background:#101827;color:#f1f5f9;max-width:850px;margin:auto;padding:24px}section{background:#1e293b;padding:20px;border-radius:12px;margin:16px 0}input,textarea,select,button{padding:9px;margin:5px;background:#0f172a;color:white;border:1px solid #64748b;border-radius:6px}button{background:#047857;cursor:pointer}textarea{display:block;width:90%;height:100px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #475569;text-align:left}</style>
+<h1>Command Ledger</h1><p>Commander game tracker. Data is stored in this browser only.</p>
+<section><h2>Add deck</h2><form id="deckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><input name="owner" placeholder="Owner" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Add deck</button></form><div id="decks"></div></section>
+<section><h2>Record game</h2><form id="gameForm"><input name="date" type="date" required><p>Choose 2 to 6 distinct decks</p><div id="players"></div><button type="button" id="addPlayer">Add player</button><p>Winner: <select id="winner" required></select></p><button>Save game</button></form><p id="message"></p></section>
+<section><h2>Deck standings</h2><div id="standings"></div></section><section><h2>History</h2><div id="history"></div></section>
+<section><h2>Backup</h2><button id="export">Export JSON</button><label>Import JSON <input id="import" type="file" accept=".json"></label><p>Import replaces existing data. Back up before switching devices.</p></section>
+<script>
+const key='command-ledger-v1', $=id=>document.getElementById(id);
+let data;try{data=JSON.parse(localStorage.getItem(key))||{decks:[],games:[]}}catch{data={decks:[],games:[]}}
+if(!Array.isArray(data.decks)||!Array.isArray(data.games))data={decks:[],games:[]};
+const save=()=>localStorage.setItem(key,JSON.stringify(data)),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),deck=id=>data.decks.find(d=>d.id===id),name=id=>deck(id)?.name||'Unknown';
+let count=4;
+function playerSelects(){return [...document.querySelectorAll('.player')]}
+function winnerOptions(){let old=$('winner').value,ids=[...new Set(playerSelects().map(s=>s.value).filter(Boolean))];$('winner').innerHTML='<option value="">Select winner</option>'+ids.map(id=>'<option value="'+esc(id)+'" '+(id===old?'selected':'')+'>'+esc(name(id))+'</option>').join('')}
+function players(){let prev=playerSelects().map(s=>s.value);$('players').innerHTML=Array.from({length:count},(_,i)=>'<label>Player '+(i+1)+' <select class="player" required><option value="">Select deck</option>'+data.decks.map(d=>'<option value="'+esc(d.id)+'" '+(prev[i]===d.id?'selected':'')+'>'+esc(d.owner)+' — '+esc(d.name)+'</option>').join('')+'</select></label>').join('');playerSelects().forEach(s=>s.onchange=winnerOptions);winnerOptions()}
+function render(){
+$('decks').innerHTML=data.decks.map(d=>'<p>'+esc(d.owner)+' — '+esc(d.name)+' ('+esc(d.commander)+'), '+d.list.length+' decklist lines</p>').join('')||'No decks yet.';
+$('standings').innerHTML='<table><tr><th>Deck</th><th>Games</th><th>Wins</th><th>Win rate</th></tr>'+data.decks.map(d=>{let g=data.games.filter(g=>g.players.includes(d.id)),w=g.filter(g=>g.winner===d.id).length;return '<tr><td>'+esc(d.name)+'</td><td>'+g.length+'</td><td>'+w+'</td><td>'+(g.length?(100*w/g.length).toFixed(1):'0')+'%</td></tr>'}).join('')+'</table>';
+$('history').innerHTML=data.games.slice().reverse().map(g=>'<p>'+esc(g.date)+': '+g.players.map(id=>esc(name(id))).join(', ')+' — Winner: '+esc(name(g.winner))+'</p>').join('')||'No games yet.';players()}
+$('deckForm').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target);data.decks.push({id:crypto.randomUUID(),name:String(f.get('name')).trim(),commander:String(f.get('commander')).trim(),owner:String(f.get('owner')).trim(),list:String(f.get('list')).split(/\r?\n/).map(x=>x.trim()).filter(Boolean)});save();e.target.reset();render()};
+$('addPlayer').onclick=()=>{if(count<6){count++;players()}};
+$('gameForm').onsubmit=e=>{e.preventDefault();let ids=playerSelects().map(s=>s.value),winner=$('winner').value;if(ids.some(x=>!x)||new Set(ids).size!==ids.length||!ids.includes(winner)){ $('message').textContent='Choose distinct decks and a valid winner.';return}data.games.push({id:crypto.randomUUID(),date:e.target.elements.date.value,players:ids,winner});save();$('message').textContent='Game saved.';render()};
+$('export').onclick=()=>{let url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='command-ledger.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+$('import').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!Array.isArray(d.decks)||!Array.isArray(d.games)||!d.decks.every(x=>typeof x.id==='string'&&typeof x.name==='string'&&Array.isArray(x.list))||!d.games.every(x=>Array.isArray(x.players)&&typeof x.winner==='string'))throw Error('Invalid backup');if(confirm('Replace all existing data?')){data=d;save();render()}}catch(err){alert(err.message)}e.target.value=''};
+$('gameForm').elements.date.value=new Date().toLocaleDateString('en-CA');render();
+</script></html>
