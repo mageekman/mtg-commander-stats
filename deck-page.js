@@ -43,6 +43,7 @@ async function run(){
  const {data:deck,error}=await sb.from('decks').select('id,name,commander,decklist').eq('id',id).single();
  if(error||!deck){$('status').textContent='Deck not found or you do not have permission to view it.';return}
  document.title=deck.name+' · Command Ledger';$('deckTitle').textContent=deck.name;
+ const edit=element('a','Edit deck');edit.href='./import.html?id='+encodeURIComponent(deck.id);edit.className='edit-deck-link';edit.setAttribute('aria-label','Edit '+deck.name);$('deckTitle').after(edit);
  const items=parse(deck.decklist),commanderNames=deck.commander.split(/\s+\/\s+|\s+&\s+/).map(s=>s.trim()).filter(Boolean);
  $('status').textContent='Loading card artwork…';
  let cards=new Map();try{cards=await fetchCards([...items.map(i=>i.name),...commanderNames])}catch(e){$('status').textContent=e.message+' — showing card names instead.'}
