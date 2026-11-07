@@ -24,14 +24,21 @@ async function fetchCards(names){
  const response=await fetch('https://api.scryfall.com/cards/collection',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({identifiers:unique.slice(i,i+75).map(name=>({name}))})});
  if(!response.ok)throw Error('Scryfall request failed: '+response.status);
  const result=await response.json();
- for(const card of result.data||[])map.set(card.name.toLowerCase(),card);
+ for(const card of result.data||[]){
+ map.set(card.name.toLowerCase(),card);
+ if(card.card_faces?.length){
+  const front=card.card_faces[0].name.toLowerCase();
+  if(!map.has(front))map.set(front,card);
+ }
+ }
  }
  return map;
 }
 const art=c=>c?.image_uris?.art_crop||c?.card_faces?.[0]?.image_uris?.art_crop;
 const cardImage=c=>c?.image_uris?.normal||c?.card_faces?.[0]?.image_uris?.normal;
 function type(c){
- const t=c?.type_line||'';
+ // For MDFCs, use the front face rather than the combined type line.
+ const t=c?.card_faces?.[0]?.type_line||c?.type_line||'';
  for(const [key,label] of [['Land','Lands'],['Creature','Creatures'],['Planeswalker','Planeswalkers'],['Instant','Instants'],['Sorcery','Sorceries'],['Artifact','Artifacts'],['Enchantment','Enchantments'],['Battle','Battles']])if(t.includes(key))return label;
  return 'Other';
 }
