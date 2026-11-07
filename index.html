@@ -124,7 +124,7 @@ const header=document.createElement('header');header.id='mainHeader';
 const title=document.createElement('div');title.append(heading);if(tagline){tagline.textContent='Your Commander decks, all in one place.';title.append(tagline)}
 const actions=document.createElement('div');actions.id='quickActions';
 const add=document.createElement('button');add.id='newDeckButton';add.type='button';add.textContent='+ Import deck from text';
-actions.append(add);header.append(title,actions);document.body.prepend(header);
+actions.append(add);const ledgerLink=document.createElement('a');ledgerLink.href='./ledger.html';ledgerLink.textContent='My Ledger';ledgerLink.id='ledgerLink';actions.append(ledgerLink);header.append(title,actions);document.body.prepend(header);
 const profiles=$('profiles'),account=$('account');
 const accountButton=document.createElement('button');accountButton.type='button';accountButton.id='accountButton';accountButton.textContent='Sign in';accountButton.setAttribute('aria-expanded','false');accountButton.setAttribute('aria-controls','account');
 actions.append(accountButton);actions.append(account);
@@ -187,4 +187,4 @@ const authStatus=$('authStatus');if(authStatus)authStatus.setAttribute('aria-liv
 #profileInfo p{line-height:1.5;margin:12px 0}
 #profileInfo strong{font-size:12px;color:#94a3b8}
 #authStatus{font-size:13px;color:#94a3b8}
-</style></html>
+</style><style>#ledgerLink{display:inline-block;padding:10px 13px;border:1px solid #475569;border-radius:7px;background:#1e293b;color:#a7f3d0;text-decoration:none;margin:5px}#ledgerLink:hover{background:#334155}</style></html>
