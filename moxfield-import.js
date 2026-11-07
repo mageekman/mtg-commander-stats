@@ -4,6 +4,27 @@ const $=id=>document.getElementById(id);
 const section=$('moxImport');
 const status=$('importStatus'), preview=$('importPreview'), saveButton=$('saveImported');
 let parsed=null;
+const editId=new URLSearchParams(location.search).get('id');
+const isEditing=!!editId;
+if(isEditing){
+ document.title='Edit deck · Command Ledger';
+ const heading=document.querySelector('main h1');if(heading)heading.textContent='Edit deck';
+ const intro=document.querySelector('main > p');if(intro)intro.textContent='Update your deck name, commander, or card list. Validate the list before saving changes.';
+ saveButton.textContent='Save changes to cloud';
+}
+async function loadExisting(){
+ if(!isEditing)return;
+ if(!/^[0-9a-f-]{36}$/i.test(editId)){status.textContent='Invalid deck link.';return}
+ const {data:{user}}=await sb.auth.getUser();
+ if(!user){status.textContent='Sign in on the home page before editing your deck.';return}
+ const {data,error}=await sb.from('decks').select('id,name,commander,decklist').eq('id',editId).eq('owner_id',user.id).single();
+ if(error||!data){status.textContent='Deck not found or you do not have permission to edit it.';return}
+ $('importDeckName').value=data.name;
+ $('importCommander').value=data.commander;
+ $('importText').value=data.decklist;
+ status.textContent='Deck loaded. Preview and validate before saving changes.';
+}
+loadExisting().catch(e=>status.textContent='Unable to load deck: '+e.message);
 const zones={COMMANDER:'commander',COMMANDERS:'commander',MAINBOARD:'main',MAIN:'main',DECK:'main',SIDEBOARD:'side',MAYBEBOARD:'maybe',CONSIDERING:'maybe',COMPANION:'side',TOKENS:'side'};
 function parse(text){
  let zone='main',cards=[],invalid=[];
@@ -66,7 +87,7 @@ $('parseImported').onclick=async()=>{
  saveButton.disabled=true;parsed=null;preview.replaceChildren();
  const text=$('importText').value;
  const base=parse(text);
- if(!base.cards.length){status.textContent='Paste a Moxfield text export first.';return}
+ if(!base.cards.length){status.textContent='Paste a text decklist first.';return}
  status.textContent='Checking card names with Scryfall…';
  try{const checked=await resolve(base.cards);parsed={...base,...checked};draw()}
  catch(e){status.textContent='Import check failed: '+e.message}
@@ -80,9 +101,12 @@ saveButton.onclick=async()=>{
  try{
  const {data:{user}}=await sb.auth.getUser();
  if(!user){status.textContent='Sign in to your cloud account before saving. Your pasted list is still here.';return}
- const {error}=await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list});
+ const {error}=isEditing
+ ?await sb.from('decks').update({name,commander,decklist:list}).eq('id',editId).eq('owner_id',user.id).select('id').single()
+ :await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list});
  if(error)throw Error(error.message);
- status.textContent='Saved to your cloud decks. Refresh the page to see it in My cloud decks.';
+ status.textContent=isEditing?'Changes saved to your cloud deck.':'Deck saved to your cloud account.';
+ if(isEditing)window.location.href='./deck.html?id='+encodeURIComponent(editId);
  }catch(e){status.textContent='Save failed: '+e.message}
  finally{saveButton.disabled=false}
 };
