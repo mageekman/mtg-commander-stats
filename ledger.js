@@ -159,7 +159,7 @@ function renderBestDeck(){
  const winrate=el('strong',rate+' win rate');winrate.className='best-deck-rate';
  const record=el('span',best.wins+' wins in '+best.games+' games');record.className='best-deck-record';
  content.append(label,name,commander,winrate,record);card.append(artwork,content);host.append(card);
- const commanderName=best.deck.commander.split(/\\s+\\/\\s+|\\s+&\\s+/)[0].trim();
+ const commanderName=best.deck.commander.split(' / ')[0].split(' & ')[0].trim();
  if(commanderName)getCommanderArtwork(commanderName).then(url=>{
   if(card.isConnected&&url)artwork.style.backgroundImage='url("'+url+'")';
  }).catch(()=>{});
