@@ -11,25 +11,15 @@ create table if not exists public.personal_games (
 );
 create index if not exists personal_games_owner_date_idx on public.personal_games(owner_id, played_at desc);
 alter table public.personal_games enable row level security;
-do $
-begin
-  if not exists (
-    select 1 from pg_policies
-    where schemaname = 'public'
-      and tablename = 'personal_games'
-      and policyname = 'Personal games owner access'
-  ) then
-    create policy "Personal games owner access" on public.personal_games
-    for all to authenticated
-    using (owner_id = (select auth.uid()))
-    with check (
-      owner_id = (select auth.uid())
-      and exists (
-        select 1 from public.decks
-        where decks.id = deck_id
-          and decks.owner_id = (select auth.uid())
-      )
-    );
-  end if;
-end
-$;
+-- This policy is created once for the new personal_games table.
+create policy "Personal games owner access" on public.personal_games
+for all to authenticated
+using (owner_id = (select auth.uid()))
+with check (
+  owner_id = (select auth.uid())
+  and exists (
+    select 1 from public.decks
+    where decks.id = deck_id
+      and decks.owner_id = (select auth.uid())
+  )
+);
