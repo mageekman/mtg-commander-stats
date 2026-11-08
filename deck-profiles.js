@@ -79,11 +79,24 @@ const grid=document.createElement('div');grid.className='ledger-grid';cards.forE
 if(status.textContent==='Loading card artwork…')status.remove();
 view.scrollIntoView({behavior:'smooth',block:'start'});
 }
+function elWinRate(deckId,winRates){
+ const badge=document.createElement('span');badge.className='deck-winrate';
+ const stats=winRates.get(deckId);
+ badge.textContent=stats?.games?(stats.wins/stats.games*100).toFixed(1)+'% win rate':'No games yet';
+ badge.title=stats?.games?stats.wins+' wins in '+stats.games+' games':'No recorded games for this deck';
+ return badge;
+}
 async function refresh(){
 const {data:{user}}=await sb.auth.getUser();if(!user){$('deckGallery').innerHTML='<p>Sign in to view your cloud deck profiles.</p>';return}
 const {data,error}=await sb.from('decks').select('id,name,commander,decklist,created_at').order('created_at',{ascending:false});
 if(error){$('deckGallery').textContent=error.message;return}
 decks=data||[];
+const winRates=new Map();
+const {data:gameRows,error:gameError}=await sb.from('personal_games').select('deck_id,won').eq('owner_id',user.id);
+if(!gameError)for(const game of gameRows||[]){
+ const stats=winRates.get(game.deck_id)||{games:0,wins:0};
+ stats.games++;if(game.won)stats.wins++;winRates.set(game.deck_id,stats);
+}
 const gallery=$('deckGallery');gallery.replaceChildren();gallery.hidden=false;$('deckProfile').hidden=true;
 if(!decks.length){gallery.textContent='No cloud decks yet. Import one from Moxfield to see its profile.';return}
 for(const deck of decks){
@@ -92,7 +105,7 @@ for(const deck of decks){
  const details=document.createElement('div');details.className='deck-entry-details';
  const title=document.createElement('strong');title.textContent=deck.name;
  const subtitle=document.createElement('span');subtitle.textContent=deck.commander;
- details.append(title,subtitle);link.append(image,details);gallery.append(link);
+ const performance=elWinRate(deck.id,winRates);details.append(title,subtitle);link.append(image,details,performance);gallery.append(link);
  const commander=deck.commander.split(/\s+\/\s+|\s+&\s+/)[0].trim();
  if(commander){
  const url='https://api.scryfall.com/cards/named?exact='+encodeURIComponent(commander);
