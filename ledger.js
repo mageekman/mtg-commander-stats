@@ -6,6 +6,24 @@ const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.
 const message=t=>$('message').textContent=t;
 const scryfallLink=name=>'https://scryfall.com/search?q='+encodeURIComponent('!"'+name.replace(/"/g,'')+'"');
 const suggestionCache=new Map();
+const artCache=new Map();
+async function showCommanderArt(row,name){
+ const art=row.querySelector('.commander-art');if(!art)return;
+ const token=String((Number(row.dataset.artToken)||0)+1);row.dataset.artToken=token;
+ art.style.backgroundImage='';row.classList.remove('has-commander-art');
+ if(!name?.trim())return;
+ try{
+  const key=name.trim().toLowerCase();let url=artCache.get(key);
+  if(url===undefined){
+   const response=await fetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
+   if(!response.ok)throw Error('Card not found');
+   const card=await response.json();url=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.large||card.card_faces?.[0]?.image_uris?.large||null;
+   artCache.set(key,url);
+  }
+  if(row.isConnected&&row.dataset.artToken===token&&url){art.style.backgroundImage='url("'+url+'")';row.classList.add('has-commander-art')}
+ }catch(e){/* Keep the regular player card if Scryfall artwork is unavailable. */}
+}
+
 function attachCommanderSearch(input){
  const wrap=el('div');wrap.className='commander-search';input.parentNode.insertBefore(wrap,input);wrap.append(input);
  const menu=el('div');menu.className='commander-suggestions';menu.setAttribute('role','listbox');menu.hidden=true;wrap.append(menu);
@@ -13,9 +31,9 @@ function attachCommanderSearch(input){
  let selected=input.value||'',timer=null,controller=null,sequence=0;
  function updateLink(){link.hidden=!selected;link.href=selected?scryfallLink(selected):'#'}
  function close(){menu.hidden=true;menu.replaceChildren()}
- function choose(value){selected=value;input.value=value;input.setCustomValidity('');updateLink();close()}
+ function choose(value){selected=value;input.value=value;input.setCustomValidity('');updateLink();close();showCommanderArt(input.closest('.player-row'),value)}
  input.addEventListener('input',()=>{
-  selected='';updateLink();input.setCustomValidity('');clearTimeout(timer);controller?.abort();const current=++sequence;close();
+  selected='';showCommanderArt(input.closest('.player-row'),'');updateLink();input.setCustomValidity('');clearTimeout(timer);controller?.abort();const current=++sequence;close();
   const query=input.value.trim();if(query.length<2)return;
   timer=setTimeout(async()=>{
    try{
@@ -37,11 +55,11 @@ function attachCommanderSearch(input){
 function drawPlayers(){
  const container=$('playerRows');const old=[...container.querySelectorAll('.player-row')].map(r=>({name:r.querySelector('.player-name').value,commander:r.querySelector('.player-commander').value}));container.replaceChildren();
  for(let i=0;i<playerCount;i++){
-  const row=el('div');row.className='player-row';row.append(el('h4',i===0?'Player 1 · You':'Player '+(i+1)));
+  const row=el('div');row.className='player-row';const art=el('div');art.className='commander-art';art.setAttribute('aria-hidden','true');row.append(art,el('h4',i===0?'Player 1 · You':'Player '+(i+1)));
   const fields=el('div');fields.className='player-fields';
   const nameLabel=el('label','Player name');const name=el('input');name.className='player-name';name.placeholder=i===0?'You':'Player '+(i+1);name.required=i!==0;name.maxLength=80;name.value=old[i]?.name||'';if(i===0){name.value='You';name.readOnly=true}nameLabel.append(name);
   const commanderLabel=el('label',i===0?'Your commander (from selected deck)':'Commander');const commander=el('input');commander.className='player-commander';commander.required=true;commander.maxLength=200;commander.placeholder='Commander name';commander.value=old[i]?.commander||'';if(i===0)commander.readOnly=true;commanderLabel.append(commander);if(i!==0)attachCommanderSearch(commander);
-  fields.append(nameLabel,commanderLabel);row.append(fields);container.append(row);
+  fields.append(nameLabel,commanderLabel);row.append(fields);container.append(row);if(i!==0&&old[i]?.commander)showCommanderArt(row,old[i].commander);
  }
  const table=el('div');table.className='pod-table';table.setAttribute('aria-hidden','true');table.append(el('strong','COMMANDER'),el('span','The Pod'));container.append(table);
  const first=$('firstPlayer'),winner=$('winnerPlayer'),previousFirst=first.value,previousWinner=winner.value;first.replaceChildren();winner.replaceChildren();
@@ -49,7 +67,7 @@ function drawPlayers(){
  first.value=previousFirst&&Number(previousFirst)<playerCount?previousFirst:'0';winner.value=previousWinner&&Number(previousWinner)<playerCount?previousWinner:'0';$('addPlayer').disabled=playerCount>=6;$('removePlayer').disabled=playerCount<=2;
  syncOwnCommander();
 }
-function syncOwnCommander(){const deck=decks.find(d=>d.id===$('deck').value);const input=$('playerRows').querySelector('.player-commander');if(input)input.value=deck?.commander||''}
+function syncOwnCommander(){const deck=decks.find(d=>d.id===$('deck').value);const input=$('playerRows').querySelector('.player-commander');if(input){input.value=deck?.commander||'';showCommanderArt(input.closest('.player-row'),input.value)}}
 $('addPlayer').onclick=()=>{if(playerCount<6){playerCount++;drawPlayers()}};
 $('removePlayer').onclick=()=>{if(playerCount>2){playerCount--;drawPlayers()}};
 $('deck').addEventListener('change',syncOwnCommander);
