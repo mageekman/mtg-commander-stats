@@ -37,6 +37,24 @@ body{font:15px system-ui;background:#101827;color:#f1f5f9;max-width:1000px;margi
 .pod-layout .player-row:nth-child(n),.pod-layout:has(.player-row:nth-child(5)) .player-row:nth-child(n){grid-column:auto;grid-row:auto}
 .pod-layout .pod-table{display:none}
 @media(max-width:430px){.pod-layout,.pod-layout:has(.player-row:nth-child(5)){grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pod-layout .player-row{padding:8px}.pod-layout .player-row input{padding:7px;font-size:13px}}
+
+.game-record{background:#0f172a;border:1px solid #334155;border-radius:12px;padding:16px;margin:14px 0}
+.game-record-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.game-record-header strong{font-size:17px}.game-record-header div div{color:#94a3b8;margin-top:3px}
+.game-record-header button{background:#334155}
+.history-pod{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.history-player{position:relative;min-height:190px;overflow:hidden;border:1px solid #475569;border-radius:11px;background:#17263b;display:flex;align-items:flex-end;isolation:isolate}
+.history-player-art{position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center 28%;background-repeat:no-repeat}
+.history-player::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,#06121e38 0%,#06121e55 32%,#06121ef2 100%)}
+.history-player-info{width:100%;padding:14px;min-width:0;display:flex;flex-direction:column;gap:5px}
+.history-player-info strong{font-size:18px;line-height:1.2;overflow-wrap:anywhere;text-shadow:0 2px 4px #000}
+.history-player-info a{color:#d1fae5;font-size:14px;font-weight:600;overflow-wrap:anywhere;text-decoration:underline;text-decoration-color:#d1fae580;text-underline-offset:3px}
+.history-player-tags{display:flex;gap:6px;flex-wrap:wrap}
+.history-player-tags span{background:#0f172ad9;border:1px solid #94a3b866;padding:4px 7px;border-radius:99px;font-size:11px;font-weight:700}
+.history-winner{border:2px solid #34d399}
+.history-winner .history-player-tags span:first-child{background:#065f46;color:#ecfdf5;border-color:#34d399}
+.history-note{color:#cbd5e1;margin:12px 0 0;white-space:pre-wrap}
+@media(max-width:430px){.history-pod{gap:8px}.history-player{min-height:155px}.history-player-info{padding:9px}.history-player-info strong{font-size:15px}.history-player-info a{font-size:12px}}
 </style></head><body><header><a href="./index.html">← My decks</a><h1>My Ledger</h1></header><p class="muted">Track your Commander games privately in your cloud account.</p><p id="message" role="status">Checking account…</p>
 <section><h2>Record a game</h2><form id="gameForm"><div class="grid"><label>Your deck<select id="deck" required><option value="">Loading decks…</option></select></label><label>Game date<input id="date" type="date" required></label></div><h3>Players and commanders</h3><p class="muted">You're Player 1. Add the other players at your table.</p><div id="playerRows" class="pod-layout"></div><button type="button" id="addPlayer">+ Add player</button> <button type="button" id="removePlayer">− Remove player</button><div class="grid"><label>Who went first?<select id="firstPlayer" required></select></label><label>Who won?<select id="winnerPlayer" required></select></label></div><label>Notes (optional)<textarea id="notes" placeholder="Memorable plays, how the game ended…"></textarea></label><button id="save" type="submit">Save game to cloud</button></form></section>
 <section><h2>My statistics</h2><div id="summary" class="stats"></div><h3>By deck</h3><div id="deckStats"></div></section>
