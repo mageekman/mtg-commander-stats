@@ -7,19 +7,33 @@ const message=t=>$('message').textContent=t;
 const scryfallLink=name=>'https://scryfall.com/search?q='+encodeURIComponent('!"'+name.replace(/"/g,'')+'"');
 const suggestionCache=new Map();
 const artCache=new Map();
+const artPending=new Map();
+let artQueue=Promise.resolve();
+function getCommanderArtwork(name){
+ const key=name.trim().toLowerCase();
+ if(artCache.has(key))return Promise.resolve(artCache.get(key));
+ if(artPending.has(key))return artPending.get(key);
+ const job=artQueue.then(async()=>{
+  await new Promise(resolve=>setTimeout(resolve,125));
+  const response=await fetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
+  if(!response.ok)throw Error('Scryfall '+response.status);
+  const card=await response.json();
+  const url=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.large||card.card_faces?.[0]?.image_uris?.large||null;
+  artCache.set(key,url);return url;
+ });
+ artQueue=job.catch(()=>{});
+ artPending.set(key,job);
+ job.finally(()=>artPending.delete(key)).catch(()=>{});
+ return job;
+}
+
 async function showCommanderArt(row,name){
  const art=row.querySelector('.commander-art');if(!art)return;
  const token=String((Number(row.dataset.artToken)||0)+1);row.dataset.artToken=token;
  art.style.backgroundImage='';row.classList.remove('has-commander-art');
  if(!name?.trim())return;
  try{
-  const key=name.trim().toLowerCase();let url=artCache.get(key);
-  if(url===undefined){
-   const response=await fetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
-   if(!response.ok)throw Error('Card not found');
-   const card=await response.json();url=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.large||card.card_faces?.[0]?.image_uris?.large||null;
-   artCache.set(key,url);
-  }
+  const url=await getCommanderArtwork(name);
   if(row.isConnected&&row.dataset.artToken===token&&url){art.style.backgroundImage='url("'+url+'")';row.classList.add('has-commander-art')}
  }catch(e){/* Keep the regular player card if Scryfall artwork is unavailable. */}
 }
@@ -55,13 +69,7 @@ function attachCommanderSearch(input){
 async function showHistoryArt(element,name){
  if(!name)return;
  try{
-  const key=name.trim().toLowerCase();let url=artCache.get(key);
-  if(url===undefined){
-   const response=await fetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
-   if(!response.ok)return;
-   const card=await response.json();url=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.large||card.card_faces?.[0]?.image_uris?.large||null;
-   artCache.set(key,url);
-  }
+  const url=await getCommanderArtwork(name);
   if(element.isConnected&&url)element.style.backgroundImage='url("'+url+'")';
  }catch(e){/* Keep the card readable without artwork. */}
 }
