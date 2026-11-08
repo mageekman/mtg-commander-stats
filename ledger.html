@@ -102,6 +102,19 @@ body{font:15px system-ui;background:#101827;color:#f1f5f9;max-width:1000px;margi
 .stats-pie-legend strong{color:#fff;font-size:16px}.stats-pie-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
 .stats-pie-dot.win{background:#34d399}.stats-pie-dot.loss{background:#fb7185}
 @media(max-width:700px){.stats-overview{grid-template-columns:1fr}.stats-pie-card{min-height:190px}}
+.deck-stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:14px}
+.deck-stats-card{position:relative;isolation:isolate;display:flex;align-items:flex-end;overflow:hidden;min-height:175px;border-radius:12px;border:1px solid #405268;background:#0f172a;color:#f1f5f9;text-decoration:none;transition:transform .15s,border-color .15s,box-shadow .15s}
+.deck-stats-card:hover,.deck-stats-card:focus-visible{transform:translateY(-3px);border-color:#34d399;box-shadow:0 8px 24px #0006;outline:none}
+.deck-stats-art{position:absolute;inset:0;background-size:cover;background-position:center 30%;z-index:0}
+.deck-stats-card::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#081322 0%,#081322df 37%,#08132238 100%);z-index:1}
+.deck-stats-content{position:relative;z-index:2;padding:16px;width:100%;display:grid;gap:5px}
+.deck-stats-name{font-size:18px;font-weight:800;overflow-wrap:anywhere;line-height:1.25}
+.deck-stats-commander{font-size:12px;color:#cbd5e1;overflow-wrap:anywhere}
+.deck-stats-bottom{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-top:8px}
+.deck-stats-rate{font-size:27px;font-weight:800;color:#a7f3d0;line-height:1}
+.deck-stats-rate small{display:block;font-size:11px;font-weight:500;color:#cbd5e1;margin-top:5px}
+.deck-stats-record{font-size:12px;color:#e2e8f0;text-align:right}
+@media(max-width:540px){.deck-stats-grid{grid-template-columns:1fr}.deck-stats-card{min-height:160px}}
 </style></head><body><header><a href="./index.html">← My decks</a><h1>My Ledger</h1></header><p class="muted">Track your Commander games privately in your cloud account.</p><p id="message" role="status">Checking account…</p>
 <div class="ledger-toolbar"><button id="openGameForm" type="button" aria-expanded="false" aria-controls="gameEditor">+ Add a game</button></div>
 <section id="gameEditor" hidden><h2 id="formTitle">Record a game</h2><form id="gameForm"><div class="grid"><label>Your deck<select id="deck" required><option value="">Loading decks…</option></select></label><label>Game date<input id="date" type="date" required></label></div><h3>Players and commanders</h3><p class="muted">You're Player 1. Add the other players at your table.</p><div id="playerRows" class="pod-layout"></div><button type="button" id="addPlayer">+ Add player</button> <button type="button" id="removePlayer">− Remove player</button><div class="grid"><label>Who went first?<select id="firstPlayer" required></select></label><label>Who won?<select id="winnerPlayer" required></select></label></div><label>Notes (optional)<textarea id="notes" placeholder="Memorable plays, how the game ended…"></textarea></label><button id="save" type="submit">Save game to cloud</button> <button id="cancelEdit" type="button" hidden>Cancel editing</button></form></section>
