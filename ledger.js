@@ -15,11 +15,12 @@ function drawPlayers(){
  }
  const first=$('firstPlayer'),winner=$('winnerPlayer'),previousFirst=first.value,previousWinner=winner.value;first.replaceChildren();winner.replaceChildren();
  for(let i=0;i<playerCount;i++){const label='Player '+(i+1)+(i===0?' (You)':'');for(const select of [first,winner]){const option=el('option',label);option.value=String(i);select.append(option)}}
- first.value=previousFirst&&Number(previousFirst)<playerCount?previousFirst:'0';winner.value=previousWinner&&Number(previousWinner)<playerCount?previousWinner:'0';$('addPlayer').disabled=playerCount>=6;
+ first.value=previousFirst&&Number(previousFirst)<playerCount?previousFirst:'0';winner.value=previousWinner&&Number(previousWinner)<playerCount?previousWinner:'0';$('addPlayer').disabled=playerCount>=6;$('removePlayer').disabled=playerCount<=2;
  syncOwnCommander();
 }
 function syncOwnCommander(){const deck=decks.find(d=>d.id===$('deck').value);const input=$('playerRows').querySelector('.player-commander');if(input)input.value=deck?.commander||''}
 $('addPlayer').onclick=()=>{if(playerCount<6){playerCount++;drawPlayers()}};
+$('removePlayer').onclick=()=>{if(playerCount>2){playerCount--;drawPlayers()}};
 $('deck').addEventListener('change',syncOwnCommander);
 drawPlayers();
 $('date').value=new Date().toLocaleDateString('en-CA');
