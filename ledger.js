@@ -4,13 +4,43 @@ const $=id=>document.getElementById(id);
 let user=null,decks=[],games=[],playerCount=4;
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
 const message=t=>$('message').textContent=t;
+const scryfallLink=name=>'https://scryfall.com/search?q='+encodeURIComponent('!"'+name.replace(/"/g,'')+'"');
+const suggestionCache=new Map();
+function attachCommanderSearch(input){
+ const wrap=el('div');wrap.className='commander-search';input.parentNode.insertBefore(wrap,input);wrap.append(input);
+ const menu=el('div');menu.className='commander-suggestions';menu.setAttribute('role','listbox');menu.hidden=true;wrap.append(menu);
+ const link=el('a','View on Scryfall');link.className='commander-link';link.target='_blank';link.rel='noopener noreferrer';link.hidden=true;wrap.append(link);
+ let selected=input.value||'',timer=null,controller=null,sequence=0;
+ function updateLink(){link.hidden=!selected;link.href=selected?scryfallLink(selected):'#'}
+ function close(){menu.hidden=true;menu.replaceChildren()}
+ function choose(value){selected=value;input.value=value;input.setCustomValidity('');updateLink();close()}
+ input.addEventListener('input',()=>{
+  selected='';updateLink();input.setCustomValidity('');clearTimeout(timer);controller?.abort();const current=++sequence;close();
+  const query=input.value.trim();if(query.length<2)return;
+  timer=setTimeout(async()=>{
+   try{
+    let names=suggestionCache.get(query.toLowerCase());
+    if(!names){controller=new AbortController();const response=await fetch('https://api.scryfall.com/cards/autocomplete?q='+encodeURIComponent(query),{signal:controller.signal,headers:{Accept:'application/json'}});if(!response.ok)throw Error('Scryfall unavailable');const body=await response.json();names=body.data||[];suggestionCache.set(query.toLowerCase(),names)}
+    if(current!==sequence||input.value.trim()!==query)return;
+    menu.replaceChildren();for(const value of names.slice(0,12)){const option=el('button',value);option.type='button';option.className='commander-option';option.setAttribute('role','option');option.addEventListener('mousedown',e=>e.preventDefault());option.onclick=()=>choose(value);menu.append(option)}
+    if(!names.length)menu.append(el('div','No matching cards'));menu.hidden=false;
+   }catch(error){if(error.name!=='AbortError'&&current===sequence){menu.replaceChildren(el('div','Search unavailable. Try again.'));menu.hidden=false}}
+  },300);
+ });
+ input.addEventListener('keydown',e=>{if(e.key==='Escape')close();if(e.key==='ArrowDown'&&!menu.hidden){e.preventDefault();menu.querySelector('button')?.focus()}});
+ menu.addEventListener('keydown',e=>{if(e.key==='Escape'){close();input.focus()}});
+ input.addEventListener('blur',()=>setTimeout(close,160));
+ updateLink();
+ input.getSelectedCommander=()=>selected;
+}
+
 function drawPlayers(){
  const container=$('playerRows');const old=[...container.querySelectorAll('.player-row')].map(r=>({name:r.querySelector('.player-name').value,commander:r.querySelector('.player-commander').value}));container.replaceChildren();
  for(let i=0;i<playerCount;i++){
   const row=el('div');row.className='player-row';row.append(el('h4',i===0?'Player 1 · You':'Player '+(i+1)));
   const fields=el('div');fields.className='player-fields';
   const nameLabel=el('label','Player name');const name=el('input');name.className='player-name';name.placeholder=i===0?'You':'Player '+(i+1);name.required=i!==0;name.maxLength=80;name.value=old[i]?.name||'';if(i===0){name.value='You';name.readOnly=true}nameLabel.append(name);
-  const commanderLabel=el('label',i===0?'Your commander (from selected deck)':'Commander');const commander=el('input');commander.className='player-commander';commander.required=true;commander.maxLength=200;commander.placeholder='Commander name';commander.value=old[i]?.commander||'';if(i===0)commander.readOnly=true;commanderLabel.append(commander);
+  const commanderLabel=el('label',i===0?'Your commander (from selected deck)':'Commander');const commander=el('input');commander.className='player-commander';commander.required=true;commander.maxLength=200;commander.placeholder='Commander name';commander.value=old[i]?.commander||'';if(i===0)commander.readOnly=true;commanderLabel.append(commander);if(i!==0)attachCommanderSearch(commander);
   fields.append(nameLabel,commanderLabel);row.append(fields);container.append(row);
  }
  const first=$('firstPlayer'),winner=$('winnerPlayer'),previousFirst=first.value,previousWinner=winner.value;first.replaceChildren();winner.replaceChildren();
@@ -47,7 +77,7 @@ function render(){
  if(!decks.length)byDeck.append(el('p','Import a deck first to start tracking.'));
  const history=$('history');history.replaceChildren();
  if(!games.length){history.append(el('p','No games recorded yet.'));return}
- for(const g of games){const deck=decks.find(d=>d.id===g.deck_id);const row=el('div');row.className='entry';const details=el('div');details.append(el('strong',(g.won?'Win':'Loss')+' · '+(deck?.name||'Deleted deck')),el('div',g.played_at));if(Array.isArray(g.players)&&g.players.length){const players=el('div','Table: '+g.players.map((p,i)=>(i+1)+'. '+p.name+' ('+p.commander+')').join(' · '));details.append(players);if(Number.isInteger(g.first_player))details.append(el('div','Went first: '+(g.players[g.first_player]?.name||'Unknown')));if(Number.isInteger(g.winner_player))details.append(el('div','Winner: '+(g.players[g.winner_player]?.name||'Unknown')))}else if(g.opponents?.length)details.append(el('div','Opponents: '+g.opponents.join(', ')));if(g.notes)details.append(el('div',g.notes));const remove=el('button','Delete');remove.type='button';remove.onclick=async()=>{if(!confirm('Delete this game record?'))return;remove.disabled=true;const r=await sb.from('personal_games').delete().eq('id',g.id).eq('owner_id',user.id);if(r.error){message('Delete failed: '+r.error.message);remove.disabled=false;return}await refresh()};row.append(details,remove);history.append(row)}
+ for(const g of games){const deck=decks.find(d=>d.id===g.deck_id);const row=el('div');row.className='entry';const details=el('div');details.append(el('strong',(g.won?'Win':'Loss')+' · '+(deck?.name||'Deleted deck')),el('div',g.played_at));if(Array.isArray(g.players)&&g.players.length){const players=el('div','Table: '+g.players.map((p,i)=>(i+1)+'. '+p.name+' ('+p.commander+')').join(' · '));details.append(players);const commanderLinks=el('div');commanderLinks.className='history-commanders';for(const p of g.players){const a=el('a',p.commander);a.href=scryfallLink(p.commander);a.target='_blank';a.rel='noopener noreferrer';commanderLinks.append(a)}details.append(commanderLinks);if(Number.isInteger(g.first_player))details.append(el('div','Went first: '+(g.players[g.first_player]?.name||'Unknown')));if(Number.isInteger(g.winner_player))details.append(el('div','Winner: '+(g.players[g.winner_player]?.name||'Unknown')))}else if(g.opponents?.length)details.append(el('div','Opponents: '+g.opponents.join(', ')));if(g.notes)details.append(el('div',g.notes));const remove=el('button','Delete');remove.type='button';remove.onclick=async()=>{if(!confirm('Delete this game record?'))return;remove.disabled=true;const r=await sb.from('personal_games').delete().eq('id',g.id).eq('owner_id',user.id);if(r.error){message('Delete failed: '+r.error.message);remove.disabled=false;return}await refresh()};row.append(details,remove);history.append(row)}
 }
 $('gameForm').onsubmit=async e=>{
  e.preventDefault();if(!user)return;
@@ -55,6 +85,8 @@ $('gameForm').onsubmit=async e=>{
  const played_at=$('date').value;
  const players=[...document.querySelectorAll('.player-row')].map((row,i)=>({name:i===0?'You':row.querySelector('.player-name').value.trim(),commander:row.querySelector('.player-commander').value.trim()}));
  if(!played_at||players.length<2||players.length>6||players.some(p=>!p.name||!p.commander)){message('Enter a date, player names, and commanders for everyone.');return}
+ const opponentInputs=[...document.querySelectorAll('.player-row')].slice(1).map(r=>r.querySelector('.player-commander'));
+ if(opponentInputs.some(input=>input.getSelectedCommander?.()!==input.value.trim())){message('Select each opponent commander from the Scryfall suggestions.');return}
  const first_player=Number($('firstPlayer').value),winner_player=Number($('winnerPlayer').value);
  if(!Number.isInteger(first_player)||!Number.isInteger(winner_player)||first_player<0||winner_player<0||first_player>=players.length||winner_player>=players.length){message('Select who went first and who won.');return}
  const button=$('save');button.disabled=true;message('Saving game…');
