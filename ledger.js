@@ -101,13 +101,22 @@ async function refresh(){
  if(r.error){message('Ledger setup needed: run supabase-personal-ledger.sql in your Supabase SQL Editor. '+r.error.message);$('save').disabled=true;return}
  games=r.data||[];message('Your games are saved privately to your account.');render();
 }
+function setEditorOpen(open){
+ $('gameEditor').hidden=!open;
+ $('openGameForm').setAttribute('aria-expanded',String(open));
+ $('openGameForm').textContent=open?'Close game form':'+ Add a game';
+}
+$('openGameForm').onclick=()=>{
+ if(!$('gameEditor').hidden){resetEditor();return}
+ resetEditor();setEditorOpen(true);$('formTitle').scrollIntoView({behavior:'smooth',block:'start'});
+};
 function resetEditor(){
  editingGameId=null;$('formTitle').textContent='Record a game';$('save').textContent='Save game to cloud';$('cancelEdit').hidden=true;
  $('deck').value='';$('notes').value='';$('date').value=new Date().toLocaleDateString('en-CA');
- playerCount=4;drawPlayers([]);$('firstPlayer').value='0';$('winnerPlayer').value='0';
+ playerCount=4;drawPlayers([]);$('firstPlayer').value='0';$('winnerPlayer').value='0';setEditorOpen(false);
 }
 function editGame(game){
- editingGameId=game.id;$('formTitle').textContent='Edit game';$('save').textContent='Save changes';$('cancelEdit').hidden=false;
+ setEditorOpen(true);editingGameId=game.id;$('formTitle').textContent='Edit game';$('save').textContent='Save changes';$('cancelEdit').hidden=false;
  $('deck').value=game.deck_id;$('date').value=game.played_at;$('notes').value=game.notes||'';
  const own=decks.find(d=>d.id===game.deck_id);
  const existing=Array.isArray(game.players)&&game.players.length?game.players:[
@@ -182,3 +191,10 @@ $('gameForm').onsubmit=async e=>{
  resetEditor();await refresh();
 };
 load().catch(e=>message('Unable to load Ledger: '+e.message));
+if(location.hash==='#gameForm'||location.hash==='#gameEditor'){
+ setEditorOpen(true);
+ requestAnimationFrame(()=>$('formTitle').scrollIntoView({block:'start'}));
+}
+window.addEventListener('hashchange',()=>{
+ if(location.hash==='#gameForm'||location.hash==='#gameEditor')setEditorOpen(true);
+});
