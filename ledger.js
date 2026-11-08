@@ -52,6 +52,20 @@ function attachCommanderSearch(input){
  input.getSelectedCommander=()=>selected;
 }
 
+async function showHistoryArt(element,name){
+ if(!name)return;
+ try{
+  const key=name.trim().toLowerCase();let url=artCache.get(key);
+  if(url===undefined){
+   const response=await fetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
+   if(!response.ok)return;
+   const card=await response.json();url=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.large||card.card_faces?.[0]?.image_uris?.large||null;
+   artCache.set(key,url);
+  }
+  if(element.isConnected&&url)element.style.backgroundImage='url("'+url+'")';
+ }catch(e){/* Keep the card readable without artwork. */}
+}
+
 function drawPlayers(){
  const container=$('playerRows');const old=[...container.querySelectorAll('.player-row')].map(r=>({name:r.querySelector('.player-name').value,commander:r.querySelector('.player-commander').value}));container.replaceChildren();
  for(let i=0;i<playerCount;i++){
@@ -96,7 +110,38 @@ function render(){
  if(!decks.length)byDeck.append(el('p','Import a deck first to start tracking.'));
  const history=$('history');history.replaceChildren();
  if(!games.length){history.append(el('p','No games recorded yet.'));return}
- for(const g of games){const deck=decks.find(d=>d.id===g.deck_id);const row=el('div');row.className='entry';const details=el('div');details.append(el('strong',(g.won?'Win':'Loss')+' · '+(deck?.name||'Deleted deck')),el('div',g.played_at));if(Array.isArray(g.players)&&g.players.length){const players=el('div','Table: '+g.players.map((p,i)=>(i+1)+'. '+p.name+' ('+p.commander+')').join(' · '));details.append(players);const commanderLinks=el('div');commanderLinks.className='history-commanders';for(const p of g.players){const a=el('a',p.commander);a.href=scryfallLink(p.commander);a.target='_blank';a.rel='noopener noreferrer';commanderLinks.append(a)}details.append(commanderLinks);if(Number.isInteger(g.first_player))details.append(el('div','Went first: '+(g.players[g.first_player]?.name||'Unknown')));if(Number.isInteger(g.winner_player))details.append(el('div','Winner: '+(g.players[g.winner_player]?.name||'Unknown')))}else if(g.opponents?.length)details.append(el('div','Opponents: '+g.opponents.join(', ')));if(g.notes)details.append(el('div',g.notes));const remove=el('button','Delete');remove.type='button';remove.onclick=async()=>{if(!confirm('Delete this game record?'))return;remove.disabled=true;const r=await sb.from('personal_games').delete().eq('id',g.id).eq('owner_id',user.id);if(r.error){message('Delete failed: '+r.error.message);remove.disabled=false;return}await refresh()};row.append(details,remove);history.append(row)}
+ for(const g of games){
+  const deck=decks.find(d=>d.id===g.deck_id);
+  const record=el('article');record.className='game-record';
+  const header=el('div');header.className='game-record-header';
+  const heading=el('div');heading.append(el('strong',(g.won?'Win':'Loss')+' · '+(deck?.name||'Deleted deck')),el('div',g.played_at));
+  const remove=el('button','Delete');remove.type='button';
+  remove.onclick=async()=>{if(!confirm('Delete this game record?'))return;remove.disabled=true;const r=await sb.from('personal_games').delete().eq('id',g.id).eq('owner_id',user.id);if(r.error){message('Delete failed: '+r.error.message);remove.disabled=false;return}await refresh()};
+  header.append(heading,remove);record.append(header);
+  if(Array.isArray(g.players)&&g.players.length){
+   const pod=el('div');pod.className='history-pod';
+   g.players.forEach((p,i)=>{
+    const tile=el('div');tile.className='history-player';
+    if(i===g.winner_player)tile.classList.add('history-winner');
+    const art=el('div');art.className='history-player-art';art.setAttribute('aria-hidden','true');tile.append(art);
+    const info=el('div');info.className='history-player-info';
+    const tags=el('div');tags.className='history-player-tags';
+    if(i===g.winner_player)tags.append(el('span','🏆 Winner'));
+    if(i===g.first_player)tags.append(el('span','Went first'));
+    info.append(tags,el('strong',p.name||'Player '+(i+1)));
+    const commander=el('a',p.commander||'Unknown commander');commander.href=scryfallLink(p.commander||'');commander.target='_blank';commander.rel='noopener noreferrer';info.append(commander);
+    tile.append(info);pod.append(tile);
+    showHistoryArt(art,p.commander);
+   });
+   record.append(pod);
+  }else{
+   const old=el('div');old.className='history-legacy';
+   if(g.opponents?.length)old.append(el('div','Opponents: '+g.opponents.join(', ')));
+   record.append(old);
+  }
+  if(g.notes){const note=el('p',g.notes);note.className='history-note';record.append(note)}
+  history.append(record);
+ }
 }
 $('gameForm').onsubmit=async e=>{
  e.preventDefault();if(!user)return;
