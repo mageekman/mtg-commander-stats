@@ -80,18 +80,31 @@ if(status.textContent==='Loading card artwork…')status.remove();
 view.scrollIntoView({behavior:'smooth',block:'start'});
 }
 const recentArtCache=new Map();
+const recentArtPending=new Map();
+let recentArtQueue=Promise.resolve();
+function getRecentArtwork(name){
+ const key=name.trim().toLowerCase();
+ if(recentArtCache.has(key))return Promise.resolve(recentArtCache.get(key));
+ if(recentArtPending.has(key))return recentArtPending.get(key);
+ const job=recentArtQueue.then(async()=>{
+  await new Promise(resolve=>setTimeout(resolve,125));
+  const response=await fetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
+  if(!response.ok)throw Error('Scryfall '+response.status);
+  const card=await response.json();
+  const url=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.large||card.card_faces?.[0]?.image_uris?.large||null;
+  recentArtCache.set(key,url);return url;
+ });
+ recentArtQueue=job.catch(()=>{});
+ recentArtPending.set(key,job);
+ job.finally(()=>recentArtPending.delete(key)).catch(()=>{});
+ return job;
+}
 async function paintRecentCommander(tile,name){
  if(!name?.trim())return;
  try{
-  const key=name.trim().toLowerCase();let url=recentArtCache.get(key);
-  if(url===undefined){
-   const response=await fetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
-   if(!response.ok)return;
-   const card=await response.json();url=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.large||card.card_faces?.[0]?.image_uris?.large||null;
-   recentArtCache.set(key,url);
-  }
+  const url=await getRecentArtwork(name);
   if(tile.isConnected&&url)tile.style.backgroundImage='url("'+url+'")';
- }catch(e){/* Text remains readable when artwork is unavailable. */}
+ }catch(e){/* Keep text visible if Scryfall artwork is unavailable. */}
 }
 function renderRecentGames(rows,error){
  const container=$('recentGames');if(!container)return;
