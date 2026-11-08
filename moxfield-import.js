@@ -106,7 +106,7 @@ saveButton.onclick=async()=>{
  :await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list});
  if(error)throw Error(error.message);
  status.textContent=isEditing?'Changes saved to your cloud deck.':'Deck saved to your cloud account.';
- if(isEditing)window.location.href='./deck.html?id='+encodeURIComponent(editId);
+ window.location.href=isEditing?'./deck.html?id='+encodeURIComponent(editId):'./index.html#profiles';
  }catch(e){status.textContent='Save failed: '+e.message}
  finally{saveButton.disabled=false}
 };
