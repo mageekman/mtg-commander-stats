@@ -167,7 +167,20 @@ function renderBestDeck(){
 function render(){
  renderBestDeck();
  const wins=games.filter(g=>g.won).length;
- const summary=$('summary');summary.replaceChildren(stat('Games',games.length),stat('Wins',wins),stat('Losses',games.length-wins),stat('Win rate',games.length?(wins/games.length*100).toFixed(1)+'%':'0%'));
+ const summary=$('summary');summary.replaceChildren();
+ const rate=games.length?(wins/games.length*100).toFixed(1):'0.0';
+ const main=el('div');main.className='stats-main';
+ main.append(stat('Total games',games.length),stat('Overall win rate',rate+'%'));
+ const pieCard=el('div');pieCard.className='stats-pie-card';
+ const donut=el('div');donut.className='stats-donut';donut.style.setProperty('--win-percent',rate+'%');
+ donut.setAttribute('role','img');donut.setAttribute('aria-label',wins+' wins and '+(games.length-wins)+' losses');
+ const inner=el('div');inner.className='stats-donut-inner';inner.append(el('strong',rate+'%'),el('span','Win rate'));donut.append(inner);
+ const legend=el('div');legend.className='stats-pie-legend';
+ for(const [kind,label,value] of [['win','Wins',wins],['loss','Losses',games.length-wins]]){
+  const line=el('div');const dot=el('span');dot.className='stats-pie-dot '+kind;
+  line.append(dot,el('span',label),el('strong',String(value)));legend.append(line);
+ }
+ pieCard.append(donut,legend);summary.append(main,pieCard);
  const byDeck=$('deckStats');byDeck.replaceChildren();
  for(const deck of decks){const list=games.filter(g=>g.deck_id===deck.id),w=list.filter(g=>g.won).length;const line=el('div');line.className='entry';line.append(el('span',deck.name),el('span',list.length+' games · '+w+' wins · '+(list.length?(w/list.length*100).toFixed(1):'0')+'%'));byDeck.append(line)}
  if(!decks.length)byDeck.append(el('p','Import a deck first to start tracking.'));
