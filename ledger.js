@@ -1,7 +1,7 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
-let user=null,decks=[],games=[],playerCount=4;
+let user=null,decks=[],games=[],playerCount=4,editingGameId=null;
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
 const message=t=>$('message').textContent=t;
 const scryfallLink=name=>'https://scryfall.com/search?q='+encodeURIComponent('!"'+name.replace(/"/g,'')+'"');
@@ -66,8 +66,8 @@ async function showHistoryArt(element,name){
  }catch(e){/* Keep the card readable without artwork. */}
 }
 
-function drawPlayers(){
- const container=$('playerRows');const old=[...container.querySelectorAll('.player-row')].map(r=>({name:r.querySelector('.player-name').value,commander:r.querySelector('.player-commander').value}));container.replaceChildren();
+function drawPlayers(prefill=null){
+ const container=$('playerRows');const old=prefill||[...container.querySelectorAll('.player-row')].map(r=>({name:r.querySelector('.player-name').value,commander:r.querySelector('.player-commander').value}));container.replaceChildren();
  for(let i=0;i<playerCount;i++){
   const row=el('div');row.className='player-row';const art=el('div');art.className='commander-art';art.setAttribute('aria-hidden','true');row.append(art,el('h4',i===0?'Player 1 · You':'Player '+(i+1)));
   const fields=el('div');fields.className='player-fields';
@@ -101,6 +101,27 @@ async function refresh(){
  if(r.error){message('Ledger setup needed: run supabase-personal-ledger.sql in your Supabase SQL Editor. '+r.error.message);$('save').disabled=true;return}
  games=r.data||[];message('Your games are saved privately to your account.');render();
 }
+function resetEditor(){
+ editingGameId=null;$('formTitle').textContent='Record a game';$('save').textContent='Save game to cloud';$('cancelEdit').hidden=true;
+ $('deck').value='';$('notes').value='';$('date').value=new Date().toLocaleDateString('en-CA');
+ playerCount=4;drawPlayers([]);$('firstPlayer').value='0';$('winnerPlayer').value='0';
+}
+function editGame(game){
+ editingGameId=game.id;$('formTitle').textContent='Edit game';$('save').textContent='Save changes';$('cancelEdit').hidden=false;
+ $('deck').value=game.deck_id;$('date').value=game.played_at;$('notes').value=game.notes||'';
+ const own=decks.find(d=>d.id===game.deck_id);
+ const existing=Array.isArray(game.players)&&game.players.length?game.players:[
+  {name:'You',commander:own?.commander||''},
+  ...(game.opponents||[]).map((commander,i)=>({name:'Opponent '+(i+1),commander}))
+ ];
+ playerCount=Math.max(2,Math.min(6,existing.length||4));drawPlayers(existing);
+ $('firstPlayer').value=String(Number.isInteger(game.first_player)?game.first_player:0);
+ $('winnerPlayer').value=String(Number.isInteger(game.winner_player)?game.winner_player:(game.won?0:Math.min(1,playerCount-1)));
+ $('formTitle').scrollIntoView({behavior:'smooth',block:'start'});
+ message('Editing saved game. Save changes when finished.');
+}
+$('cancelEdit').onclick=()=>{resetEditor();message('Editing cancelled.')};
+
 function stat(label,value){const box=el('div');box.className='stat';box.append(el('strong',String(value)),el('span',label));return box}
 function render(){
  const wins=games.filter(g=>g.won).length;
@@ -115,9 +136,10 @@ function render(){
   const record=el('article');record.className='game-record';
   const header=el('div');header.className='game-record-header';
   const heading=el('div');heading.append(el('strong',(g.won?'Win':'Loss')+' · '+(deck?.name||'Deleted deck')),el('div',g.played_at));
+  const edit=el('button','Edit');edit.type='button';edit.onclick=()=>editGame(g);
   const remove=el('button','Delete');remove.type='button';
   remove.onclick=async()=>{if(!confirm('Delete this game record?'))return;remove.disabled=true;const r=await sb.from('personal_games').delete().eq('id',g.id).eq('owner_id',user.id);if(r.error){message('Delete failed: '+r.error.message);remove.disabled=false;return}await refresh()};
-  header.append(heading,remove);record.append(header);
+  const actions=el('div');actions.className='game-record-actions';actions.append(edit,remove);header.append(heading,actions);record.append(header);
   if(Array.isArray(g.players)&&g.players.length){
    const pod=el('div');pod.className='history-pod';
    g.players.forEach((p,i)=>{
@@ -154,8 +176,9 @@ $('gameForm').onsubmit=async e=>{
  const first_player=Number($('firstPlayer').value),winner_player=Number($('winnerPlayer').value);
  if(!Number.isInteger(first_player)||!Number.isInteger(winner_player)||first_player<0||winner_player<0||first_player>=players.length||winner_player>=players.length){message('Select who went first and who won.');return}
  const button=$('save');button.disabled=true;message('Saving game…');
- const r=await sb.from('personal_games').insert({owner_id:user.id,deck_id,played_at,won:winner_player===0,opponents:players.slice(1).map(p=>p.commander),players,first_player,winner_player,notes:$('notes').value.trim()});
+ const payload={deck_id,played_at,won:winner_player===0,opponents:players.slice(1).map(p=>p.commander),players,first_player,winner_player,notes:$('notes').value.trim()};
+ const r=editingGameId?await sb.from('personal_games').update(payload).eq('id',editingGameId).eq('owner_id',user.id):await sb.from('personal_games').insert({...payload,owner_id:user.id});
  button.disabled=false;if(r.error){message('Save failed: '+r.error.message+(r.error.message.includes('column')?' — Run supabase-ledger-players-migration.sql first.':''));return}
- $('notes').value='';playerCount=4;drawPlayers();await refresh();
+ resetEditor();await refresh();
 };
 load().catch(e=>message('Unable to load Ledger: '+e.message));
