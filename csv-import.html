@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Import Games · Command Ledger</title>
+<style>
+*{box-sizing:border-box}body{font:15px system-ui;background:#101827;color:#f1f5f9;max-width:1050px;margin:auto;padding:24px;line-height:1.5}
+a{color:#a7f3d0}header{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:24px}
+h1{font-size:30px;margin:0}h2{margin:0 0 10px;font-size:21px}.muted{color:#94a3b8}
+section{background:#1e293b;border-radius:12px;padding:24px;margin:16px 0}
+button,input{font:inherit}button{background:#047857;color:white;border:1px solid #047857;padding:11px 17px;border-radius:8px;cursor:pointer;font-weight:700}button:hover:not(:disabled){background:#059669}button:disabled{opacity:.55;cursor:not-allowed}
+.csv-import-actions{display:flex;align-items:end;gap:16px;flex-wrap:wrap;margin-top:18px}.csv-import-actions label{display:grid;gap:8px;flex:1;min-width:220px;font-weight:650}.csv-import-actions button{background:#334155;border-color:#64748b}.csv-import-actions button:hover{background:#475569}
+input[type=file]{display:block;width:100%;background:#0f172a;color:#e2e8f0;border:1px solid #64748b;border-radius:8px;padding:11px}
+#csvImportStatus{min-height:24px}#confirmCsvImport{margin-top:18px}#confirmCsvImport[hidden]{display:none}
+.csv-import-table-wrap{overflow:auto;max-height:470px;border:1px solid #334155;border-radius:9px}
+.csv-import-table{width:100%;border-collapse:collapse;font-size:13px}.csv-import-table th,.csv-import-table td{padding:12px;text-align:left;border-bottom:1px solid #334155}.csv-import-table th{background:#0f172a;position:sticky;top:0}.csv-import-table tr:last-child td{border-bottom:0}
+.csv-import-error{color:#fda4af;font-weight:650}.csv-import-ok{color:#6ee7b7;font-weight:650}
+.instructions{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:18px}.instructions>div{border:1px solid #334155;border-radius:10px;padding:16px;background:#142136}
+.instructions strong{color:#a7f3d0}code{background:#0f172a;padding:3px 5px;border-radius:4px;color:#d1fae5}
+@media(max-width:560px){body{padding:14px}section{padding:16px}.csv-import-actions{align-items:stretch}.csv-import-actions button{width:100%}}
+</style></head>
+<body><header><a href="./ledger.html">← Back to My Ledger</a><a href="./index.html">My decks</a></header>
+<main><h1>Import games from CSV</h1><p class="muted">Bring your Commander game history from Excel, Google Sheets, or another spreadsheet into your Ledger.</p>
+<section><h2>1. Prepare your CSV</h2><p>Export your spreadsheet as a <strong>.csv</strong> file. Each row should represent one game. Only three columns are required.</p>
+<div class="instructions"><div><strong>Date</strong><p>Use <code>2026-11-01</code> or <code>11/01/2026</code>.</p></div><div><strong>Deck</strong><p>Use a deck name or commander matching one of your imported decks.</p></div><div><strong>Result</strong><p>Use <code>Win</code> or <code>Loss</code>. Yes/No and 1/0 also work.</p></div></div>
+<p class="muted">Optional columns: <strong>Opponents</strong> (separate commanders with semicolons) and <strong>Notes</strong>. We also recognize common alternatives like “Game Date,” “My Commander,” and “Outcome.”</p></section>
+<section><h2>2. Upload and validate</h2><p class="muted">We'll check each row, match decks, and flag invalid or potentially duplicate games. Nothing is saved until you confirm.</p>
+<div class="csv-import-actions"><button id="downloadCsvTemplate" type="button">Download CSV template</button><label for="csvFile">Select CSV file<input id="csvFile" type="file" accept=".csv,text/csv"></label></div>
+<p id="csvImportStatus" class="muted" role="status">Checking your account…</p><div id="csvImportPreview"></div></section>
+<section><h2>3. Import valid games</h2><p class="muted">Only rows marked Ready will be imported. You can fix skipped rows in your spreadsheet and upload again.</p><button id="confirmCsvImport" type="button" hidden>Import valid games</button><p><a href="./ledger.html">Return to My Ledger</a></p></section></main>
+<script type="module" src="./csv-import.js"></script></body></html>
