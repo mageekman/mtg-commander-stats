@@ -48,10 +48,39 @@ function csvResult(s){
  if(['loss','lost','lose','l','no','false','0','defeat'].includes(v))return false;
  return null;
 }
+function editDistance(a,b){
+ const prev=Array.from({length:b.length+1},(_,i)=>i);
+ for(let i=1;i<=a.length;i++){
+  let diagonal=prev[0];prev[0]=i;
+  for(let j=1;j<=b.length;j++){
+   const above=prev[j];
+   prev[j]=Math.min(prev[j]+1,prev[j-1]+1,diagonal+(a[i-1]===b[j-1]?0:1));
+   diagonal=above;
+  }
+ }
+ return prev[b.length];
+}
+function csvSimilarity(a,b){
+ a=csvKey(a);b=csvKey(b);
+ if(!a||!b)return 0;
+ if(a===b)return 1;
+ const distance=editDistance(a,b);
+ let score=1-distance/Math.max(a.length,b.length);
+ if(Math.min(a.length,b.length)>=5&&(a.includes(b)||b.includes(a)))score=Math.max(score,.83);
+ return score;
+}
+function csvDeckCandidates(name){
+ return decks.map(deck=>{
+  const aliases=[deck.name,deck.commander,...String(deck.commander||'').split(/\\s*\\/\\s*|\\s*&\\s*/)];
+  return {deck,score:Math.max(...aliases.map(alias=>csvSimilarity(name,alias)))};
+ }).sort((a,b)=>b.score-a.score);
+}
 function csvMatchDeck(name){
- const key=csvKey(name);
- const matches=decks.filter(d=>csvKey(d.name)===key||csvKey(d.commander)===key);
- return matches.length===1?matches[0]:null;
+ const ranked=csvDeckCandidates(name),top=ranked[0],second=ranked[1];
+ if(!top)return {deck:null,needsReview:true};
+ const exact=top.score===1&&(!second||second.score<1);
+ const confident=top.score>=.92&&(!second||top.score-second.score>=.12);
+ return {deck:top.score>=.55?top.deck:null,needsReview:!exact&&!confident};
 }
 $('downloadCsvTemplate').onclick=()=>{
  const csv='Date,Deck,Result,Opponents,Notes\n2026-11-01,My Commander Deck,Win,"Krenko; Atraxa; Muldrotha",Fun game\n';
@@ -77,25 +106,46 @@ $('csvFile').addEventListener('change',async e=>{
   const opponentsCol=csvField(headers,['opponents','opponent commanders','other commanders']);
   if([dateCol,deckCol,resultCol].some(n=>n<0))throw Error('Missing required columns. Use Date, Deck, and Result (Win or Loss). Download the template for an example.');
   const existing=new Set(games.map(g=>[g.played_at,g.deck_id,g.won?'win':'loss'].join('|')));
-  const seen=new Set();
   const results=rows.map((row,i)=>{
-   const date=csvDate(row[dateCol]),deck=csvMatchDeck(row[deckCol]),won=csvResult(row[resultCol]);
-   const key=date&&deck&&won!==null?[date,deck.id,won?'win':'loss'].join('|'):null;
-   let error=!date?'Invalid date':!deck?'Deck not found or ambiguous':won===null?'Result must be Win or Loss':existing.has(key)||seen.has(key)?'Possible duplicate':'';
-   if(key)seen.add(key);
+   const date=csvDate(row[dateCol]),match=csvMatchDeck(row[deckCol]),won=csvResult(row[resultCol]);
    const opponents=opponentsCol>=0?String(row[opponentsCol]||'').split(';').map(s=>s.trim()).filter(Boolean):[];
-   return {line:i+2,date,deck,won,error,opponents,notes:notesCol>=0?String(row[notesCol]||'').trim():'',rawDeck:row[deckCol]};
+   return {line:i+2,date,deck:match.deck,needsReview:match.needsReview,won,error:'',opponents,notes:notesCol>=0?String(row[notesCol]||'').trim():'',rawDeck:row[deckCol]};
   });
-  csvReady=results.filter(r=>!r.error);
   const table=el('table');table.className='csv-import-table';
-  const head=el('tr');for(const title of ['Row','Date','Deck','Result','Status'])head.append(el('th',title));table.append(head);
-  for(const r of results){
-   const tr=el('tr');for(const value of [r.line,r.date||'—',r.deck?.name||r.rawDeck||'—',r.won===null?'—':r.won?'Win':'Loss',r.error||'Ready'])tr.append(el('td',String(value)));
-   tr.lastChild.className=r.error?'csv-import-error':'csv-import-ok';table.append(tr);
+  const head=el('tr');for(const title of ['Row','Date','CSV deck','Matched deck','Result','Status'])head.append(el('th',title));table.append(head);
+  const statuses=[];
+  const update=()=>{
+   const seen=new Set();
+   for(let i=0;i<results.length;i++){
+    const r=results[i],key=r.date&&r.deck&&r.won!==null?[r.date,r.deck.id,r.won?'win':'loss'].join('|'):null;
+    r.error=!r.date?'Invalid date':r.won===null?'Result must be Win or Loss':!r.deck?'Choose a deck':r.needsReview?'Confirm suggested deck':existing.has(key)||seen.has(key)?'Possible duplicate':'';
+    if(key)seen.add(key);
+    statuses[i].textContent=r.error||'Ready';
+    statuses[i].className=r.error?'csv-import-error':'csv-import-ok';
+   }
+   csvReady=results.filter(r=>!r.error);
+   status.textContent=csvReady.length+' ready · '+results.filter(r=>r.needsReview).length+' need deck confirmation · '+(results.length-csvReady.length-results.filter(r=>r.needsReview).length)+' other skipped. Review suggested matches before importing.';
+   $('confirmCsvImport').hidden=!csvReady.length;
+  };
+  for(let i=0;i<results.length;i++){
+   const r=results[i],tr=el('tr');
+   tr.append(el('td',String(r.line)),el('td',r.date||'—'),el('td',r.rawDeck||'—'));
+   const cell=el('td'),select=el('select');select.className='csv-deck-select';select.setAttribute('aria-label','Match deck for CSV row '+r.line);
+   const placeholder=el('option','Select deck');placeholder.value='';select.append(placeholder);
+   const candidates=csvDeckCandidates(r.rawDeck);
+   for(const item of candidates){
+    const option=el('option',item.deck.name+' — '+item.deck.commander);
+    option.value=item.deck.id;select.append(option);
+   }
+   select.value=r.deck?.id||'';
+   select.onchange=()=>{r.deck=decks.find(d=>d.id===select.value)||null;r.needsReview=false;update()};
+   cell.append(select);
+   if(r.needsReview&&r.deck){const hint=el('div','Closest match suggested — please confirm using the dropdown.');hint.className='csv-import-error';cell.append(hint)}
+   tr.append(cell,el('td',r.won===null?'—':r.won?'Win':'Loss'));
+   const state=el('td');tr.append(state);statuses.push(state);table.append(tr);
   }
   const wrap=el('div');wrap.className='csv-import-table-wrap';wrap.append(table);preview.append(wrap);
-  status.textContent=csvReady.length+' ready to import · '+(results.length-csvReady.length)+' skipped. Rows with the same date, deck, and result as an existing game are flagged as possible duplicates.';
-  $('confirmCsvImport').hidden=!csvReady.length;
+  update();
  }catch(err){status.textContent='Could not read CSV: '+err.message}
 });
 $('confirmCsvImport').onclick=async()=>{
