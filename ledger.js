@@ -182,8 +182,25 @@ function render(){
   line.append(dot,el('span',label),el('strong',String(value)));legend.append(line);
  }
  pieCard.append(donut,legend);summary.append(main,pieCard);
- const byDeck=$('deckStats');byDeck.replaceChildren();
- for(const deck of decks){const list=games.filter(g=>g.deck_id===deck.id),w=list.filter(g=>g.won).length;const line=el('div');line.className='entry';line.append(el('span',deck.name),el('span',list.length+' games · '+w+' wins · '+(list.length?(w/list.length*100).toFixed(1):'0')+'%'));byDeck.append(line)}
+ const byDeck=$('deckStats');byDeck.replaceChildren();byDeck.className='deck-stats-grid';
+ for(const deck of decks){
+  const played=games.filter(g=>g.deck_id===deck.id),wins=played.filter(g=>g.won).length;
+  const rate=played.length?(wins/played.length*100).toFixed(1)+'%':'—';
+  const card=el('a');card.className='deck-stats-card';card.href='./deck.html?id='+encodeURIComponent(deck.id);
+  card.setAttribute('aria-label',deck.name+', '+played.length+' games, '+(played.length?rate+' win rate':'no games')+'. View deck profile');
+  const artwork=el('div');artwork.className='deck-stats-art';artwork.setAttribute('aria-hidden','true');
+  const content=el('div');content.className='deck-stats-content';
+  const name=el('strong',deck.name);name.className='deck-stats-name';
+  const commander=el('span',deck.commander);commander.className='deck-stats-commander';
+  const bottom=el('div');bottom.className='deck-stats-bottom';
+  const percentage=el('div',rate);percentage.className='deck-stats-rate';percentage.append(el('small','Win rate'));
+  const record=el('span',played.length?wins+' wins · '+(played.length-wins)+' losses':'No games yet');record.className='deck-stats-record';
+  bottom.append(percentage,record);content.append(name,commander,bottom);card.append(artwork,content);byDeck.append(card);
+  const commanderName=deck.commander.split(' / ')[0].split(' & ')[0].trim();
+  if(commanderName)getCommanderArtwork(commanderName).then(url=>{
+   if(card.isConnected&&url)artwork.style.backgroundImage='url("'+url+'")';
+  }).catch(()=>{});
+ }
  if(!decks.length)byDeck.append(el('p','Import a deck first to start tracking.'));
  const history=$('history');history.replaceChildren();
  const selectedDeck=$('historyDeckFilter').value;
