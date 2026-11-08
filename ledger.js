@@ -102,6 +102,7 @@ async function load(){
  if(d.error){message('Unable to load decks: '+d.error.message);return}
  decks=d.data||[];const select=$('deck');select.replaceChildren(el('option','Select your deck'));select.firstChild.value='';
  for(const deck of decks){const o=el('option',deck.name+' — '+deck.commander);o.value=deck.id;select.append(o)}
+ const filter=$('historyDeckFilter');filter.replaceChildren();const all=el('option','All decks');all.value='';filter.append(all);for(const deck of decks){const option=el('option',deck.name+' — '+deck.commander);option.value=deck.id;filter.append(option)}
  syncOwnCommander();await refresh();
 }
 async function refresh(){
@@ -139,6 +140,7 @@ function editGame(game){
 }
 $('cancelEdit').onclick=()=>{resetEditor();message('Editing cancelled.')};
 
+$('historyDeckFilter').addEventListener('change',render);
 function stat(label,value){const box=el('div');box.className='stat';box.append(el('strong',String(value)),el('span',label));return box}
 function render(){
  const wins=games.filter(g=>g.won).length;
@@ -147,8 +149,11 @@ function render(){
  for(const deck of decks){const list=games.filter(g=>g.deck_id===deck.id),w=list.filter(g=>g.won).length;const line=el('div');line.className='entry';line.append(el('span',deck.name),el('span',list.length+' games · '+w+' wins · '+(list.length?(w/list.length*100).toFixed(1):'0')+'%'));byDeck.append(line)}
  if(!decks.length)byDeck.append(el('p','Import a deck first to start tracking.'));
  const history=$('history');history.replaceChildren();
- if(!games.length){history.append(el('p','No games recorded yet.'));return}
- for(const g of games){
+ const selectedDeck=$('historyDeckFilter').value;
+ const visibleGames=selectedDeck?games.filter(g=>g.deck_id===selectedDeck):games;
+ $('historyCount').textContent=visibleGames.length+' of '+games.length+' games'+(selectedDeck?' · '+(decks.find(d=>d.id===selectedDeck)?.name||'Selected deck'):'');
+ if(!visibleGames.length){history.append(el('p',games.length?'No games recorded with this deck yet.':'No games recorded yet.'));return}
+ for(const g of visibleGames){
   const deck=decks.find(d=>d.id===g.deck_id);
   const record=el('article');record.className='game-record';
   const header=el('div');header.className='game-record-header';
