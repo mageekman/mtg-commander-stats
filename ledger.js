@@ -103,6 +103,7 @@ async function load(){
  decks=d.data||[];const select=$('deck');select.replaceChildren(el('option','Select your deck'));select.firstChild.value='';
  for(const deck of decks){const o=el('option',deck.name+' — '+deck.commander);o.value=deck.id;select.append(o)}
  const filter=$('historyDeckFilter');filter.replaceChildren();const all=el('option','All decks');all.value='';filter.append(all);for(const deck of decks){const option=el('option',deck.name+' — '+deck.commander);option.value=deck.id;filter.append(option)}
+ const requestedDeck=new URLSearchParams(location.search).get('deck');if(requestedDeck&&decks.some(d=>d.id===requestedDeck))filter.value=requestedDeck;
  syncOwnCommander();await refresh();
 }
 async function refresh(){
