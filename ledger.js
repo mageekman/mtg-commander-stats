@@ -142,7 +142,30 @@ $('cancelEdit').onclick=()=>{resetEditor();message('Editing cancelled.')};
 
 $('historyDeckFilter').addEventListener('change',render);
 function stat(label,value){const box=el('div');box.className='stat';box.append(el('strong',String(value)),el('span',label));return box}
+function renderBestDeck(){
+ const host=$('bestDeck');host.replaceChildren();
+ const ranked=decks.map(deck=>{
+  const played=games.filter(g=>g.deck_id===deck.id);
+  return {deck,games:played.length,wins:played.filter(g=>g.won).length};
+ }).filter(d=>d.games>0).sort((a,b)=>(b.wins/b.games)-(a.wins/a.games)||b.games-a.games||b.wins-a.wins);
+ if(!ranked.length){const empty=el('div','Record a game to see your best-performing deck.');empty.className='best-deck-empty';host.append(empty);return}
+ const best=ranked[0],rate=(100*best.wins/best.games).toFixed(1)+'%';
+ const card=el('div');card.className='best-deck-card';
+ const artwork=el('div');artwork.className='best-deck-art';artwork.setAttribute('aria-hidden','true');
+ const content=el('div');content.className='best-deck-content';
+ const label=el('span','★ Best deck');label.className='best-deck-label';
+ const name=el('strong',best.deck.name);name.className='best-deck-name';
+ const commander=el('span',best.deck.commander);commander.className='best-deck-commander';
+ const winrate=el('strong',rate+' win rate');winrate.className='best-deck-rate';
+ const record=el('span',best.wins+' wins in '+best.games+' games');record.className='best-deck-record';
+ content.append(label,name,commander,winrate,record);card.append(artwork,content);host.append(card);
+ const commanderName=best.deck.commander.split(/\\s+\\/\\s+|\\s+&\\s+/)[0].trim();
+ if(commanderName)getCommanderArtwork(commanderName).then(url=>{
+  if(card.isConnected&&url)artwork.style.backgroundImage='url("'+url+'")';
+ }).catch(()=>{});
+}
 function render(){
+ renderBestDeck();
  const wins=games.filter(g=>g.won).length;
  const summary=$('summary');summary.replaceChildren(stat('Games',games.length),stat('Wins',wins),stat('Losses',games.length-wins),stat('Win rate',games.length?(wins/games.length*100).toFixed(1)+'%':'0%'));
  const byDeck=$('deckStats');byDeck.replaceChildren();
