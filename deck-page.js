@@ -82,13 +82,15 @@ async function run(){
  $('status').textContent='Loading card artwork…';
  let cards=new Map();try{cards=await fetchCards([...items.map(i=>i.name),...commanderNames])}catch(e){$('status').textContent=e.message+' — showing card names instead.'}
  const root=$('deckContent'),hero=element('div');hero.className='hero';
- for(const name of commanderNames){const image=art(cards.get(name.toLowerCase()));if(image){const img=document.createElement('img');img.src=image;img.alt=name;hero.append(img)}}
- const meta=element('div');meta.append(element('h2',deck.commander));
+ const artPanel=element('div');artPanel.className='deck-hero-art';
+ for(const name of commanderNames){const image=art(cards.get(name.toLowerCase()));if(image){const img=document.createElement('img');img.src=image;img.alt=name;artPanel.append(img)}}
+ hero.append(artPanel);
+ const meta=element('div');meta.className='deck-hero-details';meta.append(element('h2',deck.commander));
  const colors=[...new Set(commanderNames.flatMap(n=>cards.get(n.toLowerCase())?.color_identity||[]))];
  meta.append(element('p','Color identity: '+(colors.length?colors.map(c=>({W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'}[c])).join(' / '):'Colorless or unavailable')));
  meta.append(element('p',items.reduce((n,i)=>n+i.qty,0)+' cards listed'));
  hero.append(meta);root.append(hero);
- await renderDeckPerformance(root,deck,user);
+ await renderDeckPerformance(meta,deck,user);
  const buckets=new Map();
  for(const item of items){
  const category=item.commander||commanderNames.some(n=>n.toLowerCase()===item.name.toLowerCase())?'Commander':type(cards.get(item.name.toLowerCase()));
