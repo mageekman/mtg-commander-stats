@@ -43,6 +43,33 @@ function type(c){
  return 'Other';
 }
 function element(tag,text){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e}
+async function renderDeckPerformance(root,deck,user){
+ const section=element('section');section.className='deck-performance';
+ section.append(element('h2','Deck statistics'));
+ const content=element('div');content.className='deck-stats-empty';content.textContent='Loading this deck’s game results…';section.append(content);root.append(section);
+ const link=element('a','View games with this deck in My Ledger');link.className='deck-stats-link';link.href='./ledger.html?deck='+encodeURIComponent(deck.id);section.append(link);
+ try{
+  const {data,error}=await sb.from('personal_games').select('won').eq('owner_id',user.id).eq('deck_id',deck.id);
+  if(error)throw Error(error.message);
+  const total=data.length,wins=data.filter(g=>g.won).length,losses=total-wins;
+  if(!total){content.textContent='No games recorded with this deck yet. Record a game to start tracking its performance.';return}
+  const rate=(wins/total*100).toFixed(1);
+  const layout=element('div');layout.className='deck-performance-grid';
+  const tiles=element('div');tiles.className='deck-stat-tiles';
+  for(const [label,value] of [['Total games',total],['Win rate',rate+'%']]){
+   const tile=element('div');tile.className='deck-stat';tile.append(element('strong',String(value)),element('span',label));tiles.append(tile);
+  }
+  const chart=element('div');chart.className='deck-chart-card';
+  const donut=element('div');donut.className='deck-donut';donut.style.setProperty('--win-percent',rate+'%');
+  donut.setAttribute('role','img');donut.setAttribute('aria-label',wins+' wins and '+losses+' losses');
+  const center=element('div');center.className='deck-donut-inner';center.append(element('strong',rate+'%'),element('span','Win rate'));donut.append(center);
+  const legend=element('div');legend.className='deck-chart-legend';
+  for(const [kind,label,value] of [['win','Wins',wins],['loss','Losses',losses]]){
+   const row=element('div'),dot=element('span');dot.className='deck-chart-dot '+kind;row.append(dot,element('span',label),element('strong',String(value)));legend.append(row);
+  }
+  chart.append(donut,legend);layout.append(tiles,chart);content.replaceWith(layout);
+ }catch(e){content.textContent='Could not load deck statistics: '+e.message}
+}
 async function run(){
  if(!id||!/^[0-9a-f-]{36}$/i.test(id)){$('status').textContent='Invalid deck link.';return}
  const {data:{user}}=await sb.auth.getUser();
@@ -60,8 +87,8 @@ async function run(){
  const colors=[...new Set(commanderNames.flatMap(n=>cards.get(n.toLowerCase())?.color_identity||[]))];
  meta.append(element('p','Color identity: '+(colors.length?colors.map(c=>({W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'}[c])).join(' / '):'Colorless or unavailable')));
  meta.append(element('p',items.reduce((n,i)=>n+i.qty,0)+' cards listed'));
- meta.append(element('p','Game performance will appear here when cloud games are connected.'));
  hero.append(meta);root.append(hero);
+ await renderDeckPerformance(root,deck,user);
  const buckets=new Map();
  for(const item of items){
  const category=item.commander||commanderNames.some(n=>n.toLowerCase()===item.name.toLowerCase())?'Commander':type(cards.get(item.name.toLowerCase()));
