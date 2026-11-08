@@ -79,6 +79,20 @@ const grid=document.createElement('div');grid.className='ledger-grid';cards.forE
 if(status.textContent==='Loading card artwork…')status.remove();
 view.scrollIntoView({behavior:'smooth',block:'start'});
 }
+const recentArtCache=new Map();
+async function paintRecentCommander(tile,name){
+ if(!name?.trim())return;
+ try{
+  const key=name.trim().toLowerCase();let url=recentArtCache.get(key);
+  if(url===undefined){
+   const response=await fetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
+   if(!response.ok)return;
+   const card=await response.json();url=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.large||card.card_faces?.[0]?.image_uris?.large||null;
+   recentArtCache.set(key,url);
+  }
+  if(tile.isConnected&&url)tile.style.backgroundImage='url("'+url+'")';
+ }catch(e){/* Text remains readable when artwork is unavailable. */}
+}
 function renderRecentGames(rows,error){
  const container=$('recentGames');if(!container)return;
  container.replaceChildren();
@@ -94,13 +108,25 @@ function renderRecentGames(rows,error){
   const [year,month,day]=game.played_at.split('-').map(Number);date.textContent=new Date(year,month-1,day).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
   top.append(result,date);
   const name=document.createElement('div');name.className='recent-game-deck';name.textContent=deck?.name||'Deleted deck';
-  const commander=document.createElement('div');commander.className='recent-game-commander';commander.textContent=deck?.commander||'';
-  card.append(top,name,commander);
+  card.append(top,name);
   if(Array.isArray(game.players)&&game.players.length){
-   const table=document.createElement('div');table.className='recent-game-table';
-   const winner=game.players[game.winner_player]?.name||'Unknown';
-   table.textContent=game.players.length+' players · Winner: '+winner;
-   card.append(table);
+   const pod=document.createElement('div');pod.className='recent-game-pod';
+   game.players.forEach((player,i)=>{
+    const tile=document.createElement('div');tile.className='recent-game-player'+(i===game.winner_player?' recent-game-winner':'');
+    const art=document.createElement('div');art.className='recent-game-player-art';art.setAttribute('aria-hidden','true');
+    const info=document.createElement('div');info.className='recent-game-player-info';
+    const tags=document.createElement('div');tags.className='recent-game-player-tags';
+    if(i===game.winner_player){const badge=document.createElement('span');badge.textContent='🏆 Winner';tags.append(badge)}
+    if(i===game.first_player){const badge=document.createElement('span');badge.textContent='Went first';tags.append(badge)}
+    const playerName=document.createElement('strong');playerName.textContent=player.name||'Player '+(i+1);
+    const commander=document.createElement('span');commander.textContent=player.commander||'Unknown commander';
+    info.append(tags,playerName,commander);tile.append(art,info);pod.append(tile);
+    paintRecentCommander(art,player.commander);
+   });
+   card.append(pod);
+  }else{
+   const commander=document.createElement('div');commander.className='recent-game-commander';commander.textContent=deck?.commander||'';
+   card.append(commander);
   }
   container.append(card);
  }
@@ -118,7 +144,7 @@ const {data,error}=await sb.from('decks').select('id,name,commander,decklist,cre
 if(error){$('deckGallery').textContent=error.message;return}
 decks=data||[];
 const winRates=new Map();
-const {data:gameRows,error:gameError}=await sb.from('personal_games').select('id,deck_id,played_at,won,players,winner_player').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false}).limit(1000);
+const {data:gameRows,error:gameError}=await sb.from('personal_games').select('id,deck_id,played_at,won,players,first_player,winner_player').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false}).limit(1000);
 if(!gameError)for(const game of gameRows||[]){
  const stats=winRates.get(game.deck_id)||{games:0,wins:0};
  stats.games++;if(game.won)stats.wins++;winRates.set(game.deck_id,stats);
