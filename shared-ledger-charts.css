@@ -14,3 +14,13 @@
 .ledger-chart-row .winrate-trend-chart svg,.passport-chart-row .winrate-trend-chart svg{display:block;width:100%;height:100%;max-height:220px}
 @media(max-width:900px){.ledger-chart-row,.passport-chart-row{grid-template-columns:minmax(0,1fr)!important}.ledger-chart-row>#summary,.ledger-chart-row>.winrate-trend,.passport-chart-row>.stats-pie-card,.passport-chart-row>.winrate-trend,.ledger-chart-row #summary>.stats-pie-card{height:auto!important;min-height:285px!important;max-height:none!important}.ledger-chart-row .winrate-trend-chart,.passport-chart-row .winrate-trend-chart{min-height:185px!important}}
 @media(max-width:420px){.ledger-chart-row .stats-pie-main,.passport-chart-row .stats-pie-main{flex-wrap:wrap!important}.ledger-chart-row .stats-donut,.passport-chart-row .stats-donut{width:120px!important;min-width:120px!important}}
+
+/* Shared chart internals, including pages that do not load Ledger CSS. */
+.stats-pie-card{border:1px solid #38514d;border-radius:14px;background:linear-gradient(145deg,#122d2b,#0c1c1f)}
+.stats-donut{--win-percent:0%;width:140px;aspect-ratio:1;flex:none;border-radius:50%;background:conic-gradient(#34d399 0 var(--win-percent),#fb7185 var(--win-percent) 100%);display:grid;place-items:center}
+.stats-donut-inner{width:72%;height:72%;border-radius:50%;background:#122033;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.stats-donut-inner strong{font-size:24px;font-weight:800;color:#f1f5f9}.stats-donut-inner span{font-size:11px;color:#94a3b8}
+.stats-pie-legend{display:grid;gap:12px;min-width:85px}.stats-pie-legend div{font-size:13px;color:#cbd5e1;display:flex;align-items:center;gap:7px;flex-wrap:wrap}.stats-pie-legend strong{color:#fff;font-size:16px}
+.stats-pie-dot{width:10px;height:10px;border-radius:50%;display:inline-block}.stats-pie-dot.win{background:#34d399}.stats-pie-dot.loss{background:#fb7185}
+.passport-chart-row .stat-privacy-badge{position:absolute;right:10px;top:10px;z-index:3;margin:0}
+.passport-chart-row>.stats-pie-card,.passport-chart-row>.winrate-trend{position:relative}
