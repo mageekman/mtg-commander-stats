@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Import Games · Command Ledger</title>
+<title>Import Games · Command Ledger</title><link rel="stylesheet" href="./command-ledger-theme.css"><link rel="icon" type="image/png" href="./Teal%20and%20Gold%20CL%20Book%20Emblem.png?v=cl-book-1"><link rel="apple-touch-icon" href="./Teal%20and%20Gold%20CL%20Book%20Emblem.png?v=cl-book-1">
 <style>
 *{box-sizing:border-box}body{font:15px system-ui;background:#101827;color:#f1f5f9;max-width:1050px;margin:auto;padding:24px;line-height:1.5}
 a{color:#a7f3d0}header{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:24px}
@@ -16,14 +16,50 @@ input[type=file]{display:block;width:100%;background:#0f172a;color:#e2e8f0;borde
 .instructions{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:18px}.instructions>div{border:1px solid #334155;border-radius:10px;padding:16px;background:#142136}
 .instructions strong{color:#a7f3d0}code{background:#0f172a;padding:3px 5px;border-radius:4px;color:#d1fae5}
 @media(max-width:560px){body{padding:14px}section{padding:16px}.csv-import-actions{align-items:stretch}.csv-import-actions button{width:100%}}
+/* Command Ledger archive design */
+body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important;background:#0b1c1d!important;color:#f2eee2!important}
+.archive-import-header{position:relative;display:block;margin:0 0 24px;padding:clamp(24px,4vw,42px);border:1px solid #607d6a99;border-radius:20px;background:linear-gradient(110deg,#162e2c,#1b3330 60%,#304735);box-shadow:0 22px 52px #0004}
+.archive-import-header:after{content:"";position:absolute;inset:12px;border:1px solid #c9aa7530;border-radius:12px;pointer-events:none}
+.archive-import-header .archive-nav{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:26px}
+.archive-import-header .archive-nav a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 16px;border:1px solid #557369;border-radius:9px;background:#152d2b;color:#f1ebdb;text-decoration:none;font-size:13px;font-weight:650}
+.archive-import-header .archive-nav a:hover{background:#307763;border-color:#9bd5bb;color:#fff}
+.archive-import-header .archive-eyebrow{display:block;color:#d7b982;font-size:11px;font-weight:750;letter-spacing:.19em}
+.archive-import-header .archive-heading{display:flex;align-items:center;gap:20px;margin-top:10px}
+.archive-import-header .archive-heading img{width:clamp(72px,10vw,118px);height:auto;aspect-ratio:1;object-fit:contain;flex:none}
+.archive-import-header h1{font-family:Georgia,"Iowan Old Style",serif;font-size:clamp(36px,5vw,58px);line-height:1.06;letter-spacing:-.04em;color:#f5eedc;margin:0}
+.archive-import-header p{max-width:690px;color:#c5d7ca;font-size:15px;margin:16px 0 0}
+main>section{background:linear-gradient(145deg,#17292a,#122124)!important;border:1px solid #46645b;border-radius:17px!important;padding:clamp(20px,3vw,32px)!important;margin:20px 0!important;box-shadow:0 12px 32px #0002}
+main>section h2{font-family:Georgia,"Iowan Old Style",serif;font-size:clamp(23px,2.6vw,30px);font-weight:600;color:#f5eedc;margin:0 0 12px}
+main>section p{color:#c3d2c8;line-height:1.65}
+main>section strong{color:#f0e5cb}
+.instructions>div{background:#102525;border:1px solid #49695e;border-radius:12px;padding:18px}
+.instructions strong{color:#d9bc87}.instructions p{margin-bottom:0}
+code{background:#0b1d1f;border:1px solid #3b5851;color:#b5e9d2;border-radius:5px}
+.csv-import-actions{gap:14px;align-items:end}
+.csv-import-actions label{color:#f0e5cb;font-size:13px}
+input[type=file],.csv-deck-select{background:#0d2223;color:#f3f1e9;border:1px solid #58786c;border-radius:10px;min-height:46px}
+input[type=file]::file-selector-button{background:#205547;color:#f5f0e5;border:1px solid #719f87;border-radius:7px;padding:9px 12px;margin-right:12px;cursor:pointer}
+button{min-height:44px;border-radius:10px;background:#24624f;border:1px solid #89af92;color:#f8f4e8;transition:background .2s,border-color .2s}
+button:hover:not(:disabled){background:#33745e;border-color:#a7d1b0}
+.csv-import-actions #downloadCsvTemplate{background:#1a302e;border:1px solid #55756a;color:#e2e8dc}
+.csv-import-actions #downloadCsvTemplate:hover{background:#2a5548}
+.csv-import-table-wrap{border:1px solid #46645b;border-radius:12px;background:#0d2022}
+.csv-import-table th{background:#1c3733;color:#f0e5cb}
+.csv-import-table th,.csv-import-table td{border-bottom:1px solid #36534b}
+.csv-import-table tr:hover td{background:#1b3430}
+.csv-import-error{color:#ffaaa9}.csv-import-ok{color:#8de5b7}
+#csvImportStatus{color:#d7c397;min-height:24px}
+.archive-return{display:inline-flex;align-items:center;min-height:42px;color:#d9bc87;text-decoration:none;font-weight:650}
+.archive-return:hover{text-decoration:underline}
+@media(max-width:600px){.archive-import-header{padding:22px}.archive-import-header .archive-heading{gap:12px}.archive-import-header .archive-heading img{width:65px}.archive-import-header .archive-nav a{flex:1}.csv-import-actions{align-items:stretch}.csv-import-actions button{width:100%}}
 </style></head>
-<body><header><a href="./ledger.html">← Back to My Ledger</a><a href="./index.html">My decks</a></header>
-<main><h1>Import games from CSV</h1><p class="muted">Bring your Commander game history from Excel, Google Sheets, or another spreadsheet into your Ledger.</p>
+<body><header class="archive-import-header"><nav class="archive-nav" aria-label="Page navigation"><a href="./ledger.html">← Back to My Ledger</a><a href="./index.html">My Decks</a></nav><span class="archive-eyebrow">THE COMMANDER ARCHIVE · MATCH RECORDS</span><div class="archive-heading"><img src="./Teal%20and%20Gold%20CL%20Book%20Emblem.png" alt="Command Ledger logo" width="118" height="118"><h1>Import games from CSV</h1></div><p>Bring your Commander game history from Excel, Google Sheets, or another spreadsheet into your Ledger.</p></header>
+<main>
 <section><h2>1. Prepare your CSV</h2><p>Export your spreadsheet as a <strong>.csv</strong> file. Each row should represent one game. Only three columns are required.</p>
 <div class="instructions"><div><strong>Date</strong><p>Use <code>2026-11-01</code> or <code>11/01/2026</code>.</p></div><div><strong>Deck</strong><p>Use a deck name or commander matching one of your imported decks.</p></div><div><strong>Result</strong><p>Use <code>Win</code> or <code>Loss</code>. Yes/No and 1/0 also work.</p></div></div>
 <p class="muted">Optional columns: <strong>Opponents</strong> (separate commanders with semicolons) and <strong>Notes</strong>. We also recognize common alternatives like “Game Date,” “My Commander,” and “Outcome.”</p></section>
 <section><h2>2. Upload and validate</h2><p class="muted">We'll find the closest matching deck or commander, even with spelling mistakes. Review suggested matches, then check errors and duplicates before importing. Nothing is saved until you confirm.</p>
 <div class="csv-import-actions"><button id="downloadCsvTemplate" type="button">Download CSV template</button><label for="csvFile">Select CSV file<input id="csvFile" type="file" accept=".csv,text/csv"></label></div>
 <p id="csvImportStatus" class="muted" role="status">Checking your account…</p><div id="csvImportPreview"></div></section>
-<section><h2>3. Import valid games</h2><p class="muted">Only rows marked Ready will be imported. You can fix skipped rows in your spreadsheet and upload again.</p><button id="confirmCsvImport" type="button" hidden>Import valid games</button><p><a href="./ledger.html">Return to My Ledger</a></p></section></main>
+<section><h2>3. Import valid games</h2><p class="muted">Only rows marked Ready will be imported. You can fix skipped rows in your spreadsheet and upload again.</p><button id="confirmCsvImport" type="button" hidden>Import valid games</button><p><a class="archive-return" href="./ledger.html">← Return to My Ledger</a></p></section></main>
 <script type="module" src="./csv-import.js"></script></body></html>
