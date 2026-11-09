@@ -73,7 +73,7 @@ function csvSimilarity(a,b){
 }
 function csvDeckCandidates(name){
  return decks.map(deck=>{
-  const aliases=[deck.name,deck.commander,...String(deck.commander||'').split(/\\s*\\/\\s*|\\s*&\\s*/)];
+  const aliases=[deck.name,deck.commander,...String(deck.commander||'').split(/\s*\/\s*|\s*&\s*/)];
   return {deck,score:Math.max(...aliases.map(alias=>csvSimilarity(name,alias)))};
  }).sort((a,b)=>b.score-a.score);
 }
