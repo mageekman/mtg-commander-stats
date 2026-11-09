@@ -12,7 +12,7 @@ if(isEditing){
  document.title='Edit deck · Command Ledger';
  const heading=document.querySelector('main h1');if(heading)heading.textContent='Edit deck';
  const intro=document.querySelector('main > p');if(intro)intro.textContent='Update your deck name, commander, or card list. Validate the list before saving changes.';
- saveButton.textContent='Save changes to cloud';
+ saveButton.textContent='Save changes';
 }
 async function loadExisting(){
  if(!isEditing)return;
@@ -239,16 +239,16 @@ saveButton.onclick=async()=>{
  saveButton.disabled=true;
  try{
  const {data:{user}}=await sb.auth.getUser();
- if(!user){status.textContent='Sign in to your cloud account before saving. Your pasted list is still here.';return}
+ if(!user){status.textContent='Sign in to save this deck. Your decklist will stay here.';return}
  let {error}=isEditing
  ?await sb.from('decks').update({name,commander,decklist:list,decklist_url,bracket_level,theme,notes}).eq('id',editId).eq('owner_id',user.id).select('id').single()
  :await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list,decklist_url,bracket_level,theme,notes});
  if(error&&/decklist_url|bracket_level|theme|notes|schema cache|column/i.test(error.message)){
   const basic=isEditing?await sb.from('decks').update({name,commander,decklist:list}).eq('id',editId).eq('owner_id',user.id).select('id').single():await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list});
-  if(!basic.error){error=null;status.textContent='Deck saved, but the external link and optional details were NOT saved. Run the database migration to enable them.';if(decklist_url){alert('Deck saved without its external decklist link. Run the Supabase migration before relying on external links.')}}else error=basic.error;
+  if(!basic.error){error=null;status.textContent='Deck saved, but some optional details could not be saved. Please contact the app administrator.';if(decklist_url){alert('Deck saved without its external decklist link. Please contact the app administrator.')}}else error=basic.error;
  }
  if(error)throw Error(error.message);
- status.textContent=isEditing?'Changes saved to your cloud deck.':'Deck saved to your cloud account.';
+ status.textContent=isEditing?'Deck updated.':'Deck saved.';
  window.location.href=isEditing?'./deck.html?id='+encodeURIComponent(editId):'./index.html#profiles';
  }catch(e){status.textContent='Save failed: '+e.message}
  finally{saveButton.disabled=false}
