@@ -5,6 +5,7 @@ const section=$('moxImport');
 $('importText').addEventListener('input',()=>{parsed=null;saveButton.disabled=false;preview.replaceChildren();status.textContent=$('importText').value.trim()?'Decklist changed. Preview and validate before saving.':'Decklist cleared. You can save without one.'});
 const status=$('importStatus'), preview=$('importPreview'), saveButton=$('saveImported');
 let parsed=null;
+saveButton.disabled=false;
 const editId=new URLSearchParams(location.search).get('id');
 const isEditing=!!editId;
 if(isEditing){
