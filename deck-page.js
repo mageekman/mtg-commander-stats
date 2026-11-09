@@ -115,8 +115,7 @@ async function run(){
  for(const item of entries){
  const row=element('div');row.className='card-row';
  const card=cards.get(item.name.toLowerCase());
- const link=element('a',item.qty+'× '+item.name);link.href=card?.scryfall_uri||'#';link.target='_blank';link.rel='noopener noreferrer';
- if(!card?.scryfall_uri)link.removeAttribute('href');
+ const link=element('a',item.qty+'× '+item.name);link.href=card?.scryfall_uri||'https://scryfall.com/search?q='+encodeURIComponent('!"'+item.name.replace(/"/g,'')+'"');link.target='_blank';link.rel='noopener noreferrer';
  const url=cardImage(card);
  if(url){
  link.addEventListener('pointerenter',e=>showCardPreview(url,item.name,e));
