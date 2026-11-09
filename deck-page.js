@@ -83,12 +83,28 @@ async function run(){
  if(!id||!/^[0-9a-f-]{36}$/i.test(id)){$('status').textContent='Invalid deck link.';return}
  const {data:{user}}=await sb.auth.getUser();
  if(!user){$('status').textContent='Please sign in on the Command Ledger home page to view this deck.';return}
- let {data:deck,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,bracket_level,theme,notes').eq('id',id).single();
- if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist').eq('id',id).single();if(!fallback.error){deck=fallback.data;error=null}}
+ let {data:deck,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,archived_at,owner_id,bracket_level,theme,notes').eq('id',id).single();
+ if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist,archived_at,owner_id').eq('id',id).single();if(!fallback.error){deck=fallback.data;error=null}}
 
  if(error||!deck){$('status').textContent='Deck not found or you do not have permission to view it.';return}
  document.title=deck.name+' · Command Ledger';$('deckTitle').textContent=deck.name;
- const edit=element('a','Edit deck');edit.href='./import.html?id='+encodeURIComponent(deck.id);edit.className='edit-deck-link';edit.setAttribute('aria-label','Edit '+deck.name);$('deckTitle').after(edit);
+ const actions=element('div');actions.className='deck-page-actions';
+ const edit=element('a','Edit deck');edit.href='./import.html?id='+encodeURIComponent(deck.id);edit.className='edit-deck-link';edit.setAttribute('aria-label','Edit '+deck.name);actions.append(edit);
+ const archiveButton=element('button');archiveButton.type='button';archiveButton.className='deck-archive-toggle';
+ const archiveStatus=element('span');archiveStatus.className='deck-archive-status';archiveStatus.setAttribute('role','status');
+ const updateArchiveLabel=()=>{const archived=!!deck.archived_at;archiveButton.textContent=archived?'Restore deck':'Archive deck';archiveButton.setAttribute('aria-label',(archived?'Restore ':'Archive ')+deck.name);archiveStatus.textContent=archived?'This deck is archived. Its games and statistics are preserved.':''};
+ updateArchiveLabel();
+ archiveButton.onclick=async()=>{
+  const archive=!deck.archived_at;
+  if(archive&&!confirm('Archive '+deck.name+'? It will leave your active deck list, but all game history and statistics will remain.'))return;
+  archiveButton.disabled=true;archiveButton.textContent=archive?'Archiving…':'Restoring…';
+  const {error}=await sb.from('decks').update({archived_at:archive?new Date().toISOString():null}).eq('id',deck.id).eq('owner_id',user.id);
+  archiveButton.disabled=false;
+  if(error){updateArchiveLabel();archiveStatus.textContent='Could not update deck: '+error.message;return}
+  deck.archived_at=archive?new Date().toISOString():null;
+  updateArchiveLabel();
+ };
+ actions.append(archiveButton,archiveStatus);$('deckTitle').after(actions);
  const items=parse(deck.decklist||''),commanderNames=deck.commander.split(/\s+\/\s+|\s+&\s+/).map(s=>s.trim()).filter(Boolean);
  $('status').textContent='Loading card artwork…';
  let cards=new Map();try{cards=await fetchCards([...items.map(i=>i.name),...commanderNames])}catch(e){$('status').textContent=e.message+' — showing card names instead.'}
