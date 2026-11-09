@@ -225,6 +225,29 @@ function renderExtraStats(visibleGames){
  ];
  const renderedCards=[];
  for(const [label,value,detail] of cards){const card=el('div');card.className='insight-stat';card.append(el('span',label),el('strong',value));if(detail)card.append(el('small',detail));renderedCards.push(card);(renderedCards.length<=2?deckHost:opponentHost).append(card)}
+ const featured=renderedCards[0];
+ if(mostDeck&&ranked){
+  const played=visibleGames.filter(g=>g.deck_id===mostDeck.id);
+  const wins=played.filter(g=>g.won).length;
+  const rate=(100*wins/played.length).toFixed(1)+'%';
+  featured.className='best-deck-card most-played-card';
+  featured.replaceChildren();
+  const artwork=el('div');artwork.className='best-deck-art';artwork.setAttribute('aria-hidden','true');
+  const content=el('div');content.className='best-deck-content';
+  const label=el('span','★ Most played deck');label.className='best-deck-label';
+  const name=el('strong',mostDeck.name);name.className='best-deck-name';
+  const commanderName=el('span',mostDeck.commander);commanderName.className='best-deck-commander';
+  const count=el('strong',played.length+' games played');count.className='best-deck-rate';
+  const record=el('span',wins+' wins · '+(played.length-wins)+' losses · '+rate+' win rate');record.className='best-deck-record';
+  content.append(label,name,commanderName,count,record);featured.append(artwork,content);
+  const commanderArtName=mostDeck.commander.split(' / ')[0].split(' & ')[0].trim();
+  if(commanderArtName)getCommanderArtwork(commanderArtName).then(url=>{
+   if(featured.isConnected&&url)artwork.style.backgroundImage='url("'+url+'")';
+  }).catch(()=>{});
+ }else{
+  featured.className='best-deck-empty most-played-empty';
+  featured.replaceChildren(el('span','Record a game to see your most played deck.'));
+ }
  const comboCard=renderedCards[4];
  const comboStamp=++comboStatsStamp;
  if(defeatedBy.length){
