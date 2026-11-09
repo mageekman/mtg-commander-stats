@@ -210,9 +210,35 @@ function renderExtraStats(visibleGames){
   ['Most played deck',mostDeck?.name||'No games yet',ranked?ranked[1]+' games':''],
   ['Most played color','Calculating…','Counted across your played decks'],
   ['Commander you’ve lost to most',commander?.[0]||'No recorded losses',commander?commander[1]+' losses':''],
-  ['Player you’ve lost to most',player?.[0]||'No named opponents',player?player[1]+' losses':'']
+  ['Player you’ve lost to most',player?.[0]||'No named opponents',player?player[1]+' losses':''],
+  ['Color combo you’ve lost to most',defeatedBy.length?'Calculating…':'No recorded losses','']
  ];
  for(const [label,value,detail] of cards){const card=el('div');card.className='insight-stat';card.append(el('span',label),el('strong',value));if(detail)card.append(el('small',detail));host.append(card)}
+ const comboCard=host.children[4];
+ const comboStamp=++comboStatsStamp;
+ if(defeatedBy.length){
+  Promise.all(defeatedBy.map(async p=>{
+   const parts=String(p.commander||'').split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean);
+   if(!parts.length)return null;
+   const identities=await Promise.all(parts.map(commanderIdentity));
+   if(identities.some(identity=>identity===null))return null;
+   return [...new Set(identities.flat())].sort((a,b)=>'WUBRG'.indexOf(a)-'WUBRG'.indexOf(b)).join('');
+  })).then(identities=>{
+   if(comboStamp!==comboStatsStamp||!comboCard.isConnected)return;
+   const known=identities.filter(x=>x!==null),top=mostCommon(known),missing=identities.length-known.length;
+   const strong=comboCard.querySelector('strong');strong.replaceChildren();
+   const small=comboCard.querySelector('small')||el('small');
+   if(!top){strong.textContent='Color data unavailable';small.textContent=missing+' losses could not be checked'}
+   else{
+    const code=top[0],colorNames={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
+    if(code){for(const c of code){const img=el('img');img.src='https://svgs.scryfall.io/card-symbols/'+c+'.svg';img.alt=colorNames[c]+' mana';img.title=colorNames[c];img.width=26;img.height=26;img.style.cssText='width:26px;height:26px;vertical-align:middle;margin-right:5px';strong.append(img)}
+     const name=el('span',code.split('').map(c=>colorNames[c]).join(' / '));name.style.cssText='display:block;font-size:14px;margin-top:5px';strong.append(name)
+    }else strong.textContent='Colorless';
+    small.textContent=top[1]+' losses'+(missing?' · '+missing+' unavailable':'');
+   }
+   if(!small.isConnected)comboCard.append(small);
+  }).catch(()=>{if(comboStamp===comboStatsStamp&&comboCard.isConnected)comboCard.querySelector('strong').textContent='Color data unavailable'});
+ }
  const colorCard=host.children[1];const names={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
  const stamp=++colorStatsStamp;
  const counted=visibleGames.filter(g=>decks.some(d=>d.id===g.deck_id));
@@ -235,6 +261,7 @@ function renderExtraStats(visibleGames){
  }).catch(()=>{if(stamp===colorStatsStamp&&colorCard.isConnected)colorCard.querySelector('strong').textContent='Color data unavailable'});
 }
 let colorStatsStamp=0;
+let comboStatsStamp=0;
 function render(){
  const visibleGames=filteredGames();
  renderBestDeck(visibleGames);
