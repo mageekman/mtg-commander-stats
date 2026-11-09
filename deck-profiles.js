@@ -173,7 +173,7 @@ function renderRecentGames(rows,error){
 function elWinRate(deckId,winRates){
  const badge=document.createElement('span');badge.className='deck-winrate';
  const stats=winRates.get(deckId);
- badge.textContent=stats?.games?(stats.wins/stats.games*100).toFixed(1)+'% win rate':'No games yet';
+ badge.textContent=stats?.games?(stats.wins/stats.games*100).toFixed(1)+'%':'No games yet';
  badge.title=stats?.games?stats.wins+' wins in '+stats.games+' games':'No recorded games for this deck';
  return badge;
 }
@@ -227,19 +227,6 @@ const renderGroup=(list,host,term,archived)=>{
   const performance=elWinRate(deck.id,winRates);details.append(title,subtitle);
   if(deck.bracket_level||deck.theme){const n=document.createElement('span');n.textContent=[deck.bracket_level?'Bracket '+deck.bracket_level:'',deck.theme||''].filter(Boolean).join(' · ');details.append(n)}
   link.append(image,details,performance);wrapper.append(link);
-  const button=document.createElement('button');button.type='button';button.className='deck-gallery-archive-button';button.textContent=archived?'Restore deck':'Archive deck';
-  button.setAttribute('aria-label',(archived?'Restore ':'Archive ')+deck.name);
-  button.onclick=async()=>{
-   if(!archived&&!confirm('Archive '+deck.name+'? Its games and statistics will be preserved.'))return;
-   button.disabled=true;button.textContent=archived?'Restoring…':'Archiving…';
-   const {error}=await sb.from('decks').update({archived_at:archived?null:new Date().toISOString()}).eq('id',deck.id).eq('owner_id',user.id);
-   if(error){button.disabled=false;button.textContent=archived?'Restore deck':'Archive deck';alert('Could not update deck: '+error.message);return}
-   deck.archived_at=archived?null:new Date().toISOString();
-   const archiveCount=decks.filter(d=>!!d.archived_at).length;
-   archivedSection.hidden=!archiveCount;$('archivedDeckCount').textContent='('+archiveCount+')';
-   renderAll();
-  };
-  wrapper.append(button);host.append(wrapper);
   const commander=deck.commander.split(/\s+\/\s+|\s+&\s+/)[0].trim();
   if(commander){
    const url='https://api.scryfall.com/cards/named?exact='+encodeURIComponent(commander);
