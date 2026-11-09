@@ -82,9 +82,9 @@ button:hover:not(:disabled){background:#33745e;border-color:#a7d1b0}
   button.disabled=true;button.textContent='Validating…';
   status.textContent='Starting CSV importer…';
   try{
-   const importer=await import('./csv-import.js?v=20261109-click-to-validate-1');
+   const importer=await import('./csv-import-v2.js?v=20261109-fixed-regex-3');
    await importer.runCsvValidation();
-  }catch(err){status.textContent='CSV importer could not start: '+(err.message||String(err));status.classList.add('csv-import-error')}
+  }catch(err){status.textContent='CSV importer v2 could not start: '+(err.message||String(err));status.classList.add('csv-import-error')}
   finally{button.disabled=false;button.textContent='Validate selected CSV'}
  });
 })();
