@@ -30,7 +30,7 @@ async function fetchCards(names){
  const unique=[...new Set(names.map(n=>n.toLowerCase()))],map=new Map();
  for(let i=0;i<unique.length;i+=75){
  if(i)await wait(600);
- const response=await fetch('https://api.scryfall.com/cards/collection',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({identifiers:unique.slice(i,i+75).map(name=>({name}))})});
+ const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/collection',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({identifiers:unique.slice(i,i+75).map(name=>({name}))})});
  if(!response.ok)throw Error('Scryfall request failed: '+response.status);
  const result=await response.json();
  for(const card of result.data||[]){
