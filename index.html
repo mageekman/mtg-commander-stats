@@ -454,4 +454,38 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 @media(max-width:1100px){#deckGallery.deck-gallery-compact,#archivedDeckGallery.deck-gallery-compact{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 @media(max-width:750px){#deckGallery.deck-gallery-compact,#archivedDeckGallery.deck-gallery-compact{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:480px){#deckGallery.deck-gallery-compact,#archivedDeckGallery.deck-gallery-compact{grid-template-columns:minmax(0,1fr)!important}}
+</style><style>
+/* Compact deck art bleeds into the left third and fades toward the details. */
+#deckGallery.deck-gallery-compact .deck-gallery-card,
+#archivedDeckGallery.deck-gallery-compact .deck-gallery-card{
+ position:relative!important;isolation:isolate!important;overflow:hidden!important;
+ background:linear-gradient(100deg,#172d30,#102c27)!important;
+}
+#deckGallery.deck-gallery-compact .deck-gallery-card>.deck-entry,
+#archivedDeckGallery.deck-gallery-compact .deck-gallery-card>.deck-entry{
+ position:relative!important;isolation:isolate!important;display:flex!important;
+ align-items:center!important;justify-content:flex-end!important;min-height:78px!important;
+ padding:8px 7px 8px 35%!important;gap:0!important;overflow:hidden!important;
+}
+#deckGallery.deck-gallery-compact .deck-entry-art,
+#archivedDeckGallery.deck-gallery-compact .deck-entry-art{
+ position:absolute!important;z-index:-1!important;top:0!important;left:0!important;bottom:0!important;
+ width:66%!important;height:100%!important;max-height:none!important;min-height:0!important;
+ border-radius:0!important;overflow:hidden!important;pointer-events:none!important;
+ -webkit-mask-image:linear-gradient(to right,#000 0%,#000 33%,transparent 100%)!important;
+ mask-image:linear-gradient(to right,#000 0%,#000 33%,transparent 100%)!important;
+}
+#deckGallery.deck-gallery-compact .deck-entry-art img,
+#archivedDeckGallery.deck-gallery-compact .deck-entry-art img{
+ width:100%!important;height:100%!important;object-fit:cover!important;object-position:center 30%!important;
+}
+#deckGallery.deck-gallery-compact .deck-entry-details,
+#archivedDeckGallery.deck-gallery-compact .deck-entry-details{
+ position:relative!important;z-index:1!important;flex:1 1 auto!important;
+ align-items:flex-start!important;text-align:left!important;min-width:0!important;
+}
+#deckGallery.deck-gallery-compact .deck-winrate,
+#archivedDeckGallery.deck-gallery-compact .deck-winrate{
+ position:relative!important;z-index:1!important;
+}
 </style></html>
