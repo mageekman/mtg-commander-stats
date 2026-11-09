@@ -7,7 +7,7 @@ function colorIdentityIcons(colors){
  for(const c of ordered){const img=document.createElement('img');img.src='https://svgs.scryfall.io/card-symbols/'+c+'.svg';img.alt=names[c]+' mana';img.title=names[c];img.width=24;img.height=24;img.loading='lazy';img.style.cssText='width:24px;height:24px;object-fit:contain;vertical-align:middle';wrap.append(img)}
  return wrap;
 }
-import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
 const id=new URLSearchParams(location.search).get('id');
