@@ -2,6 +2,7 @@ import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
 const section=$('moxImport');
+$('importText').addEventListener('input',()=>{parsed=null;saveButton.disabled=false;preview.replaceChildren();status.textContent=$('importText').value.trim()?'Decklist changed. Preview and validate before saving.':'Decklist cleared. You can save without one.'});
 const status=$('importStatus'), preview=$('importPreview'), saveButton=$('saveImported');
 let parsed=null;
 const editId=new URLSearchParams(location.search).get('id');
@@ -17,13 +18,13 @@ async function loadExisting(){
  if(!/^[0-9a-f-]{36}$/i.test(editId)){status.textContent='Invalid deck link.';return}
  const {data:{user}}=await sb.auth.getUser();
  if(!user){status.textContent='Sign in on the home page before editing your deck.';return}
- let {data,error}=await sb.from('decks').select('id,name,commander,decklist,bracket_level,theme,notes').eq('id',editId).eq('owner_id',user.id).single();
+ let {data,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,bracket_level,theme,notes').eq('id',editId).eq('owner_id',user.id).single();
  if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist').eq('id',editId).eq('owner_id',user.id).single();if(!fallback.error){data=fallback.data;error=null}}
 
  if(error||!data){status.textContent='Deck not found or you do not have permission to edit it.';return}
  $('importDeckName').value=data.name;
  $('importCommander').value=data.commander;
- $('importText').value=data.decklist;$('importBracket').value=data.bracket_level==null?'':String(data.bracket_level);$('importTheme').value=data.theme||'';$('importNotes').value=data.notes||'';
+ $('importText').value=data.decklist||'';$('importDeckUrl').value=data.decklist_url||'';$('importBracket').value=data.bracket_level==null?'':String(data.bracket_level);$('importTheme').value=data.theme||'';$('importNotes').value=data.notes||'';
  status.textContent='Deck loaded. Preview and validate before saving changes.';
 }
 loadExisting().catch(e=>status.textContent='Unable to load deck: '+e.message);
@@ -219,27 +220,31 @@ $('parseImported').onclick=async()=>{
  saveButton.disabled=true;parsed=null;preview.replaceChildren();
  const text=$('importText').value;
  const base=parse(text);
- if(!base.cards.length){status.textContent='Paste a text decklist first.';return}
+ if(!text.trim()){parsed=null;preview.replaceChildren();saveButton.disabled=false;status.textContent='No decklist needed. Enter a name and commander, then save.';return}
+ if(!base.cards.length){status.textContent='No valid cards found. Fix the decklist or clear it to save without one.';return}
  status.textContent='Checking card names with Scryfall…';
  try{const checked=await resolve(base.cards);parsed={...base,...checked};draw()}
  catch(e){status.textContent='Import check failed: '+e.message}
 };
 saveButton.onclick=async()=>{
- if(!parsed||parsed.invalid.length||parsed.missing.length)return;
+ const hasList=!!$('importText').value.trim();
+ if(hasList&&(!parsed||parsed.invalid.length||parsed.missing.length)){status.textContent='Preview and resolve decklist errors before saving, or clear the decklist to skip it.';return}
  const name=$('importDeckName').value.trim(),commander=$('importCommander').value.trim();
  if(!name||!commander){status.textContent='Enter a deck name and commander.';return}
  const bracket_level=$('importBracket').value?Number($('importBracket').value):null,theme=$('importTheme').value.trim()||null,notes=$('importNotes').value.trim()||null;
- const list=parsed.cards.filter(c=>['main','commander'].includes(c.zone)).map(c=>{const resolved=parsed.found.get(c.name.toLowerCase());const canonical=resolved?.name||c.name;const set=c.set&&c.number?' ('+c.set.toUpperCase()+') '+c.number:'';return c.qty+' '+canonical+set}).join('\n');
+ const list=hasList?parsed.cards.filter(c=>['main','commander'].includes(c.zone)).map(c=>{const resolved=parsed.found.get(c.name.toLowerCase());const canonical=resolved?.name||c.name;const set=c.set&&c.number?' ('+c.set.toUpperCase()+') '+c.number:'';return c.qty+' '+canonical+set}).join('\n'):'';
+ const rawUrl=$('importDeckUrl').value.trim();let decklist_url=null;
+ if(rawUrl){try{const url=new URL(rawUrl);if(!['http:','https:'].includes(url.protocol))throw Error('Invalid protocol');decklist_url=url.href}catch{status.textContent='Enter a valid http or https decklist link.';return}}
  saveButton.disabled=true;
  try{
  const {data:{user}}=await sb.auth.getUser();
  if(!user){status.textContent='Sign in to your cloud account before saving. Your pasted list is still here.';return}
  let {error}=isEditing
- ?await sb.from('decks').update({name,commander,decklist:list,bracket_level,theme,notes}).eq('id',editId).eq('owner_id',user.id).select('id').single()
- :await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list,bracket_level,theme,notes});
- if(error&&/bracket_level|theme|notes|schema cache|column/i.test(error.message)){
+ ?await sb.from('decks').update({name,commander,decklist:list,decklist_url,bracket_level,theme,notes}).eq('id',editId).eq('owner_id',user.id).select('id').single()
+ :await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list,decklist_url,bracket_level,theme,notes});
+ if(error&&/decklist_url|bracket_level|theme|notes|schema cache|column/i.test(error.message)){
   const basic=isEditing?await sb.from('decks').update({name,commander,decklist:list}).eq('id',editId).eq('owner_id',user.id).select('id').single():await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list});
-  if(!basic.error){error=null;status.textContent='Deck saved. Optional details were not saved because the database has not been upgraded.'}else error=basic.error;
+  if(!basic.error){error=null;status.textContent='Deck saved, but the external link and optional details were NOT saved. Run the database migration to enable them.';if(decklist_url){alert('Deck saved without its external decklist link. Run the Supabase migration before relying on external links.')}}else error=basic.error;
  }
  if(error)throw Error(error.message);
  status.textContent=isEditing?'Changes saved to your cloud deck.':'Deck saved to your cloud account.';
