@@ -15,7 +15,7 @@ function getCommanderArtwork(name){
  if(artPending.has(key))return artPending.get(key);
  const job=artQueue.then(async()=>{
   await new Promise(resolve=>setTimeout(resolve,125));
-  const response=await fetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
+  const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
   if(!response.ok)throw Error('Scryfall '+response.status);
   const card=await response.json();
   const url=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.large||card.card_faces?.[0]?.image_uris?.large||null;
@@ -52,7 +52,7 @@ function attachCommanderSearch(input){
   timer=setTimeout(async()=>{
    try{
     let names=suggestionCache.get(query.toLowerCase());
-    if(!names){controller=new AbortController();const response=await fetch('https://api.scryfall.com/cards/autocomplete?q='+encodeURIComponent(query),{signal:controller.signal,headers:{Accept:'application/json'}});if(!response.ok)throw Error('Scryfall unavailable');const body=await response.json();names=body.data||[];suggestionCache.set(query.toLowerCase(),names)}
+    if(!names){controller=new AbortController();const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/autocomplete?q='+encodeURIComponent(query),{signal:controller.signal,headers:{Accept:'application/json'}});if(!response.ok)throw Error('Scryfall unavailable');const body=await response.json();names=body.data||[];suggestionCache.set(query.toLowerCase(),names)}
     if(current!==sequence||input.value.trim()!==query)return;
     menu.replaceChildren();for(const value of names.slice(0,12)){const option=el('button',value);option.type='button';option.className='commander-option';option.setAttribute('role','option');option.addEventListener('mousedown',e=>e.preventDefault());option.onclick=()=>choose(value);menu.append(option)}
     if(!names.length)menu.append(el('div','No matching cards'));menu.hidden=false;
@@ -197,7 +197,7 @@ async function commanderIdentity(name){
  if(!key)return [];
  if(!identityCache.has(key))identityCache.set(key,(async()=>{
   try{
-   const response=await fetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
+   const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
    if(!response.ok)return null;
    const card=await response.json();return Array.isArray(card.color_identity)?card.color_identity:null;
   }catch{return null}
