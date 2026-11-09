@@ -350,24 +350,16 @@ function render(){
    const item=el('article');item.className='compact-game';
    const row=el('div');row.className='compact-game-row';
    const date=el('span',g.played_at);date.className='compact-game-date';
-   const result=el('span',g.won?'Win':'Loss');result.className='compact-game-result '+(g.won?'win':'loss');
-   const deckIdentity=el('div');deckIdentity.className='compact-game-identity';const deckArt=el('div');deckArt.className='compact-game-art';deckArt.setAttribute('aria-hidden','true');row.append(deckArt);if(deck?.commander){const artName=deck.commander.split(' / ')[0].split(' & ')[0].trim();if(artName)getCommanderArtwork(artName).then(url=>{if(deckArt.isConnected&&url)deckArt.style.backgroundImage='url("'+url+'")'}).catch(()=>{})}const deckName=el('span');deckName.className='compact-game-deck';const deckTitle=el('strong',deck?.name||'Deleted deck');deckTitle.className='compact-game-deck-title';deckName.append(deckTitle);if(deck?.commander){const commander=el('small',deck.commander);commander.className='compact-game-commander';commander.title=deck.commander;deckName.append(commander)}deckIdentity.append(deckName);
-   const winner=Array.isArray(g.players)&&Number.isInteger(g.winner_player)?g.players[g.winner_player]:null;
-   const winnerName=g.won?'You':winner?.name&&winner.name!=='You'?winner.name:winner?.commander||'Opponent not recorded';
-   const winnerText=el('span','Winner: '+winnerName);winnerText.className='compact-game-winner';
-   const actions=el('div');actions.className='compact-game-actions';
-   const detailsButton=el('button','Details');detailsButton.type='button';detailsButton.setAttribute('aria-expanded','false');
-   const details=el('div');details.className='compact-game-details';details.hidden=true;
-   detailsButton.onclick=()=>{details.hidden=!details.hidden;detailsButton.setAttribute('aria-expanded',String(!details.hidden));detailsButton.textContent=details.hidden?'Details':'Hide'};
-   const editButton=el('button','Edit');editButton.type='button';editButton.onclick=()=>editGame(g);
-   const deleteButton=el('button','Delete');deleteButton.type='button';
-   deleteButton.onclick=async()=>{if(!confirm('Delete this game record?'))return;deleteButton.disabled=true;const r=await sb.from('personal_games').delete().eq('id',g.id).eq('owner_id',user.id);if(r.error){message('Delete failed: '+r.error.message);deleteButton.disabled=false;return}await refresh()};
-   actions.append(detailsButton,editButton,deleteButton);row.append(date,result,deckIdentity,winnerText,actions);item.append(row);
-   if(Array.isArray(g.players)&&g.players.length){
-    for(const [i,p] of g.players.entries()){const line=el('p',(i===g.winner_player?'🏆 ':'')+(p.name||'Player '+(i+1))+' · '+(p.commander||'Unknown commander')+(i===g.first_player?' · Went first':''));details.append(line)}
-   }else if(g.opponents?.length)details.append(el('p','Opponents: '+g.opponents.join(', ')));
-   if(g.notes){const note=el('p',g.notes);note.className='history-note';details.append(note)}
-   item.append(details);history.append(item);continue;
+   const deckArt=el('div');deckArt.className='compact-game-art';deckArt.setAttribute('aria-hidden','true');row.append(deckArt);
+   if(deck?.commander){const artName=deck.commander.split(' / ')[0].split(' & ')[0].trim();if(artName)getCommanderArtwork(artName).then(url=>{if(deckArt.isConnected&&url)deckArt.style.backgroundImage='url("'+url+'")'}).catch(()=>{})}
+   const deckName=el('strong',deck?.name||'Deleted deck');deckName.className='compact-game-deck-title';
+   const players=el('span');players.className='compact-game-players';
+   const playerNames=Array.isArray(g.players)&&g.players.length
+    ?g.players.map((p,i)=>p.name?.trim()||('Player '+(i+1)))
+    :['You',...(Array.isArray(g.opponents)?g.opponents:[])];
+   players.textContent=playerNames.join(' · ');
+   players.title=playerNames.join(', ');
+   row.append(date,deckName,players);item.append(row);history.append(item);continue;
   }
   const record=el('article');record.className='game-record';
   const header=el('div');header.className='game-record-header';
