@@ -108,8 +108,8 @@ async function load(){
 }
 async function refresh(){
  const r=await sb.from('personal_games').select('id,deck_id,played_at,won,opponents,notes,players,first_player,winner_player').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false});
- if(r.error){message('Ledger setup needed: run supabase-personal-ledger.sql in your Supabase SQL Editor. '+r.error.message);$('save').disabled=true;return}
- games=r.data||[];message('Your games are saved privately to your account.');render();
+ if(r.error){message('Unable to load your games. Please contact the app administrator. '+r.error.message);$('save').disabled=true;return}
+ games=r.data||[];message('');render();
 }
 function setEditorOpen(open){
  $('gameEditor').hidden=!open;
@@ -121,7 +121,7 @@ $('openGameForm').onclick=()=>{
  resetEditor();setEditorOpen(true);$('formTitle').scrollIntoView({behavior:'smooth',block:'start'});
 };
 function resetEditor(){
- editingGameId=null;$('formTitle').textContent='Record a game';$('save').textContent='Save game to cloud';$('cancelEdit').hidden=true;
+ editingGameId=null;$('formTitle').textContent='Record a game';$('save').textContent='Save game';$('cancelEdit').hidden=true;
  $('deck').value='';$('notes').value='';$('date').value=new Date().toLocaleDateString('en-CA');
  playerCount=4;drawPlayers([]);$('firstPlayer').value='0';$('winnerPlayer').value='0';setEditorOpen(false);
 }
@@ -414,7 +414,7 @@ $('gameForm').onsubmit=async e=>{
  const button=$('save');button.disabled=true;message('Saving game…');
  const payload={deck_id,played_at,won:winner_player===0,opponents:players.slice(1).map(p=>p.commander),players,first_player,winner_player,notes:$('notes').value.trim()};
  const r=editingGameId?await sb.from('personal_games').update(payload).eq('id',editingGameId).eq('owner_id',user.id):await sb.from('personal_games').insert({...payload,owner_id:user.id});
- button.disabled=false;if(r.error){message('Save failed: '+r.error.message+(r.error.message.includes('column')?' — Run supabase-ledger-players-migration.sql first.':''));return}
+ button.disabled=false;if(r.error){message('Save failed: '+r.error.message+(r.error.message.includes('column')?' — Please contact the app administrator.':''));return}
  resetEditor();await refresh();
 };
 
