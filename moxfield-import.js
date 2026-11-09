@@ -27,6 +27,33 @@ async function loadExisting(){
  status.textContent='Deck loaded. Preview and validate before saving changes.';
 }
 loadExisting().catch(e=>status.textContent='Unable to load deck: '+e.message);
+const commanderInput=$('importCommander'),matches=$('commanderMatches'),hint=$('commanderHint');
+let searchTimer=null,searchController=null,searchToken=0,commanderManuallyEdited=false;
+function closeCommanderMatches(){matches.hidden=true;matches.replaceChildren();commanderInput.setAttribute('aria-expanded','false')}
+function selectCommander(name,manual=true){commanderInput.value=name;commanderManuallyEdited=manual;closeCommanderMatches();if(manual)hint.textContent='Commander selected from Scryfall.'}
+commanderInput.addEventListener('input',()=>{
+ commanderManuallyEdited=true;clearTimeout(searchTimer);searchController?.abort();const token=++searchToken;
+ closeCommanderMatches();const q=commanderInput.value.trim();hint.textContent='';
+ if(q.length<2)return;
+ searchTimer=setTimeout(async()=>{
+  try{
+   searchController=new AbortController();
+   const response=await fetch('https://api.scryfall.com/cards/autocomplete?q='+encodeURIComponent(q),{signal:searchController.signal,headers:{Accept:'application/json'}});
+   if(!response.ok)throw Error('Scryfall unavailable');
+   const data=await response.json();if(token!==searchToken)return;
+   matches.replaceChildren();
+   for(const name of (data.data||[]).slice(0,12)){
+    const option=document.createElement('button');option.type='button';option.textContent=name;option.setAttribute('role','option');
+    option.addEventListener('mousedown',e=>e.preventDefault());option.onclick=()=>selectCommander(name);matches.append(option);
+   }
+   if(!matches.children.length){const empty=document.createElement('div');empty.textContent='No matching cards';empty.style.padding='12px';matches.append(empty)}
+   matches.hidden=false;commanderInput.setAttribute('aria-expanded','true');
+  }catch(e){if(e.name!=='AbortError'&&token===searchToken)hint.textContent='Scryfall suggestions are unavailable. You can still type a commander.'}
+ },280);
+});
+commanderInput.addEventListener('keydown',e=>{if(e.key==='Escape')closeCommanderMatches();if(e.key==='ArrowDown'&&!matches.hidden){e.preventDefault();matches.querySelector('button')?.focus()}});
+matches.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCommanderMatches();commanderInput.focus()}});
+commanderInput.addEventListener('blur',()=>setTimeout(closeCommanderMatches,150));
 const zones={COMMANDER:'commander',COMMANDERS:'commander',MAINBOARD:'main',MAIN:'main',DECK:'main',SIDEBOARD:'side',MAYBEBOARD:'maybe',CONSIDERING:'maybe',COMPANION:'side',TOKENS:'side'};
 function parse(text){
  let zone='main',cards=[],invalid=[];
@@ -37,11 +64,12 @@ function parse(text){
   const match=line.match(/^(\d+)\s*x?\s+(.+)$/i);
   if(!match){invalid.push('Line '+(index+1)+': '+line);continue}
   let qty=Number(match[1]),rest=match[2].trim();
-  rest=rest.replace(/\s+\*(?:F|E|CMDR)\*\s*$/gi,'').replace(/\s+#\S.*$/,'').trim();
+  const markedCommander=/\s+\*(?:CMDR|COMMANDER)\*\s*$/i.test(rest)||/\s+\[(?:CMDR|COMMANDER)\]\s*$/i.test(rest)||/\s+#(?:CMDR|COMMANDER)\b/i.test(rest);
+  rest=rest.replace(/\s+\*(?:F|E|CMDR|COMMANDER)\*\s*$/gi,'').replace(/\s+\[(?:CMDR|COMMANDER)\]\s*$/gi,'').replace(/\s+#\S.*$/,'').trim();
   const print=rest.match(/^(.*?)\s+\(([A-Za-z0-9]+)\)\s+([A-Za-z0-9-]+)(?:\s+\*.*)?$/);
   const name=(print?print[1]:rest).trim();
   if(!name||qty<1||qty>100){invalid.push('Line '+(index+1)+': '+line);continue}
-  cards.push({qty,name,zone,set:print?.[2],number:print?.[3]});
+  cards.push({qty,name,zone:markedCommander?'commander':zone,set:print?.[2],number:print?.[3]});
  }
  return {cards,invalid};
 }
@@ -74,8 +102,18 @@ function draw(){
  const details=document.createElement('div');
  const heading=document.createElement('h3');heading.textContent='Import preview';details.append(heading);
  const p=document.createElement('p');p.textContent=total+' cards in deck (including commander), '+resolved+' matched by Scryfall, '+other.reduce((n,c)=>n+c.qty,0)+' excluded sideboard/maybeboard cards.';details.append(p);
- const commanderName=commander.map(c=>c.name).join(' / ');
- const cp=document.createElement('p');cp.textContent='Commander: '+(commanderName||'Not marked in export; enter it manually below.');details.append(cp);
+ const explicitCommander=commander.map(c=>c.name);
+ const possible=main.filter(c=>{
+  const card=found.get(c.name.toLowerCase());
+  return card?.type_line?.includes('Legendary')&&(card.type_line.includes('Creature')||card.type_line.includes('Planeswalker')&&/can be your commander/i.test(card.oracle_text||''));
+ }).map(c=>c.name);
+ const candidates=[...new Set(possible)];
+ const commanderName=explicitCommander.join(' / ');
+ if(commanderName){if(!commanderManuallyEdited||!commanderInput.value.trim())selectCommander(commanderName,false);hint.textContent='Commander detected from the decklist.'}
+ else if(candidates.length===1){if(!commanderManuallyEdited||!commanderInput.value.trim())selectCommander(candidates[0],false);hint.textContent='Suggested commander based on the only legendary creature in the deck. Confirm before saving.'}
+ else if(candidates.length>1){hint.textContent='Multiple possible commanders found: '+candidates.slice(0,6).join(', ')+(candidates.length>6?'…':'')+'. Choose one above.'}
+ else{hint.textContent='No commander marker found. Search for your commander above.'}
+ const cp=document.createElement('p');cp.textContent='Commander: '+(commanderName|| (candidates.length===1?'Suggested: '+candidates[0]:'Not explicitly marked; select a commander above.'));details.append(cp);
  if(total!==100){const warn=document.createElement('p');warn.textContent='Deck contains '+total+' cards, not 100. Check your export.';details.append(warn)}
  if(repeat.length){const warn=document.createElement('p');warn.textContent='Repeated nonbasic names (review for exceptions): '+repeat.slice(0,12).join(', ');details.append(warn)}
  if(invalid.length||missing.length){const warn=document.createElement('p');warn.style.color='#fca5a5';warn.textContent='Issues: '+[...invalid,...missing.map(x=>'Unrecognized: '+x)].join(' | ');details.append(warn)}
