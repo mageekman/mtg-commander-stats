@@ -23,6 +23,29 @@ main{max-width:800px}.profile-card{margin-top:25px}.profile-banner{min-height:31
 .stats-only .shared-feature>.stat-privacy-badge{position:absolute;top:10px;right:10px;margin:0;z-index:3}
 @media(max-width:760px){.stats-only .shared-grid,.stats-only .shared-decks{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.stats-only #sharedLedger{padding:12px}.stats-only .shared-grid,.stats-only .shared-decks,.stats-only .shared-featured{grid-template-columns:minmax(0,1fr)}.stats-only .shared-stat{min-height:88px}.stats-only .shared-feature-content{padding:13px}}
+
+/* Profile layout polish: fixed maximum card widths, left alignment, and breathing room. */
+body.stats-only #sharedLedger{padding:24px!important;margin:0!important;border-radius:14px;overflow:visible}
+body.stats-only #sharedLedger>h3{margin:0 0 18px!important;line-height:1.25}
+body.stats-only #sharedTotals,body.stats-only #sharedRivals{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),280px))!important;justify-content:start!important;gap:14px!important}
+body.stats-only #sharedTotals .shared-stat,body.stats-only #sharedRivals .shared-stat{width:100%;min-width:0;min-height:115px;box-sizing:border-box;padding:16px!important;justify-content:flex-start;align-items:flex-start;text-align:left;gap:8px}
+body.stats-only #sharedTotals .shared-stat>span:first-child,body.stats-only #sharedRivals .shared-stat>span:first-child{line-height:1.4}
+body.stats-only .shared-featured{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),360px))!important;justify-content:start!important;gap:14px}
+body.stats-only .shared-featured .shared-feature{width:100%;min-height:185px}
+body.stats-only .shared-best-deck{max-width:740px;margin:18px 0 14px}
+body.stats-only .shared-best-deck .shared-feature{min-height:210px}
+body.stats-only #sharedDeckSection{margin-top:24px;padding-top:22px;border-top:1px solid #38514d}
+body.stats-only #sharedDeckSection>h3{margin:0 0 14px!important}
+body.stats-only .shared-deck-toolbar{max-width:620px;align-items:center}
+body.stats-only .shared-deck-toolbar input{min-width:180px}
+body.stats-only .shared-deck-toolbar select{width:auto;min-width:155px;flex:0 0 auto}
+body.stats-only .shared-decks{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),320px))!important;justify-content:start!important;gap:14px}
+body.stats-only .shared-deck{width:100%;min-width:0;box-sizing:border-box}
+body.stats-only .shared-deck-content{padding:15px}
+body.stats-only .stat-privacy-badge{flex:none;max-width:max-content}
+body.stats-only .color-stat-line{display:flex;flex-wrap:wrap;white-space:normal;align-items:center}
+body.stats-only .color-stat-line small{white-space:normal}
+@media(max-width:640px){body.stats-only #sharedLedger{padding:16px!important}body.stats-only #sharedTotals,body.stats-only #sharedRivals{grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr))!important}body.stats-only .shared-featured,body.stats-only .shared-decks{grid-template-columns:minmax(0,1fr)!important}body.stats-only .shared-deck-toolbar{flex-direction:column;align-items:stretch}body.stats-only .shared-deck-toolbar select{width:100%}}
 </style><script src="./commander-art-position.js"></script></head><body><main><div class="top"><nav><a href="./find-players.html">← Find Players</a><a href="./index.html">My Decks</a></nav></div><p id="status" class="passport-status" role="status">Loading player passport…</p>
 <section id="passport" class="panel profile-card" hidden><div class="profile-banner"><div id="commanderShowcase" hidden><svg class="favorite-heart" viewBox="0 0 24 24" aria-label="Favorite commander" role="img"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg><strong id="commanderTitle"></strong></div><img id="commanderArt" alt="Favorite commander artwork" hidden><div class="banner-shade"></div><div class="banner-content"><span class="eyebrow">PLAYER PASSPORT</span><h2 id="playerName"></h2><div class="profile-meta"><span id="playerHandle" class="handle"></span><span id="playerPronouns"></span></div><p id="playerBio" class="bio"></p><p id="memberSince" class="private"></p></div></div><div class="career-inside" id="publicCareer" hidden><div class="career-heading"><h3>Commander Career</h3></div><div class="stat-grid" id="publicStats"></div></div></section><section class="shared-section" id="sharedLedger" hidden><h3>Ledger Statistics</h3><div id="sharedTotals" class="shared-grid"></div><div id="sharedBestDeck" class="shared-best-deck"></div><div id="sharedFeatured" class="shared-featured"></div><div id="sharedRivals" class="shared-grid" style="margin-top:18px"></div><div id="sharedDeckSection" hidden><h3>By Deck</h3><div id="sharedDecks" class="shared-decks"></div></div></section></main>
 <script src="./scryfall-client.js"></script><script type="module">
