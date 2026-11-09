@@ -27,6 +27,13 @@ $('gameForm').onsubmit=e=>{e.preventDefault();let ids=playerSelects().map(s=>s.v
 $('export').onclick=()=>{let url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='command-ledger.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 $('import').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!Array.isArray(d.decks)||!Array.isArray(d.games)||!d.decks.every(x=>typeof x.id==='string'&&typeof x.name==='string'&&Array.isArray(x.list))||!d.games.every(x=>Array.isArray(x.players)&&typeof x.winner==='string'))throw Error('Invalid backup');if(confirm('Replace all existing data?')){data=d;save();render()}}catch(err){alert(err.message)}e.target.value=''};
 $('gameForm').elements.date.value=new Date().toLocaleDateString('en-CA');render();
+</script><script>
+/* Recover reset links that Supabase or an email client lands on the homepage. */
+(function(){
+ const q=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.slice(1));
+ const recovery=q.get('type')==='recovery'||hash.get('type')==='recovery'||q.has('token_hash')&&q.get('type')==='recovery';
+ if(recovery){const target=new URL('./reset-password.html',location.href);target.search=location.search;target.hash=location.hash;location.replace(target.href)}
+})();
 </script><script type="module">
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 const supabase=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
