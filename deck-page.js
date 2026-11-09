@@ -74,7 +74,9 @@ async function run(){
  if(!id||!/^[0-9a-f-]{36}$/i.test(id)){$('status').textContent='Invalid deck link.';return}
  const {data:{user}}=await sb.auth.getUser();
  if(!user){$('status').textContent='Please sign in on the Command Ledger home page to view this deck.';return}
- const {data:deck,error}=await sb.from('decks').select('id,name,commander,decklist,bracket_level,theme,notes').eq('id',id).single();
+ let {data:deck,error}=await sb.from('decks').select('id,name,commander,decklist,bracket_level,theme,notes').eq('id',id).single();
+ if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist').eq('id',id).single();if(!fallback.error){deck=fallback.data;error=null}}
+
  if(error||!deck){$('status').textContent='Deck not found or you do not have permission to view it.';return}
  document.title=deck.name+' · Command Ledger';$('deckTitle').textContent=deck.name;
  const edit=element('a','Edit deck');edit.href='./import.html?id='+encodeURIComponent(deck.id);edit.className='edit-deck-link';edit.setAttribute('aria-label','Edit '+deck.name);$('deckTitle').after(edit);
