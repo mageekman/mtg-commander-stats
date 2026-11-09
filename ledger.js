@@ -320,7 +320,7 @@ function render(){
  const search=($('deckStatsSearch')?.value||'').trim().toLowerCase();
  const deckStats=new Map();
  for(const game of games){const stats=deckStats.get(game.deck_id)||{games:0,wins:0,last:null};stats.games++;if(game.won)stats.wins++;if(!stats.last||game.played_at>stats.last)stats.last=game.played_at;deckStats.set(game.deck_id,stats)}
- const matchingDecks=sortDecksForDisplay(decks.filter(d=>!search||(d.name||'').toLowerCase().includes(search)||(d.commander||'').toLowerCase().includes(search)),deckStats,$('ledgerDeckSort').value,$('ledgerDeckDirection').value);
+ const matchingDecks=sortDecksForDisplay(decks.filter(d=>deckStats.has(d.id)&&(!search||(d.name||'').toLowerCase().includes(search)||(d.commander||'').toLowerCase().includes(search))),deckStats,$('ledgerDeckSort').value,$('ledgerDeckDirection').value);
  $('deckStatsEmpty').hidden=!!matchingDecks.length||!search;
  for(const deck of matchingDecks){
   const played=visibleGames.filter(g=>g.deck_id===deck.id),wins=played.filter(g=>g.won).length;
