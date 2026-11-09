@@ -167,7 +167,7 @@ header.after(quickGame);
 const eyebrow=document.createElement('span');eyebrow.className='cl-eyebrow';eyebrow.textContent='THE COMMANDER ARCHIVE';title.prepend(eyebrow);
 const profiles=$('profiles'),account=$('account');
 const accountButton=document.createElement('button');accountButton.type='button';accountButton.id='accountButton';accountButton.textContent='Sign in';accountButton.setAttribute('aria-expanded','false');accountButton.setAttribute('aria-controls','account');
-const profileButton=document.createElement('button');profileButton.type='button';profileButton.id='myProfileButton';profileButton.textContent='My Profile';profileButton.onclick=()=>{window.location.href='./profile.html'};
+const profileButton=document.createElement('button');profileButton.type='button';profileButton.id='myProfileButton';profileButton.textContent='Sign in';profileButton.onclick=()=>{window.location.href='./profile.html'};const syncProfileButton=()=>{profileButton.textContent=($('authStatus')?.textContent||'').startsWith('Signed in as ')?'My Profile':'Sign in'};syncProfileButton();const profileAuthStatus=$('authStatus');if(profileAuthStatus)new MutationObserver(syncProfileButton).observe(profileAuthStatus,{childList:true,characterData:true,subtree:true});
 actions.prepend(profileButton);actions.append(account);accountButton.hidden=true;
 account.hidden=true;
 accountButton.onclick=()=>{window.location.href='./profile.html'};
