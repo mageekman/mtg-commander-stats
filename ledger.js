@@ -359,7 +359,7 @@ function render(){
     :['You',...(Array.isArray(g.opponents)?g.opponents:[])];
    players.textContent=playerNames.join(' · ');
    players.title=playerNames.join(', ');
-   row.append(date,deckName,players);item.append(row);history.append(item);continue;
+   const info=el('div');info.className='compact-game-info';info.append(deckName,players);row.append(date,info);item.append(row);history.append(item);continue;
   }
   const record=el('article');record.className='game-record';
   const header=el('div');header.className='game-record-header';
