@@ -216,6 +216,15 @@ function mostCommon(values){
  const counts=new Map();for(const value of values){const key=String(value||'').trim();if(key)counts.set(key,(counts.get(key)||0)+1)}
  return [...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0]||null;
 }
+function isGenericOpponentName(value){
+ const name=String(value||'').trim().toLowerCase().replace(/[._-]+/g,' ').replace(/\s+/g,' ');
+ if(!name)return true;
+ if(/^(?:unknown|unnamed|anonymous|anon|n\/?a|none|tbd|not specified|not provided|no name|you|yourself|self|me)$/i.test(name))return true;
+ // Generic placeholders with optional numbers, letters, or seat labels.
+ if(/^(?:(?:the|another|random|other)\s+)?(?:opponent|opp|player|enemy|rival|guest|stranger|person|participant|competitor|challenger|user|someone|somebody|human|bot|cpu|computer|ai)(?:\s*(?:#|no\.?|number|seat|slot)?\s*(?:\d+|[a-z]))?$/i.test(name))return true;
+ if(/^(?:player|opponent|enemy|guest|rival|seat|slot)\s*(?:one|two|three|four|five|six|seven|eight|nine|ten)$/i.test(name))return true;
+ return false;
+}
 function commanderParts(name){return String(name||'').split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean)}
 async function commanderColors(name){
  const parts=commanderParts(name);
@@ -250,7 +259,7 @@ function renderExtraStats(visibleGames){
  const losses=visibleGames.filter(g=>!g.won);
  const opponents=losses.map(g=>Array.isArray(g.players)&&Number.isInteger(g.winner_player)&&g.winner_player>0?g.players[g.winner_player]:null).filter(Boolean);
  const topCommander=mostCommon(opponents.map(p=>p.commander));
- const topPlayer=mostCommon(opponents.map(p=>p.name).filter(n=>n&&n.toLowerCase()!=='you'));
+ const topPlayer=mostCommon(opponents.map(p=>p.name).filter(n=>!isGenericOpponentName(n)));
  const cardData=[
   ['Most played color','Calculating…','Across your played decks'],
   ['Highest color combo win rate','Calculating…','Based on your deck colors'],
