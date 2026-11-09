@@ -76,10 +76,23 @@ $('authStatus').textContent=currentUser?'Signed in as '+currentUser.email:'Not s
 if(currentUser){await loadIdentity();await loadDecks()}else{$('playerIdentity').hidden=true;$('cloudDeckList').textContent='';}
 }
 async function loadDecks(){
-const {data,error}=await supabase.from('decks').select('id,name,commander,decklist,created_at').order('created_at',{ascending:false});
+const {data,error}=await supabase.from('decks').select('id,name,commander,decklist,created_at,archived_at').order('created_at',{ascending:false});
 if(error){$('cloudMessage').textContent=error.message;return}
-$('cloudDeckList').innerHTML=data.length?data.map(d=>'<p><strong>'+escapeHtml(d.name)+'</strong> — '+escapeHtml(d.commander)+' ('+d.decklist.split(/\r?\n/).filter(Boolean).length+' lines)</p>').join(''):'No decks yet.';
+const active=(data||[]).filter(d=>!d.archived_at),archived=(data||[]).filter(d=>!!d.archived_at);
+const renderDeck=(d,isArchived)=>'<p class="cloud-deck-entry"><strong>'+escapeHtml(d.name)+'</strong> — '+escapeHtml(d.commander)+' ('+String(d.decklist||'').split(/\\r?\\n/).filter(Boolean).length+' lines) <button type="button" class="deck-archive-action" data-deck-id="'+escapeHtml(d.id)+'" data-archive-action="'+(isArchived?'restore':'archive')+'">'+(isArchived?'Restore deck':'Archive deck')+'</button></p>';
+$('cloudDeckList').innerHTML=(active.length?active.map(d=>renderDeck(d,false)).join(''):'<p>No active decks yet.</p>')+(archived.length?'<details class="archived-decks-panel"><summary>Archived decks ('+archived.length+')</summary>'+archived.map(d=>renderDeck(d,true)).join('')+'</details>':'');
 }
+$('cloudDeckList').addEventListener('click',async event=>{
+const button=event.target.closest('button[data-archive-action]');if(!button||!currentUser)return;
+const archive=button.dataset.archiveAction==='archive';
+if(archive&&!confirm('Archive this deck? It will disappear from your active deck list, but its games and statistics will remain.'))return;
+button.disabled=true;
+const {error}=await supabase.from('decks').update({archived_at:archive?new Date().toISOString():null}).eq('id',button.dataset.deckId).eq('owner_id',currentUser.id);
+if(error){$('cloudMessage').textContent='Could not '+(archive?'archive':'restore')+' deck: '+error.message;button.disabled=false;return}
+$('cloudMessage').textContent=archive?'Deck archived. Its games and stats are preserved.':'Deck restored to your active list.';
+await loadDecks();
+});
+
 $('signupForm').onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target);$('authMessage').textContent='Creating account…';const {error}=await supabase.auth.signUp({email:String(f.get('email')).trim(),password:String(f.get('password')),options:{data:{display_name:String(f.get('display')).trim()},emailRedirectTo:location.origin+location.pathname}});$('authMessage').textContent=error?error.message:'Account created. Check your email for a confirmation link, then sign in.';await refresh()};
 $('loginForm').onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target);const {error}=await supabase.auth.signInWithPassword({email:String(f.get('email')).trim(),password:String(f.get('password'))});$('authMessage').textContent=error?error.message:'Signed in.';await refresh()};
 $('forgotPasswordToggle').onclick=()=>{const form=$('forgotPasswordForm');form.hidden=!form.hidden;if(!form.hidden){$('recoveryEmail').value=$('loginForm').elements.email.value||'';$('recoveryEmail').focus()}};
