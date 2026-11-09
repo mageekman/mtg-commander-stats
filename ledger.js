@@ -98,7 +98,7 @@ $('date').value=new Date().toLocaleDateString('en-CA');
 async function load(){
  const auth=await sb.auth.getUser();user=auth.data.user;
  if(!user){message('Sign in on the home page to use your personal Ledger.');$('save').disabled=true;return}
- const d=await sb.from('decks').select('id,name,commander').eq('owner_id',user.id).order('name');
+ const d=await sb.from('decks').select('id,name,commander,created_at').eq('owner_id',user.id).order('name');
  if(d.error){message('Unable to load decks: '+d.error.message);return}
  decks=d.data||[];const select=$('deck');select.replaceChildren(el('option','Select your deck'));select.firstChild.value='';
  for(const deck of decks){const o=el('option',deck.name+' — '+deck.commander);o.value=deck.id;select.append(o)}
@@ -152,6 +152,7 @@ function setHistoryView(view){
 $('historyCardsView').onclick=()=>setHistoryView('cards');
 $('historyCompactView').onclick=()=>setHistoryView('compact');
 $('deckStatsSearch').addEventListener('input',()=>render());
+for(const id of ['ledgerDeckSort','ledgerDeckDirection'])$(id).addEventListener('change',()=>{$('deckStats').scrollLeft=0;render()});
 $('deckCarouselPrev').onclick=()=>{$('deckStats').scrollBy({left:-$('deckStats').clientWidth*.85,behavior:'smooth'})};
 $('deckCarouselNext').onclick=()=>{$('deckStats').scrollBy({left:$('deckStats').clientWidth*.85,behavior:'smooth'})};
 
@@ -279,6 +280,23 @@ function renderExtraStats(visibleGames){
 }
 let colorStatsStamp=0;
 let comboStatsStamp=0;
+function sortDecksForDisplay(list,stats,sort,direction){
+ const multiplier=direction==='asc'?1:-1;
+ return [...list].sort((a,b)=>{
+  const sa=stats.get(a.id),sb=stats.get(b.id);
+  if(sort==='winrate'||sort==='last'){
+   const va=sort==='winrate'?(sa?.games?sa.wins/sa.games:null):(sa?.last||null);
+   const vb=sort==='winrate'?(sb?.games?sb.wins/sb.games:null):(sb?.last||null);
+   if(va===null&&vb!==null)return 1;
+   if(vb===null&&va!==null)return -1;
+   if(va!==null&&vb!==null&&va!==vb)return (va>vb?1:-1)*multiplier;
+  }else{
+   const va=a.created_at||'',vb=b.created_at||'';
+   if(va!==vb)return (va>vb?1:-1)*multiplier;
+  }
+  return (a.name||'').localeCompare(b.name||'');
+ });
+}
 function render(){
  const visibleGames=filteredGames();
  renderBestDeck(visibleGames);
@@ -300,7 +318,9 @@ function render(){
  pieCard.append(donut,legend);summary.append(main,pieCard);
  const byDeck=$('deckStats');byDeck.replaceChildren();byDeck.className='deck-stats-carousel';
  const search=($('deckStatsSearch')?.value||'').trim().toLowerCase();
- const matchingDecks=decks.filter(d=>!search||(d.name||'').toLowerCase().includes(search)||(d.commander||'').toLowerCase().includes(search));
+ const deckStats=new Map();
+ for(const game of games){const stats=deckStats.get(game.deck_id)||{games:0,wins:0,last:null};stats.games++;if(game.won)stats.wins++;if(!stats.last||game.played_at>stats.last)stats.last=game.played_at;deckStats.set(game.deck_id,stats)}
+ const matchingDecks=sortDecksForDisplay(decks.filter(d=>!search||(d.name||'').toLowerCase().includes(search)||(d.commander||'').toLowerCase().includes(search)),deckStats,$('ledgerDeckSort').value,$('ledgerDeckDirection').value);
  $('deckStatsEmpty').hidden=!!matchingDecks.length||!search;
  for(const deck of matchingDecks){
   const played=visibleGames.filter(g=>g.deck_id===deck.id),wins=played.filter(g=>g.won).length;
