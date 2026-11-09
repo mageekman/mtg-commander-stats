@@ -1,3 +1,12 @@
+function colorIdentityIcons(colors){
+ const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
+ const label=document.createElement('span');label.textContent='Color identity:';wrap.append(label);
+ const names={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
+ const ordered=[...'WUBRG'].filter(c=>colors.includes(c));
+ if(!ordered.length){const empty=document.createElement('span');empty.textContent='Colorless or unavailable';wrap.append(empty);return wrap}
+ for(const c of ordered){const img=document.createElement('img');img.src='https://svgs.scryfall.io/card-symbols/'+c+'.svg';img.alt=names[c]+' mana';img.title=names[c];img.width=24;img.height=24;img.loading='lazy';img.style.cssText='width:24px;height:24px;object-fit:contain;vertical-align:middle';wrap.append(img)}
+ return wrap;
+}
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
@@ -66,8 +75,8 @@ const commanderNames=active.commander.split(/\s+\/\s+|\s+&\s+/).map(s=>s.trim())
 const hero=document.createElement('div');hero.className='deck-hero';
 for(const name of commanderNames){const card=cardCache.get(name.toLowerCase());if(art(card)){const img=document.createElement('img');img.src=art(card);img.alt=name;hero.append(img)}}
 const description=document.createElement('div');const title=document.createElement('h3');title.textContent=active.commander;description.append(title);
-const color=document.createElement('p');const colors=[...new Set(commanderNames.flatMap(n=>cardCache.get(n.toLowerCase())?.color_identity||[]))];
-color.textContent='Color identity: '+(colors.length?colors.map(x=>({W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'}[x])).join(' / '):'Colorless or unavailable');description.append(color);
+const colors=[...new Set(commanderNames.flatMap(n=>cardCache.get(n.toLowerCase())?.color_identity||[]))];
+description.append(colorIdentityIcons(colors));
 const count=document.createElement('p');count.textContent=items.reduce((sum,x)=>sum+x.qty,0)+' cards listed';description.append(count);if(active.bracket_level){const n=document.createElement('p');n.textContent='Bracket: '+active.bracket_level;description.append(n)}if(active.theme){const n=document.createElement('p');n.textContent='Theme: '+active.theme;description.append(n)}if(active.notes){const n=document.createElement('p');n.textContent=active.notes;n.style.whiteSpace='pre-wrap';description.append(n)}
 const performance=document.createElement('p');performance.textContent='Game performance will appear here when cloud game tracking is connected.';description.append(performance);
 hero.append(description);view.append(hero);
