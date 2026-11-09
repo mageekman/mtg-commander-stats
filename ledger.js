@@ -164,6 +164,23 @@ for(const id of ['ledgerDeckSort','ledgerDeckDirection'])$(id).addEventListener(
 $('deckCarouselPrev').onclick=()=>{$('deckStats').scrollBy({left:-$('deckStats').clientWidth*.85,behavior:'smooth'})};
 $('deckCarouselNext').onclick=()=>{$('deckStats').scrollBy({left:$('deckStats').clientWidth*.85,behavior:'smooth'})};
 
+function calendarFilteredGames(){
+ const mode=$('statsDatePreset').value;
+ if(mode==='all')return games;
+ const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+ const localDate=value=>{if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(value||''))return null;const [y,m,d]=value.split('-').map(Number);const date=new Date(y,m-1,d);return date.getFullYear()===y&&date.getMonth()===m-1&&date.getDate()===d?date:null};
+ let start=null,end=today;
+ if(mode==='month')start=new Date(today.getFullYear(),today.getMonth(),1);
+ else if(mode==='lastMonth'){start=new Date(today.getFullYear(),today.getMonth()-1,1);end=new Date(today.getFullYear(),today.getMonth(),0)}
+ else if(mode==='year')start=new Date(today.getFullYear(),0,1);
+ else if(mode==='lastYear'){start=new Date(today.getFullYear()-1,0,1);end=new Date(today.getFullYear()-1,11,31)}
+ else if(mode==='30'){start=new Date(today);start.setDate(start.getDate()-29)}
+ else if(mode==='90'){start=new Date(today);start.setDate(start.getDate()-89)}
+ else if(mode==='custom'){start=localDate($('statsDateStart').value);end=localDate($('statsDateEnd').value);if(!start||!end||start>end)return []}
+ return games.filter(g=>{const date=localDate(g.played_at);return !!date&&(!start||date>=start)&&date<=end});
+}
+$('statsDatePreset').addEventListener('change',()=>{$('statsCustomDates').hidden=$('statsDatePreset').value!=='custom';render()});
+for(const id of ['statsDateStart','statsDateEnd'])$(id).addEventListener('change',render);
 function filteredGames(){
  const period=$('historyPeriodFilter').value,result=$('historyResultFilter').value,deck=$('historyDeckFilter').value;
  const today=new Date();const localToday=new Date(today.getFullYear(),today.getMonth(),today.getDate());
@@ -337,7 +354,8 @@ function renderWinrateTrend(visibleGames){
 }
 
 function render(){
- const visibleGames=filteredGames();
+ const visibleGames=calendarFilteredGames();
+ const historyVisibleGames=filteredGames().filter(g=>visibleGames.includes(g));
  renderWinrateTrend(visibleGames);
  renderBestDeck(visibleGames);
  renderExtraStats(visibleGames);
@@ -359,7 +377,7 @@ function render(){
  const byDeck=$('deckStats');byDeck.replaceChildren();byDeck.className='deck-stats-carousel';
  const search=($('deckStatsSearch')?.value||'').trim().toLowerCase();
  const deckStats=new Map();
- for(const game of games){const stats=deckStats.get(game.deck_id)||{games:0,wins:0,last:null};stats.games++;if(game.won)stats.wins++;if(!stats.last||game.played_at>stats.last)stats.last=game.played_at;deckStats.set(game.deck_id,stats)}
+ for(const game of visibleGames){const stats=deckStats.get(game.deck_id)||{games:0,wins:0,last:null};stats.games++;if(game.won)stats.wins++;if(!stats.last||game.played_at>stats.last)stats.last=game.played_at;deckStats.set(game.deck_id,stats)}
  const matchingDecks=sortDecksForDisplay(decks.filter(d=>!d.archived_at&&deckStats.has(d.id)&&(!search||(d.name||'').toLowerCase().includes(search)||(d.commander||'').toLowerCase().includes(search))),deckStats,$('ledgerDeckSort').value,$('ledgerDeckDirection').value);
  $('deckStatsEmpty').hidden=!!matchingDecks.length||!search;
  for(const deck of matchingDecks){
@@ -382,9 +400,9 @@ function render(){
  }
  if(!decks.length)byDeck.append(el('p','Import a deck first to start tracking.'));
  const history=$('history');history.replaceChildren();history.classList.toggle('history-compact',historyView==='compact');
- $('historyCount').textContent=visibleGames.length+' of '+games.length+' games match your filters';
- if(!visibleGames.length){history.append(el('p',games.length?'No games match these filters.':'No games recorded yet.'));return}
- const historyGames=[...visibleGames].sort((a,b)=>$('historyDateSort').value==='oldest'?a.played_at.localeCompare(b.played_at)||String(a.id).localeCompare(String(b.id)):b.played_at.localeCompare(a.played_at)||String(b.id).localeCompare(String(a.id)));
+ $('historyCount').textContent=historyVisibleGames.length+' of '+games.length+' games match your filters';
+ if(!historyVisibleGames.length){history.append(el('p',games.length?'No games match these filters.':'No games recorded yet.'));return}
+ const historyGames=[...historyVisibleGames].sort((a,b)=>$('historyDateSort').value==='oldest'?a.played_at.localeCompare(b.played_at)||String(a.id).localeCompare(String(b.id)):b.played_at.localeCompare(a.played_at)||String(b.id).localeCompare(String(a.id)));
  for(const g of historyGames){
   const deck=decks.find(d=>d.id===g.deck_id);
   if(historyView==='compact'){
