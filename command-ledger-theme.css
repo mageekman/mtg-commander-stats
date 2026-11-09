@@ -1,0 +1,13 @@
+/* Command Ledger | Modern Archivist v1
+   Shared design tokens and foundational components. */
+:root{color-scheme:dark;--cl-bg:#0c1518;--cl-panel:#142326;--cl-panel-raised:#1a2d30;--cl-line:#38514d;--cl-ink:#f1ebdb;--cl-muted:#a9b9b2;--cl-jade:#78b9a0;--cl-jade-dark:#205d4d;--cl-gold:#c9aa75;--cl-radius:14px;--cl-space:clamp(18px,3vw,32px)}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(ellipse at 82% 0%,#24463b52 0%,transparent 43%),linear-gradient(180deg,#101d1e 0%,var(--cl-bg) 65%)!important;color:var(--cl-ink)!important;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif!important;line-height:1.55}
+h1,h2,h3{letter-spacing:-.025em}
+h1,h2{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;font-weight:600}
+a{color:var(--cl-jade)}
+a:hover{color:#c1e6d6}
+button,input,select,textarea{font-family:inherit}
+button{transition:background-color .2s,border-color .2s,transform .2s,box-shadow .2s}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--cl-gold)!important;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}}
