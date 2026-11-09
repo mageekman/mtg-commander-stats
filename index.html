@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Command Ledger</title>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Command Ledger</title><link rel="stylesheet" href="./command-ledger-theme.css">
 <style>body{font:16px system-ui;background:#101827;color:#f1f5f9;max-width:850px;margin:auto;padding:24px}section{background:#1e293b;padding:20px;border-radius:12px;margin:16px 0}input,textarea,select,button{padding:9px;margin:5px;background:#0f172a;color:white;border:1px solid #64748b;border-radius:6px}button{background:#047857;cursor:pointer}textarea{display:block;width:90%;height:100px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #475569;text-align:left}</style>
 <h1>Command Ledger</h1><p>Commander game tracker. Data is stored in this browser only.</p>
 <section id="account"><h2 id="accountHeading">Your account</h2><div id="profileInfo" hidden><p><strong>Display name</strong><br><span id="profileName"></span></p><p><strong>Email</strong><br><span id="profileEmail"></span></p></div><p id="authStatus">Checking session…</p><form id="signupForm"><input name="display" placeholder="Display name" required><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password (6+ characters)" minlength="6" required><button>Create account</button></form><form id="loginForm"><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password" required><button>Sign in</button></form><button id="logout" type="button" hidden>Sign out</button><p id="authMessage" role="status"></p><p>All new decks are saved to your signed-in account in the cloud. Older browser-only data is preserved but no longer used for new decks.</p></section>
@@ -121,12 +121,13 @@ body{max-width:1100px;margin:auto;padding:24px;background:#101827;color:#f1f5f9}
 const $=id=>document.getElementById(id);
 const heading=document.querySelector('body > h1'),tagline=heading?.nextElementSibling;
 const header=document.createElement('header');header.id='mainHeader';
-const title=document.createElement('div');title.append(heading);if(tagline){tagline.textContent='Your Commander decks, all in one place.';title.append(tagline)}
+const title=document.createElement('div');title.append(heading);if(tagline){tagline.textContent='Your decks. Your games. Every story worth remembering.';title.append(tagline)}
 const actions=document.createElement('div');actions.id='quickActions';
-const add=document.createElement('button');add.id='newDeckButton';add.type='button';add.textContent='+ Import deck from text';
+const add=document.createElement('button');add.id='newDeckButton';add.type='button';add.textContent='+ New deck';
 actions.append(add);const ledgerLink=document.createElement('a');ledgerLink.href='./ledger.html';ledgerLink.textContent='My Ledger';ledgerLink.id='ledgerLink';actions.append(ledgerLink);header.append(title,actions);document.body.prepend(header);
 const quickGame=document.createElement('a');quickGame.id='quickRecordGame';quickGame.href='./ledger.html#gameForm';quickGame.innerHTML='<span class="quick-game-icon" aria-hidden="true">＋</span><span><strong>Record a game</strong><small>Log a Commander match in your Ledger</small></span><span class="quick-game-arrow" aria-hidden="true">→</span>';
 header.after(quickGame);
+const eyebrow=document.createElement('span');eyebrow.className='cl-eyebrow';eyebrow.textContent='THE COMMANDER ARCHIVE';title.prepend(eyebrow);
 const profiles=$('profiles'),account=$('account');
 const accountButton=document.createElement('button');accountButton.type='button';accountButton.id='accountButton';accountButton.textContent='Sign in';accountButton.setAttribute('aria-expanded','false');accountButton.setAttribute('aria-controls','account');
 actions.append(accountButton);actions.append(account);
@@ -139,7 +140,7 @@ if(authLabel){
  updateAccountButton();
 }
 profiles.querySelector('h2').textContent='My decks';
-profiles.querySelector('p').textContent='Choose a deck to view its cards.';
+profiles.querySelector('p').textContent='Every commander has a story. Explore your collection.';
 add.onclick=()=>{window.location.href='./import.html'};
 // Keep legacy DOM nodes mounted for existing event handlers and cloud workflows,
 // but do not show the retired tools panel on the homepage.
@@ -235,4 +236,44 @@ const authStatus=$('authStatus');if(authStatus)authStatus.setAttribute('aria-liv
 #recentGames .recent-game-winner{border:2px solid #34d399}
 #recentGames .recent-game-winner .recent-game-player-tags span:first-child{background:#065f46;border-color:#34d399;color:#ecfdf5}
 @media(max-width:430px){#recentGames .recent-game-player{min-height:100px}}
-</style><style>.deck-sort-label{display:flex;align-items:center;gap:7px;font-size:13px;color:#cbd5e1;white-space:nowrap}.deck-sort-label select{width:auto;min-width:115px;margin:0;padding:8px 9px}.home-deck-sort{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 16px}@media(max-width:550px){.deck-sort-label{flex:1;min-width:130px}.deck-sort-label select{min-width:0;flex:1}}</style><style>#quickActions>#newDeckButton,#quickActions>#ledgerLink{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-height:44px;height:44px;padding:0 16px;margin:5px;border-radius:7px;line-height:1.2;font:600 14px system-ui,sans-serif;white-space:nowrap}</style></html>
+</style><style>.deck-sort-label{display:flex;align-items:center;gap:7px;font-size:13px;color:#cbd5e1;white-space:nowrap}.deck-sort-label select{width:auto;min-width:115px;margin:0;padding:8px 9px}.home-deck-sort{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0 16px}@media(max-width:550px){.deck-sort-label{flex:1;min-width:130px}.deck-sort-label select{min-width:0;flex:1}}</style><style>#quickActions>#newDeckButton,#quickActions>#ledgerLink{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-height:44px;height:44px;padding:0 16px;margin:5px;border-radius:7px;line-height:1.2;font:600 14px system-ui,sans-serif;white-space:nowrap}</style><style>
+/* Modern Archivist | homepage layout and component language */
+body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
+#mainHeader{position:relative;isolation:isolate;align-items:center!important;min-height:180px;padding:clamp(22px,4vw,46px)!important;margin:0 0 22px!important;border:1px solid #5673657d;border-radius:20px;background:linear-gradient(110deg,#162e2c 0%,#172b29 54%,#2b4335 100%);box-shadow:0 24px 60px #0003;overflow:visible}
+#mainHeader::before{content:"";position:absolute;inset:12px;pointer-events:none;border:1px solid #c9aa752c;border-radius:12px;z-index:-1}
+#mainHeader>div:first-child{max-width:550px}
+.cl-eyebrow{display:block;margin-bottom:12px;font-size:11px;font-weight:750;letter-spacing:.22em;color:var(--cl-gold)}
+#mainHeader h1{font-family:Georgia,"Iowan Old Style",serif!important;font-size:clamp(36px,5vw,58px)!important;line-height:1.05;font-weight:600;letter-spacing:-.045em;color:var(--cl-ink)}
+#mainHeader p{margin-top:14px!important;font-size:15px;line-height:1.6;color:#c6d5cb!important;max-width:420px}
+#quickActions{justify-content:flex-end;gap:8px!important;max-width:400px}
+#quickActions>#newDeckButton,#quickActions>#ledgerLink,#quickActions>#accountButton{box-sizing:border-box!important;min-height:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;margin:0!important;padding:0 15px!important;border:1px solid #8fbca680!important;border-radius:9px!important;font-size:13px!important;font-weight:650!important;letter-spacing:.01em;white-space:nowrap}
+#quickActions>#newDeckButton{background:var(--cl-jade-dark)!important;color:#f2f8ef!important}
+#quickActions>#ledgerLink,#quickActions>#accountButton{background:#0b211e99!important;color:#e0ebdf!important;text-decoration:none}
+#quickActions>#newDeckButton:hover,#quickActions>#ledgerLink:hover,#quickActions>#accountButton:hover{background:#347563!important}
+#quickRecordGame{position:relative;background:linear-gradient(100deg,#1a4038,#1d5345 70%,#2e5946)!important;border:1px solid #789f80!important;border-radius:16px!important;padding:22px 26px!important;box-shadow:0 14px 35px #0003!important}
+#quickRecordGame .quick-game-icon{background:#d0b27e25!important;color:#f1d19a!important;border:1px solid #d0b27e66}
+#quickRecordGame strong{font-family:Georgia,"Iowan Old Style",serif;font-size:clamp(21px,2.5vw,28px)!important;font-weight:600}
+#quickRecordGame small{color:#c3d9cc!important}
+#profiles{margin-top:36px!important}
+#profiles>h2,#recentGamesSection h2{font-size:clamp(26px,3vw,36px)!important;color:var(--cl-ink);line-height:1.15;margin:0 0 8px}
+#profiles>p{color:var(--cl-muted)!important;margin:0 0 18px}
+.home-deck-sort{padding:14px 0!important;margin:8px 0 18px!important;border-top:1px solid var(--cl-line);border-bottom:1px solid var(--cl-line)}
+.deck-sort-label{color:#c2d0c7!important}
+.deck-sort-label select{background:#182c2c!important;border-color:#48675e!important;border-radius:8px!important;color:var(--cl-ink)}
+#deckGallery{gap:18px!important}
+#deckGallery .deck-entry{min-height:215px!important;border-radius:14px!important;border:1px solid #69847478!important;box-shadow:0 10px 28px #0003;transition:transform .22s,border-color .22s,box-shadow .22s}
+#deckGallery .deck-entry:hover{transform:translateY(-4px);border-color:var(--cl-gold)!important;box-shadow:0 20px 42px #0006}
+#deckGallery .deck-entry-details{background:linear-gradient(transparent,#071311e8 65%,#071311f5)!important;padding-top:60px!important;padding-bottom:18px!important}
+#deckGallery .deck-entry-details strong{font-family:Georgia,"Iowan Old Style",serif;font-size:20px!important;font-weight:600}
+#deckGallery .deck-winrate{border-color:#c9aa7580!important;background:#122f29ec!important;color:#f4dfb6!important;border-radius:8px!important}
+#recentGamesSection{margin-top:42px!important;padding:24px!important;border:1px solid var(--cl-line);border-radius:16px;background:linear-gradient(150deg,#182c2c,#142323)}
+.recent-games-heading{margin-bottom:20px!important}
+.recent-games-heading a{color:var(--cl-gold)!important;font-weight:650}
+#recentGames .recent-game{background:#101f22!important;border:1px solid #47615b!important;border-radius:12px!important;padding:14px!important}
+#recentGames .recent-game-winner{border-color:var(--cl-gold)!important}
+#quickActions #account{background:#17282a!important;border-color:#668176!important;border-radius:14px!important;box-shadow:0 20px 50px #0009!important}
+#account input{background:#0b1c20;border-color:#527168}
+#account button{background:#24624f}
+@media(max-width:760px){#mainHeader{padding:24px!important;min-height:0;display:flex;align-items:flex-start!important}#quickActions{justify-content:flex-start;width:100%;max-width:none}#quickActions>#newDeckButton,#quickActions>#ledgerLink,#quickActions>#accountButton{flex:1 1 auto}#quickActions #account{left:0!important;right:auto!important}#deckGallery{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))!important}}
+@media(max-width:480px){#mainHeader{padding:20px!important}#mainHeader h1{font-size:38px!important}#quickRecordGame{padding:17px!important}#recentGamesSection{padding:17px!important}#deckGallery{grid-template-columns:1fr!important}}
+</style></html>
