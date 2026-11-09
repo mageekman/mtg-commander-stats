@@ -226,7 +226,7 @@ const renderGroup=(list,host,term,archived)=>{
   const subtitle=document.createElement('span');subtitle.textContent=deck.commander;
   const performance=elWinRate(deck.id,winRates);details.append(title,subtitle);
   if(deck.bracket_level||deck.theme){const n=document.createElement('span');n.textContent=[deck.bracket_level?'Bracket '+deck.bracket_level:'',deck.theme||''].filter(Boolean).join(' · ');details.append(n)}
-  link.append(image,details,performance);wrapper.append(link);
+  link.append(image,details,performance);wrapper.append(link);host.append(wrapper);
   const commander=deck.commander.split(/\s+\/\s+|\s+&\s+/)[0].trim();
   if(commander){
    const url='https://api.scryfall.com/cards/named?exact='+encodeURIComponent(commander);
