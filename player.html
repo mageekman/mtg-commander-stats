@@ -72,6 +72,24 @@ body.stats-only #sharedRivals .color-stat-line small{font-size:10px!important}
 }
 body.stats-only #sharedRivals .shared-stat{min-width:0!important;overflow-wrap:anywhere}
 body.stats-only #sharedRivals .shared-stat strong{font-size:clamp(15px,2.5vw,21px)!important}
+
+/* Matched, compact charts for public and owner passports */
+#sharedTotals:has(.passport-chart-row),body.stats-only #sharedTotals:has(.passport-chart-row){display:block!important;margin:14px 0 20px}
+.passport-chart-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:stretch}
+.passport-win-card,.passport-trend-card{position:relative;box-sizing:border-box;min-width:0;min-height:290px;padding:20px;border:1px solid #38514d;border-radius:12px;background:linear-gradient(145deg,#122d2b,#0c1c1f)}
+.passport-win-card{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap}
+.passport-win-card .shared-donut{flex:none}
+.passport-win-details{display:flex;flex-direction:column;gap:8px;text-align:left}
+.passport-win-details>strong{font-size:36px;line-height:1}
+.passport-win-details>small{font-size:12px;color:#b7c9c0}
+.passport-win-details>span{font-size:13px}
+.passport-trend-card{display:flex;flex-direction:column;justify-content:space-between}
+.passport-trend-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.passport-trend-heading h3{margin:0;font-size:19px}
+.passport-trend-heading select{padding:7px 9px;border:1px solid #486960;border-radius:7px;background:#102423;color:#e8f4ee}
+.passport-trend-svg{flex:1;display:flex;align-items:center;min-height:175px}
+.passport-trend-svg svg{width:100%;height:auto;display:block}
+@media(max-width:750px){.passport-chart-row{grid-template-columns:minmax(0,1fr)}.passport-win-card,.passport-trend-card{min-height:245px}}
 </style><script src="./commander-art-position.js"></script><link rel="icon" type="image/svg+xml" href="./command-ledger-logo.svg"><link rel="apple-touch-icon" href="./command-ledger-logo.svg"><style>.brand-logo-heading{display:flex;align-items:center;gap:12px}.brand-logo-heading img{display:block;flex:none;border-radius:9px}</style></head><body><main><div class="top"><nav><a href="./find-players.html">← Find Players</a><a href="./index.html">My Decks</a></nav></div><p id="status" class="passport-status" role="status">Loading player passport…</p>
 <section id="passport" class="panel profile-card" hidden><div class="profile-banner"><div id="commanderShowcase" hidden><svg class="favorite-heart" viewBox="0 0 24 24" aria-label="Favorite commander" role="img"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg><strong id="commanderTitle"></strong></div><img id="commanderArt" alt="Favorite commander artwork" hidden><div class="banner-shade"></div><div class="banner-content"><span class="eyebrow">PLAYER PASSPORT</span><h2 id="playerName"></h2><div class="profile-meta"><span id="playerHandle" class="handle"></span><span id="playerPronouns"></span></div><p id="playerBio" class="bio"></p><p id="memberSince" class="private"></p></div></div><div class="career-inside" id="publicCareer" hidden><div class="career-heading"><h3>Commander Career</h3></div><div class="stat-grid" id="publicStats"></div></div></section><section class="shared-section" id="sharedLedger" hidden><h3>Ledger Statistics</h3><div id="sharedTotals" class="shared-grid"></div><div id="sharedBestDeck" class="shared-best-deck"></div><div id="sharedFeatured" class="shared-featured"></div><div id="sharedRivals" class="shared-grid" style="margin-top:18px"></div><div id="sharedDeckSection" hidden><h3>By Deck</h3><div id="sharedDecks" class="shared-decks"></div></div></section></main>
 <script src="./scryfall-client.js"></script><script type="module">
@@ -79,12 +97,50 @@ import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
 async function loadSharedLedger(handle,options={}){
- const {data,error}=await sb.rpc('get_shared_ledger_stats',{target_handle:handle});if(error){console.error('Shared statistics could not load:',error);const notice=document.createElement('p');notice.className='passport-status';notice.textContent='Shared statistics could not load. Please try again later.';$('passport').after(notice);return}if(!data)return;const own=!!options.own,flags=options.flags||{},preview=!!options.preview;const allowed=key=>!!(flags.public_full_stats||flags[key]);if(own&&preview){if(!allowed('share_record'))delete data.record;if(!allowed('share_win_chart'))delete data.win_chart;if(!allowed('share_best_deck'))delete data.best_deck;if(!allowed('share_most_played_deck'))delete data.most_played_deck;if(!allowed('share_most_played_color'))data.color_permissions.most_played=false;if(!allowed('share_best_color_combo'))data.color_permissions.best_combo=false;if(!allowed('share_lost_to_color'))data.lost_color_enabled=false;if(!allowed('share_lost_to_player'))delete data.nemesis_player;if(!allowed('share_lost_to_commander')){data.nemesis_commander_enabled=false;delete data.nemesis_commander}if(!allowed('share_deck_stats'))data.decks_enabled=false;}const badge=(element,key)=>{if(!own||preview)return;const b=document.createElement('span');b.className='stat-privacy-badge';b.textContent=allowed(key)?'Public':'Private';b.classList.toggle('is-public',allowed(key));element.append(b)};
+ const {data,error}=await sb.rpc('get_shared_ledger_stats',{target_handle:handle});if(error){console.error('Shared statistics could not load:',error);const notice=document.createElement('p');notice.className='passport-status';notice.textContent='Shared statistics could not load. Please try again later.';$('passport').after(notice);return}if(!data)return;const own=!!options.own,flags=options.flags||{},preview=!!options.preview;const allowed=key=>!!(flags.public_full_stats||flags[key]);if(own&&preview){if(!allowed('share_record'))delete data.record;if(!allowed('share_win_chart')){delete data.win_chart;delete data.winrate_history;}if(!allowed('share_best_deck'))delete data.best_deck;if(!allowed('share_most_played_deck'))delete data.most_played_deck;if(!allowed('share_most_played_color'))data.color_permissions.most_played=false;if(!allowed('share_best_color_combo'))data.color_permissions.best_combo=false;if(!allowed('share_lost_to_color'))data.lost_color_enabled=false;if(!allowed('share_lost_to_player'))delete data.nemesis_player;if(!allowed('share_lost_to_commander')){data.nemesis_commander_enabled=false;delete data.nemesis_commander}if(!allowed('share_deck_stats'))data.decks_enabled=false;}const badge=(element,key)=>{if(!own||preview)return;const b=document.createElement('span');b.className='stat-privacy-badge';b.textContent=allowed(key)?'Public':'Private';b.classList.toggle('is-public',allowed(key));element.append(b)};
  const root=$('sharedLedger'),totals=$('sharedTotals'),featured=$('sharedFeatured'),deckHost=$('sharedDecks'),rivals=$('sharedRivals');
  const addStat=(host,label,value,detail='')=>{const box=document.createElement('div');box.className='shared-stat';const caption=document.createElement('span');caption.textContent=label;const strong=document.createElement('strong');strong.textContent=String(value);box.append(caption,strong);if(detail){const small=document.createElement('small');small.textContent=detail;box.append(small)}badge(box,({ 'Games played':'share_record',"Player you've lost to most":'share_lost_to_player',"Rival Commander":'share_lost_to_commander'})[label]);host.append(box)};
  const feature=(label,deck,host=featured)=>{if(!deck)return;const card=document.createElement('div');card.className='shared-feature';const info=document.createElement('div');info.className='shared-feature-content';const title=document.createElement('small');title.textContent=label;const name=document.createElement('strong');name.textContent=deck.name;const details=document.createElement('small');details.textContent=deck.commander+' · '+deck.wins+' wins / '+deck.games+' games · '+(100*deck.wins/deck.games).toFixed(1)+'%';info.append(title,name,details);card.append(info);badge(card,label.includes('Best deck')?'share_best_deck':label.includes('Most played')?'share_most_played_deck':'share_lost_to_commander');host.append(card);setArtwork(card,deck.commander)};
- if(data.record)addStat(totals,'Games played',data.record.games);
- if(data.win_chart){const g=Number(data.win_chart.games),w=Number(data.win_chart.wins),rate=g?100*w/g:0;const card=document.createElement('div');card.className='shared-stat';card.style.display='flex';card.style.alignItems='center';card.style.gap='18px';card.style.flexWrap='wrap';const donut=document.createElement('div');donut.className='shared-donut';donut.style.background='conic-gradient(#34d399 '+rate+'%,#fb7185 '+rate+'% 100%)';const center=document.createElement('div');center.className='shared-donut-center';center.textContent=rate.toFixed(1)+'%';donut.append(center);const labels=document.createElement('div');labels.textContent='Wins '+w+' · Losses '+(g-w);card.append(donut,labels);badge(card,'share_win_chart');totals.append(card)}
+
+ if(data.win_chart||data.record){
+  const row=document.createElement('div');row.className='passport-chart-row';
+  const card=document.createElement('div');card.className='passport-win-card';
+  if(data.win_chart){
+   const g=Number(data.win_chart.games)||0,w=Number(data.win_chart.wins)||0,rate=g?100*w/g:0;
+   const donut=document.createElement('div');donut.className='shared-donut';donut.style.background='conic-gradient(#34d399 '+rate+'%,#fb7185 '+rate+'% 100%)';
+   const center=document.createElement('div');center.className='shared-donut-center';center.textContent=rate.toFixed(1)+'%';donut.append(center);
+   const details=document.createElement('div');details.className='passport-win-details';
+   const total=document.createElement('strong');total.textContent=String(g);
+   const totalLabel=document.createElement('small');totalLabel.textContent='Total games played';
+   const record=document.createElement('span');record.textContent=w+' wins · '+(g-w)+' losses';
+   details.append(total,totalLabel,record);card.append(donut,details);
+   badge(card,'share_win_chart');
+  }else{
+   const total=document.createElement('strong');total.textContent=String(data.record.games);
+   const label=document.createElement('small');label.textContent='Total games played';card.append(total,label);badge(card,'share_record');
+  }
+  row.append(card);
+  if(data.win_chart&&Array.isArray(data.winrate_history)){
+   const trend=document.createElement('div');trend.className='passport-trend-card';
+   const heading=document.createElement('div');heading.className='passport-trend-heading';
+   const title=document.createElement('h3');title.textContent='Win rate over time';
+   const mode=document.createElement('select');mode.setAttribute('aria-label','Win rate chart mode');
+   for(const [value,label] of [['rolling','Last 10 games'],['cumulative','Overall win rate']]){const opt=document.createElement('option');opt.value=value;opt.textContent=label;mode.append(opt)}
+   heading.append(title,mode);const chart=document.createElement('div');chart.className='passport-trend-svg';trend.append(heading,chart);badge(trend,'share_win_chart');row.append(trend);
+   const renderTrend=()=>{
+    const history=data.winrate_history||[],ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox','0 0 600 240');svg.setAttribute('role','img');svg.setAttribute('aria-label','Win rate over time');
+    chart.replaceChildren();if(!history.length){chart.textContent='Record games to see your win rate trend.';return}
+    let wins=0;const pts=history.map((game,i)=>{if(game.won)wins++;const last=history.slice(Math.max(0,i-9),i+1);return mode.value==='rolling'?100*last.filter(x=>x.won).length/last.length:100*wins/(i+1)});
+    const make=(tag,attrs)=>{const el=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,v);return el};
+    const x=i=>42+(pts.length===1?265:i*530/(pts.length-1)),y=v=>15+(100-v)*1.85;
+    for(const tick of [0,25,50,75,100]){svg.append(make('line',{x1:42,y1:y(tick),x2:575,y2:y(tick),stroke:'#45645c','stroke-opacity':'.45'}));const t=make('text',{x:35,y:y(tick)+4,'text-anchor':'end',fill:'#b5ccc1','font-size':'12'});t.textContent=tick+'%';svg.append(t)}
+    const line=make('polyline',{points:pts.map((v,i)=>x(i)+','+y(v)).join(' '),fill:'none',stroke:'#34d399','stroke-width':'3','stroke-linecap':'round','stroke-linejoin':'round'});svg.append(line);
+    for(let i=0;i<pts.length;i+=Math.max(1,Math.ceil(pts.length/9))){const dot=make('circle',{cx:x(i),cy:y(pts[i]),r:3,fill:'#a7f3d0'});const tip=make('title',{});tip.textContent='Game '+(i+1)+': '+pts[i].toFixed(1)+'%';dot.append(tip);svg.append(dot)}
+    chart.append(svg);
+   };mode.onchange=renderTrend;renderTrend();
+  }
+  totals.append(row);
+ }
  feature('★ Best deck',data.best_deck);feature('★ Most played deck',data.most_played_deck);
  const colors=new Map(),combos=new Map();let unavailable=0;
  async function identity(name){try{const first=String(name||'').split(' / ')[0].split(' & ')[0].trim();if(!first)return null;const res=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(first));if(!res.ok)return null;const c=await res.json();return (c.color_identity||[]).filter(x=>'WUBRG'.includes(x)).sort((a,b)=>'WUBRG'.indexOf(a)-'WUBRG'.indexOf(b)).join('')||'C'}catch{return null}}
