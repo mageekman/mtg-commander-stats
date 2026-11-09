@@ -75,18 +75,52 @@ function parse(text){
 }
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 async function resolve(cards){
- const unique=[...new Set(cards.filter(c=>c.zone==='main'||c.zone==='commander').map(c=>c.name.toLowerCase()))];
- const found=new Map(),missing=[];
- for(let i=0;i<unique.length;i+=75){
-  const names=unique.slice(i,i+75);
+ const entries=[...new Map(cards.filter(c=>c.zone==='main'||c.zone==='commander').map(c=>[c.name.toLowerCase(),c])).values()];
+ const found=new Map(),unresolved=new Map(entries.map(c=>[c.name.toLowerCase(),c]));
+ const request=async url=>{
+  await delay(120);
+  const response=await fetch(url,{headers:{Accept:'application/json'}});
+  if(response.status===404)return null;
+  if(!response.ok)throw Error('Scryfall returned '+response.status);
+  return response.json();
+ };
+ const accept=(entry,card)=>{
+  if(!card?.name)return false;
+  found.set(entry.name.toLowerCase(),card);unresolved.delete(entry.name.toLowerCase());return true;
+ };
+ // Prefer the precise printing when a deck export includes a set and collector number.
+ for(const entry of entries.filter(c=>c.set&&c.number)){
+  try{
+   const card=await request('https://api.scryfall.com/cards/'+encodeURIComponent(entry.set.toLowerCase())+'/'+encodeURIComponent(entry.number));
+   if(card)accept(entry,card);
+  }catch(e){/* Fall back to name lookup if a printing is unavailable. */}
+ }
+ const remaining=[...unresolved.values()];
+ for(let i=0;i<remaining.length;i+=75){
+  const chunk=remaining.slice(i,i+75);
   if(i)await delay(600);
-  const response=await fetch('https://api.scryfall.com/cards/collection',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({identifiers:names.map(name=>({name}))})});
+  const response=await fetch('https://api.scryfall.com/cards/collection',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({identifiers:chunk.map(c=>({name:c.name}))})});
   if(!response.ok)throw Error('Scryfall returned '+response.status+'. Please try again later.');
   const body=await response.json();
-  for(const card of body.data||[])found.set(card.name.toLowerCase(),card);
-  for(const item of body.not_found||[])missing.push(item.name||JSON.stringify(item));
+  for(const card of body.data||[]){
+   const entry=unresolved.get(card.name.toLowerCase());
+   if(entry)accept(entry,card);
+  }
  }
- return {found,missing};
+ // Alternate names printed on Secret Lair / Universes Beyond reskins are
+ // exposed by Scryfall as flavor_name rather than the canonical card name.
+ for(const entry of [...unresolved.values()]){
+  try{
+   const exact=await request('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(entry.name));
+   if(exact){accept(entry,exact);continue}
+   const query='https://api.scryfall.com/cards/search?q='+encodeURIComponent('!"'+entry.name.replace(/"/g,'')+'"')+'&unique=prints';
+   const results=await request(query);
+   const candidate=(results?.data||[]).find(card=>
+    [card.flavor_name,...(card.card_faces||[]).map(face=>face.flavor_name)].some(name=>name?.toLowerCase()===entry.name.toLowerCase()));
+   if(candidate)accept(entry,candidate);
+  }catch(e){/* Leave ambiguous or unavailable names for manual correction. */}
+ }
+ return {found,missing:[...unresolved.values()].map(c=>c.name)};
 }
 function draw(){
  if(!parsed)return;
@@ -106,9 +140,9 @@ function draw(){
  const possible=main.filter(c=>{
   const card=found.get(c.name.toLowerCase());
   return card?.type_line?.includes('Legendary')&&(card.type_line.includes('Creature')||card.type_line.includes('Planeswalker')&&/can be your commander/i.test(card.oracle_text||''));
- }).map(c=>c.name);
+ }).map(c=>found.get(c.name.toLowerCase())?.name||c.name);
  const candidates=[...new Set(possible)];
- const commanderName=explicitCommander.join(' / ');
+ const commanderName=explicitCommander.map(name=>found.get(name.toLowerCase())?.name||name).join(' / ');
  if(commanderName){if(!commanderManuallyEdited||!commanderInput.value.trim())selectCommander(commanderName,false);hint.textContent='Commander detected from the decklist.'}
  else if(candidates.length===1){if(!commanderManuallyEdited||!commanderInput.value.trim())selectCommander(candidates[0],false);hint.textContent='Suggested commander based on the only legendary creature in the deck. Confirm before saving.'}
  else if(candidates.length>1){hint.textContent='Multiple possible commanders found: '+candidates.slice(0,6).join(', ')+(candidates.length>6?'…':'')+'. Choose one above.'}
@@ -137,7 +171,7 @@ saveButton.onclick=async()=>{
  const name=$('importDeckName').value.trim(),commander=$('importCommander').value.trim();
  if(!name||!commander){status.textContent='Enter a deck name and commander.';return}
  const bracket_level=$('importBracket').value?Number($('importBracket').value):null,theme=$('importTheme').value.trim()||null,notes=$('importNotes').value.trim()||null;
- const list=parsed.cards.filter(c=>['main','commander'].includes(c.zone)).map(c=>c.qty+' '+c.name+(c.set?' ('+c.set.toUpperCase()+') '+c.number:'')).join('\n');
+ const list=parsed.cards.filter(c=>['main','commander'].includes(c.zone)).map(c=>{const resolved=parsed.found.get(c.name.toLowerCase());const canonical=resolved?.name||c.name;const set=c.set&&c.number?' ('+c.set.toUpperCase()+') '+c.number:'';return c.qty+' '+canonical+set}).join('\n');
  saveButton.disabled=true;
  try{
  const {data:{user}}=await sb.auth.getUser();
