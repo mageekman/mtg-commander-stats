@@ -57,7 +57,7 @@ button:hover:not(:disabled){background:#33745e;border-color:#a7d1b0}
 <main>
 <section><h2>1. Prepare your CSV</h2><p>Export your spreadsheet as a <strong>.csv</strong> file. Each row should represent one game. Date, Deck (or Commander), and Result (or Winner) are required.</p>
 <div class="instructions"><div><strong>Date</strong><p>Use <code>2026-11-01</code> or <code>11/01/2026</code>.</p></div><div><strong>Deck</strong><p>Use a deck name or commander matching one of your imported decks.</p></div><div><strong>Result</strong><p>Use <code>Win</code> or <code>Loss</code>. Yes/No and 1/0 also work.</p></div></div>
-<p class="muted">Optional columns: <strong>Commander</strong>, <strong>Player</strong>, <strong>Opponent Commanders</strong>, <strong>Opponent Names</strong>, <strong>First Player</strong>, <strong>Winner</strong>, and <strong>Notes</strong>. Separate multiple opponents with semicolons. For First Player and Winner, use a player name, commander, or seat number (1 is you). We also recognize common alternatives like “Game Date,” “My Commander,” and “Outcome.”</p></section>
+<p class="muted">Optional columns: <strong>Commander</strong>, <strong>Player</strong>, <strong>Opponent Commanders</strong>, <strong>Opponent Names</strong>, <strong>First Player</strong>, <strong>Winner</strong>, and <strong>Notes</strong>. Any CSV column containing “Opponent” is scanned for commanders, including Opponent 1, Opponent 2, and Opponent Commander 3. Separate multiple commanders in a cell with semicolons. For First Player and Winner, use a player name, commander, or seat number (1 is you). We also recognize common alternatives like “Game Date,” “My Commander,” and “Outcome.”</p></section>
 <section><h2>2. Upload and validate</h2><p class="muted">We'll find the closest matching deck or commander, even with spelling mistakes. Review suggested matches or choose Create new deck, then check errors and duplicates before importing. Nothing is saved, including new decks, until you confirm.</p>
 <div class="csv-import-actions"><button id="downloadCsvTemplate" type="button">Download CSV template</button><label for="csvFile">Select CSV file<input id="csvFile" type="file" accept=".csv,text/csv"></label></div><button id="validateCsvButton" type="button" disabled>Validate selected CSV</button>
 <p id="csvImportStatus" class="muted" role="status">Choose a CSV file, then click Validate selected CSV.</p><div id="csvImportPreview"></div><div class="scryfall-tools"><button id="matchScryfallCommanders" type="button" hidden>Find opponent commanders on Scryfall</button><p id="scryfallStatus" class="muted" role="status"></p><p class="muted">Optional: checks unique opponent commander names in small batches (maximum 25 per click). Suggestions are not applied automatically. This does not connect opponents to user accounts or infer that separate CSV rows are the same game.</p></div></section>
@@ -82,10 +82,10 @@ button:hover:not(:disabled){background:#33745e;border-color:#a7d1b0}
   button.disabled=true;button.textContent='Validating…';
   status.textContent='Starting CSV importer…';
   try{
-   const importer=await import('./csv-import-v4.js?v=20261109-scryfall-1');
+   const importer=await import('./csv-import-v5.js?v=20261109-opponent-columns-1');
    await importer.runCsvValidation();
    document.getElementById('matchScryfallCommanders').onclick=()=>importer.enrichOpponentCommanders();
-  }catch(err){status.textContent='CSV importer v4 could not start: '+(err.message||String(err));status.classList.add('csv-import-error')}
+  }catch(err){status.textContent='CSV importer v5 could not start: '+(err.message||String(err));status.classList.add('csv-import-error')}
   finally{button.disabled=false;button.textContent='Validate selected CSV'}
  });
 })();
