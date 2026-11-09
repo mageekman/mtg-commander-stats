@@ -68,7 +68,7 @@ const view=$('deckProfile');view.hidden=false;view.replaceChildren();
 const back=document.createElement('button');back.textContent='← All decks';back.onclick=()=>{view.hidden=true;$('deckGallery').hidden=false};view.append(back);$('deckGallery').hidden=true;
 const heading=document.createElement('h2');heading.textContent=active.name;view.append(heading);
 const status=document.createElement('p');status.textContent='Loading card artwork…';view.append(status);
-const items=parse(active.decklist);
+const items=parse(active.decklist||'');
 const names=[...items.map(x=>x.name),...active.commander.split(/\s+\/\s+|\s+&\s+/).filter(Boolean)];
 try{await lookup(names)}catch(e){status.textContent='Card artwork could not load: '+e.message}
 const commanderNames=active.commander.split(/\s+\/\s+|\s+&\s+/).map(s=>s.trim()).filter(Boolean);
@@ -77,7 +77,7 @@ for(const name of commanderNames){const card=cardCache.get(name.toLowerCase());i
 const description=document.createElement('div');const title=document.createElement('h3');title.textContent=active.commander;description.append(title);
 const colors=[...new Set(commanderNames.flatMap(n=>cardCache.get(n.toLowerCase())?.color_identity||[]))];
 description.append(colorIdentityIcons(colors));
-const count=document.createElement('p');count.textContent=items.reduce((sum,x)=>sum+x.qty,0)+' cards listed';description.append(count);if(active.bracket_level){const n=document.createElement('p');n.textContent='Bracket: '+active.bracket_level;description.append(n)}if(active.theme){const n=document.createElement('p');n.textContent='Theme: '+active.theme;description.append(n)}if(active.notes){const n=document.createElement('p');n.textContent=active.notes;n.style.whiteSpace='pre-wrap';description.append(n)}
+const count=document.createElement('p');count.textContent=items.length?items.reduce((sum,x)=>sum+x.qty,0)+' cards listed':'No card list uploaded';description.append(count);if(active.decklist_url){const a=document.createElement('a');a.textContent='View external decklist';a.href=active.decklist_url;a.target='_blank';a.rel='noopener noreferrer';description.append(a)}if(active.bracket_level){const n=document.createElement('p');n.textContent='Bracket: '+active.bracket_level;description.append(n)}if(active.theme){const n=document.createElement('p');n.textContent='Theme: '+active.theme;description.append(n)}if(active.notes){const n=document.createElement('p');n.textContent=active.notes;n.style.whiteSpace='pre-wrap';description.append(n)}
 const performance=document.createElement('p');performance.textContent='Game performance will appear here when cloud game tracking is connected.';description.append(performance);
 hero.append(description);view.append(hero);
 const groups=new Map();
@@ -179,7 +179,7 @@ function sortDecksForDisplay(list,stats,sort,direction){
 }
 async function refresh(){
 const {data:{user}}=await sb.auth.getUser();if(!user){$('deckGallery').innerHTML='<p>Sign in to view your cloud deck profiles.</p>';const recent=$('recentGames');if(recent)recent.textContent='Sign in to see your recent games.';return}
-let {data,error}=await sb.from('decks').select('id,name,commander,decklist,created_at,bracket_level,theme,notes').order('created_at',{ascending:false});
+let {data,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,created_at,bracket_level,theme,notes').order('created_at',{ascending:false});
 if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist,created_at').order('created_at',{ascending:false});if(!fallback.error){data=fallback.data;error=null}}
 
 if(error){$('deckGallery').textContent=error.message;return}
