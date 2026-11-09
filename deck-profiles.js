@@ -78,7 +78,7 @@ const description=document.createElement('div');const title=document.createEleme
 const colors=[...new Set(commanderNames.flatMap(n=>cardCache.get(n.toLowerCase())?.color_identity||[]))];
 description.append(colorIdentityIcons(colors));
 const count=document.createElement('p');count.textContent=items.length?items.reduce((sum,x)=>sum+x.qty,0)+' cards listed':'No card list uploaded';description.append(count);if(active.decklist_url){const a=document.createElement('a');a.textContent='View external decklist';a.href=active.decklist_url;a.target='_blank';a.rel='noopener noreferrer';description.append(a)}if(active.bracket_level){const n=document.createElement('p');n.textContent='Bracket: '+active.bracket_level;description.append(n)}if(active.theme){const n=document.createElement('p');n.textContent='Theme: '+active.theme;description.append(n)}if(active.notes){const n=document.createElement('p');n.textContent=active.notes;n.style.whiteSpace='pre-wrap';description.append(n)}
-const performance=document.createElement('p');performance.textContent='Game performance will appear here when cloud game tracking is connected.';description.append(performance);
+const performance=document.createElement('p');performance.textContent='Track games with this deck to see its performance in My Ledger.';description.append(performance);
 hero.append(description);view.append(hero);
 const groups=new Map();
 for(const item of items){const isCommander=item.commander||commanderNames.some(n=>n.toLowerCase()===item.name.toLowerCase());const key=isCommander?'Commander':group(cardCache.get(item.name.toLowerCase()));if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item)}
@@ -178,7 +178,7 @@ function sortDecksForDisplay(list,stats,sort,direction){
  });
 }
 async function refresh(){
-const {data:{user}}=await sb.auth.getUser();if(!user){$('deckGallery').innerHTML='<p>Sign in to view your cloud deck profiles.</p>';const recent=$('recentGames');if(recent)recent.textContent='Sign in to see your recent games.';return}
+const {data:{user}}=await sb.auth.getUser();if(!user){$('deckGallery').innerHTML='<p>Sign in to view your decks.</p>';const recent=$('recentGames');if(recent)recent.textContent='Sign in to see your recent games.';return}
 let {data,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,created_at,bracket_level,theme,notes').order('created_at',{ascending:false});
 if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist,created_at').order('created_at',{ascending:false});if(!fallback.error){data=fallback.data;error=null}}
 
@@ -193,7 +193,7 @@ if(!gameError)for(const game of gameRows||[]){
 renderRecentGames(gameRows,gameError);
 const gallery=$('deckGallery');gallery.replaceChildren();gallery.hidden=false;$('deckProfile').hidden=true;
 const sortedDecks=sortDecksForDisplay(decks,winRates,$('homeDeckSort').value,$('homeDeckDirection').value);
-if(!decks.length){gallery.textContent='No cloud decks yet. Import one from Moxfield to see its profile.';return}
+if(!decks.length){gallery.textContent='No decks yet. Add your first deck to get started.';return}
 for(const deck of sortedDecks){
  const link=document.createElement('a');link.className='deck-entry';link.href='./deck.html?id='+encodeURIComponent(deck.id);
  const image=document.createElement('div');image.className='deck-entry-art';
