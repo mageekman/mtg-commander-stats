@@ -151,6 +151,9 @@ function setHistoryView(view){
 }
 $('historyCardsView').onclick=()=>setHistoryView('cards');
 $('historyCompactView').onclick=()=>setHistoryView('compact');
+$('deckStatsSearch').addEventListener('input',()=>render());
+$('deckCarouselPrev').onclick=()=>{$('deckStats').scrollBy({left:-$('deckStats').clientWidth*.85,behavior:'smooth'})};
+$('deckCarouselNext').onclick=()=>{$('deckStats').scrollBy({left:$('deckStats').clientWidth*.85,behavior:'smooth'})};
 
 function filteredGames(){
  const period=$('historyPeriodFilter').value,result=$('historyResultFilter').value,deck=$('historyDeckFilter').value;
@@ -204,95 +207,75 @@ function mostCommon(values){
  const counts=new Map();for(const value of values){const key=String(value||'').trim();if(key)counts.set(key,(counts.get(key)||0)+1)}
  return [...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0]||null;
 }
+function commanderParts(name){return String(name||'').split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean)}
+async function commanderColors(name){
+ const parts=commanderParts(name);
+ if(!parts.length)return null;
+ const ids=await Promise.all(parts.map(commanderIdentity));
+ return ids.some(x=>x===null)?null:[...new Set(ids.flat())].sort((a,b)=>'WUBRG'.indexOf(a)-'WUBRG'.indexOf(b)).join('');
+}
+function manaIdentity(target,code){
+ const colors={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
+ target.replaceChildren();
+ if(!code){target.textContent='Colorless';return}
+ for(const c of code){const img=el('img');img.src='https://svgs.scryfall.io/card-symbols/'+c+'.svg';img.alt=colors[c]+' mana';img.title=colors[c];img.width=26;img.height=26;img.style.cssText='width:26px;height:26px;vertical-align:middle;margin-right:5px';target.append(img)}
+}
+function featuredStat(host,deck,label,primary,secondary){
+ host.replaceChildren();
+ if(!deck){const empty=el('div','Record a game to see '+label.toLowerCase()+'.');empty.className='best-deck-empty';host.append(empty);return}
+ const card=el('div');card.className='best-deck-card';
+ const art=el('div');art.className='best-deck-art';art.setAttribute('aria-hidden','true');
+ const content=el('div');content.className='best-deck-content';
+ for(const [tag,value,cls] of [['span',label,'best-deck-label'],['strong',deck.name,'best-deck-name'],['span',deck.commander,'best-deck-commander'],['strong',primary,'best-deck-rate'],['span',secondary,'best-deck-record']]){const node=el(tag,value);node.className=cls;content.append(node)}
+ card.append(art,content);host.append(card);
+ const name=commanderParts(deck.commander)[0];
+ if(name)getCommanderArtwork(name).then(url=>{if(card.isConnected&&url)art.style.backgroundImage='url("'+url+'")'}).catch(()=>{});
+}
 function renderExtraStats(visibleGames){
- const deckHost=$('deckInsights'),opponentHost=$('opponentInsights');if(!deckHost||!opponentHost)return;
- deckHost.replaceChildren();opponentHost.replaceChildren();
- const ranked=mostCommon(visibleGames.map(g=>g.deck_id));
- const mostDeck=decks.find(d=>d.id===ranked?.[0]);
- const losses=visibleGames.filter(g=>!g.won);
- const defeatedBy=losses.map(g=>{
-  if(!Array.isArray(g.players)||!Number.isInteger(g.winner_player)||g.winner_player<=0)return null;
-  return g.players[g.winner_player]||null;
- }).filter(Boolean);
- const commander=mostCommon(defeatedBy.map(p=>p.commander));
- const player=mostCommon(defeatedBy.map(p=>p.name).filter(n=>n&&n.toLowerCase()!=='you'));
- const cards=[
-  ['Most played deck',mostDeck?.name||'No games yet',ranked?ranked[1]+' games':''],
-  ['Most played color','Calculating…','Counted across your played decks'],
-  ['Commander you’ve lost to most',commander?.[0]||'No recorded losses',commander?commander[1]+' losses':''],
-  ['Player you’ve lost to most',player?.[0]||'No named opponents',player?player[1]+' losses':''],
-  ['Color combo you’ve lost to most',defeatedBy.length?'Calculating…':'No recorded losses','']
- ];
- const renderedCards=[];
- for(const [label,value,detail] of cards){const card=el('div');card.className='insight-stat';card.append(el('span',label),el('strong',value));if(detail)card.append(el('small',detail));renderedCards.push(card);(renderedCards.length<=2?deckHost:opponentHost).append(card)}
- const featured=renderedCards[0];
- if(mostDeck&&ranked){
-  const played=visibleGames.filter(g=>g.deck_id===mostDeck.id);
-  const wins=played.filter(g=>g.won).length;
-  const rate=(100*wins/played.length).toFixed(1)+'%';
-  featured.className='best-deck-card most-played-card';
-  featured.replaceChildren();
-  const artwork=el('div');artwork.className='best-deck-art';artwork.setAttribute('aria-hidden','true');
-  const content=el('div');content.className='best-deck-content';
-  const label=el('span','★ Most played deck');label.className='best-deck-label';
-  const name=el('strong',mostDeck.name);name.className='best-deck-name';
-  const commanderName=el('span',mostDeck.commander);commanderName.className='best-deck-commander';
-  const count=el('strong',played.length+' games played');count.className='best-deck-rate';
-  const record=el('span',wins+' wins · '+(played.length-wins)+' losses · '+rate+' win rate');record.className='best-deck-record';
-  content.append(label,name,commanderName,count,record);featured.append(artwork,content);
-  const commanderArtName=mostDeck.commander.split(' / ')[0].split(' & ')[0].trim();
-  if(commanderArtName)getCommanderArtwork(commanderArtName).then(url=>{
-   if(featured.isConnected&&url)artwork.style.backgroundImage='url("'+url+'")';
-  }).catch(()=>{});
- }else{
-  featured.className='best-deck-empty most-played-empty';
-  featured.replaceChildren(el('span','Record a game to see your most played deck.'));
- }
- const comboCard=renderedCards[4];
- const comboStamp=++comboStatsStamp;
- if(defeatedBy.length){
-  Promise.all(defeatedBy.map(async p=>{
-   const parts=String(p.commander||'').split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean);
-   if(!parts.length)return null;
-   const identities=await Promise.all(parts.map(commanderIdentity));
-   if(identities.some(identity=>identity===null))return null;
-   return [...new Set(identities.flat())].sort((a,b)=>'WUBRG'.indexOf(a)-'WUBRG'.indexOf(b)).join('');
-  })).then(identities=>{
-   if(comboStamp!==comboStatsStamp||!comboCard.isConnected)return;
-   const known=identities.filter(x=>x!==null),top=mostCommon(known),missing=identities.length-known.length;
-   const strong=comboCard.querySelector('strong');strong.replaceChildren();
-   const small=comboCard.querySelector('small')||el('small');
-   if(!top){strong.textContent='Color data unavailable';small.textContent=missing+' losses could not be checked'}
-   else{
-    const code=top[0],colorNames={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
-    if(code){for(const c of code){const img=el('img');img.src='https://svgs.scryfall.io/card-symbols/'+c+'.svg';img.alt=colorNames[c]+' mana';img.title=colorNames[c];img.width=26;img.height=26;img.style.cssText='width:26px;height:26px;vertical-align:middle;margin-right:5px';strong.append(img)}
-     const name=el('span',code.split('').map(c=>colorNames[c]).join(' / '));name.style.cssText='display:block;font-size:14px;margin-top:5px';strong.append(name)
-    }else strong.textContent='Colorless';
-    small.textContent=top[1]+' losses'+(missing?' · '+missing+' unavailable':'');
-   }
-   if(!small.isConnected)comboCard.append(small);
-  }).catch(()=>{if(comboStamp===comboStatsStamp&&comboCard.isConnected)comboCard.querySelector('strong').textContent='Color data unavailable'});
- }
- const colorCard=renderedCards[1];const names={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
+ const host=$('statInsights'),nemesis=$('nemesisCommander');if(!host||!nemesis)return;
+ host.replaceChildren();nemesis.replaceChildren();
  const stamp=++colorStatsStamp;
- const counted=visibleGames.filter(g=>decks.some(d=>d.id===g.deck_id));
- if(!counted.length){colorCard.querySelector('strong').textContent='No games yet';colorCard.querySelector('small').textContent='';return}
- Promise.all(counted.map(async g=>{
-  const deck=decks.find(d=>d.id===g.deck_id);
-  const parts=deck.commander.split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean);
-  const identities=await Promise.all(parts.map(commanderIdentity));
-  if(identities.some(x=>x===null))return null;
-  return [...new Set(identities.flat())];
- })).then(results=>{
-  if(stamp!==colorStatsStamp||!colorCard.isConnected)return;
-  const tally=new Map();let unavailable=0;
-  for(const identity of results){if(identity===null){unavailable++;continue}for(const c of identity)tally.set(c,(tally.get(c)||0)+1)}
-  const top=[...tally].sort((a,b)=>b[1]-a[1]||'WUBRG'.indexOf(a[0])-'WUBRG'.indexOf(b[0]))[0];
-  const strong=colorCard.querySelector('strong'),small=colorCard.querySelector('small');
-  strong.replaceChildren();
-  if(top){const img=el('img');img.src='https://svgs.scryfall.io/card-symbols/'+top[0]+'.svg';img.alt=names[top[0]]+' mana';img.width=28;img.height=28;img.style.cssText='width:28px;height:28px;vertical-align:middle;margin-right:8px';strong.append(img,document.createTextNode(names[top[0]]));small.textContent=top[1]+' games'+(unavailable?' · '+unavailable+' unavailable':'')}
-  else{strong.textContent=unavailable?'Color data unavailable':'Colorless';small.textContent=unavailable?unavailable+' games could not be checked':'No colored decks played'}
- }).catch(()=>{if(stamp===colorStatsStamp&&colorCard.isConnected)colorCard.querySelector('strong').textContent='Color data unavailable'});
+ const stats=decks.map(deck=>{const played=visibleGames.filter(g=>g.deck_id===deck.id);return {deck,games:played.length,wins:played.filter(g=>g.won).length}}).filter(x=>x.games);
+ const most=stats.slice().sort((a,b)=>b.games-a.games||b.wins-a.wins)[0];
+ featuredStat($('mostPlayedDeck'),most?.deck,'★ Most played deck',most?most.games+' games played':'',most?most.wins+' wins · '+(most.games-most.wins)+' losses · '+(100*most.wins/most.games).toFixed(1)+'% win rate':'');
+ const losses=visibleGames.filter(g=>!g.won);
+ const opponents=losses.map(g=>Array.isArray(g.players)&&Number.isInteger(g.winner_player)&&g.winner_player>0?g.players[g.winner_player]:null).filter(Boolean);
+ const topCommander=mostCommon(opponents.map(p=>p.commander));
+ const topPlayer=mostCommon(opponents.map(p=>p.name).filter(n=>n&&n.toLowerCase()!=='you'));
+ const cardData=[
+  ['Most played color','Calculating…','Across your played decks'],
+  ['Highest color combo win rate','Calculating…','Based on your deck colors'],
+  ['Color combo you’ve lost to most',opponents.length?'Calculating…':'No recorded losses',''],
+  ['Player you’ve lost to most',topPlayer?.[0]||'No named opponents',topPlayer?topPlayer[1]+' losses':'']
+ ];
+ const cards=cardData.map(([label,value,detail])=>{const card=el('div');card.className='insight-stat';card.append(el('span',label),el('strong',value));const small=el('small',detail);card.append(small);host.append(card);return card});
+ if(topCommander){
+  const card=el('div');card.className='best-deck-card';
+  const art=el('div');art.className='best-deck-art';art.setAttribute('aria-hidden','true');
+  const content=el('div');content.className='best-deck-content';
+  for(const [tag,value,cls] of [['span','★ Commander you’ve lost to most','best-deck-label'],['strong',topCommander[0],'best-deck-name'],['strong',topCommander[1]+' losses','best-deck-rate'],['span','Against this commander','best-deck-record']]){const node=el(tag,value);node.className=cls;content.append(node)}
+  card.append(art,content);nemesis.append(card);
+  const name=commanderParts(topCommander[0])[0];
+  if(name)getCommanderArtwork(name).then(url=>{if(card.isConnected&&url)art.style.backgroundImage='url("'+url+'")'}).catch(()=>{});
+ }else{const empty=el('div','No recorded losses to named commanders yet.');empty.className='best-deck-empty';nemesis.append(empty)}
+ const gameDecks=visibleGames.map(g=>decks.find(d=>d.id===g.deck_id));
+ Promise.all(gameDecks.map(d=>d?commanderColors(d.commander):Promise.resolve(null))).then(ids=>{
+  if(stamp!==colorStatsStamp)return;
+  const count=new Map(),combo=new Map();let missing=0;
+  ids.forEach((code,i)=>{if(code===null){missing++;return}for(const c of code)count.set(c,(count.get(c)||0)+1);const data=combo.get(code)||{games:0,wins:0};data.games++;if(visibleGames[i].won)data.wins++;combo.set(code,data)});
+  const top=[...count].sort((a,b)=>b[1]-a[1]||'WUBRG'.indexOf(a[0])-'WUBRG'.indexOf(b[0]))[0];
+  const colorStrong=cards[0].querySelector('strong'),colorSmall=cards[0].querySelector('small');
+  if(top){manaIdentity(colorStrong,top[0]);colorSmall.textContent=top[1]+' games'+(missing?' · '+missing+' unavailable':'')}else{colorStrong.textContent=missing?'Color data unavailable':'No colored decks played';colorSmall.textContent=''}
+  const best=[...combo].sort((a,b)=>b[1].wins/b[1].games-a[1].wins/a[1].games||b[1].games-a[1].games||a[0].localeCompare(b[0]))[0];
+  const bestStrong=cards[1].querySelector('strong'),bestSmall=cards[1].querySelector('small');
+  if(best){manaIdentity(bestStrong,best[0]);bestSmall.textContent=(100*best[1].wins/best[1].games).toFixed(1)+'% win rate · '+best[1].wins+' wins in '+best[1].games+' games'}else{bestStrong.textContent=missing?'Color data unavailable':'No games yet';bestSmall.textContent=''}
+ }).catch(()=>{if(stamp===colorStatsStamp){cards[0].querySelector('strong').textContent='Color data unavailable';cards[1].querySelector('strong').textContent='Color data unavailable'}});
+ Promise.all(opponents.map(p=>commanderColors(p.commander))).then(ids=>{
+  if(stamp!==colorStatsStamp)return;
+  const top=mostCommon(ids.filter(x=>x!==null)),strong=cards[2].querySelector('strong'),small=cards[2].querySelector('small');
+  if(top){manaIdentity(strong,top[0]);small.textContent=top[1]+' losses'+(ids.filter(x=>x===null).length?' · '+ids.filter(x=>x===null).length+' unavailable':'')}
+  else{strong.textContent=ids.length?'Color data unavailable':'No recorded losses';small.textContent=''}
+ }).catch(()=>{if(stamp===colorStatsStamp)cards[2].querySelector('strong').textContent='Color data unavailable'});
 }
 let colorStatsStamp=0;
 let comboStatsStamp=0;
@@ -315,8 +298,11 @@ function render(){
   line.append(dot,el('span',label),el('strong',String(value)));legend.append(line);
  }
  pieCard.append(donut,legend);summary.append(main,pieCard);
- const byDeck=$('deckStats');byDeck.replaceChildren();byDeck.className='deck-stats-grid';
- for(const deck of decks){
+ const byDeck=$('deckStats');byDeck.replaceChildren();byDeck.className='deck-stats-carousel';
+ const search=($('deckStatsSearch')?.value||'').trim().toLowerCase();
+ const matchingDecks=decks.filter(d=>!search||(d.name||'').toLowerCase().includes(search)||(d.commander||'').toLowerCase().includes(search));
+ $('deckStatsEmpty').hidden=!!matchingDecks.length||!search;
+ for(const deck of matchingDecks){
   const played=visibleGames.filter(g=>g.deck_id===deck.id),wins=played.filter(g=>g.won).length;
   const rate=played.length?(wins/played.length*100).toFixed(1)+'%':'—';
   const card=el('a');card.className='deck-stats-card';card.href='./deck.html?id='+encodeURIComponent(deck.id);
