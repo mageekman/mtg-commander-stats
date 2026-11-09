@@ -33,7 +33,7 @@ const needed=[...new Set(names.map(x=>x.toLowerCase()))].filter(x=>!cardCache.ha
 for(let i=0;i<needed.length;i+=75){
  const chunk=needed.slice(i,i+75);
  const wait=Math.max(0,150-(Date.now()-requestTime));if(wait)await pause(wait);requestTime=Date.now();
- const response=await fetch('https://api.scryfall.com/cards/collection',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({identifiers:chunk.map(name=>({name}))})});
+ const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/collection',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({identifiers:chunk.map(name=>({name}))})});
  if(!response.ok)throw Error('Scryfall error '+response.status);
  const result=await response.json();
  for(const c of result.data||[])cardCache.set(c.name.toLowerCase(),c);
@@ -97,7 +97,7 @@ function getRecentArtwork(name){
  if(recentArtPending.has(key))return recentArtPending.get(key);
  const job=recentArtQueue.then(async()=>{
   await new Promise(resolve=>setTimeout(resolve,125));
-  const response=await fetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
+  const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
   if(!response.ok)throw Error('Scryfall '+response.status);
   const card=await response.json();
   const url=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.large||card.card_faces?.[0]?.image_uris?.large||null;
@@ -204,7 +204,7 @@ for(const deck of sortedDecks){
  const commander=deck.commander.split(/\s+\/\s+|\s+&\s+/)[0].trim();
  if(commander){
  const url='https://api.scryfall.com/cards/named?exact='+encodeURIComponent(commander);
- fetch(url,{headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():null).then(card=>{
+ window.commandLedgerScryfallFetch(url,{headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():null).then(card=>{
  const art=card?.image_uris?.art_crop||card?.card_faces?.[0]?.image_uris?.art_crop;
  if(art){const img=document.createElement('img');img.src=art;img.alt='Artwork for '+commander;img.loading='lazy';image.append(img)}
  }).catch(()=>{});
