@@ -34,7 +34,7 @@ $('gameForm').elements.date.value=new Date().toLocaleDateString('en-CA');render(
  const recovery=q.get('type')==='recovery'||hash.get('type')==='recovery'||q.has('token_hash')&&q.get('type')==='recovery';
  if(recovery){const target=new URL('./reset-password.html',location.href);target.search=location.search;target.hash=location.hash;location.replace(target.href)}
 })();
-</script><script src="./scryfall-client.js"></script><script type="module">
+</script><script src="./scryfall-client.js?v=20261109-safe"></script><script type="module">
 import {createClient} from './vendor/supabase-js.mjs';
 const supabase=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
