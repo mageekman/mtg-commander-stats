@@ -101,7 +101,15 @@ async function load(){
  const d=await sb.from('decks').select('id,name,commander,created_at,archived_at').eq('owner_id',user.id).order('name');
  if(d.error){message('Unable to load decks: '+d.error.message);return}
  decks=d.data||[];const select=$('deck');select.replaceChildren(el('option','Select your deck'));select.firstChild.value='';
- for(const deck of decks.filter(d=>!d.archived_at)){const o=el('option',deck.name+' — '+deck.commander);o.value=deck.id;select.append(o)}
+ const alphabetical=(a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:'base',numeric:true})||a.commander.localeCompare(b.commander,undefined,{sensitivity:'base',numeric:true});
+ const activeDecks=decks.filter(d=>!d.archived_at).sort(alphabetical);
+ const archivedDecks=decks.filter(d=>!!d.archived_at).sort(alphabetical);
+ for(const [label,groupDecks,archived] of [['Active decks',activeDecks,false],['Archived decks',archivedDecks,true]]){
+  if(!groupDecks.length)continue;
+  const group=document.createElement('optgroup');group.label=label;
+  for(const deck of groupDecks){const o=el('option',deck.name+' — '+deck.commander+(archived?' (Archived)':''));o.value=deck.id;group.append(o)}
+  select.append(group);
+ }
  const filter=$('historyDeckFilter');filter.replaceChildren();const all=el('option','All decks');all.value='';filter.append(all);for(const deck of decks){const option=el('option',deck.name+(deck.archived_at?' (Archived)':'')+' — '+deck.commander);option.value=deck.id;filter.append(option)}
  const requestedDeck=new URLSearchParams(location.search).get('deck');if(requestedDeck&&decks.some(d=>d.id===requestedDeck))filter.value=requestedDeck;
  syncOwnCommander();await refresh();
