@@ -40,7 +40,7 @@ commanderInput.addEventListener('input',()=>{
  searchTimer=setTimeout(async()=>{
   try{
    searchController=new AbortController();
-   const response=await fetch('https://api.scryfall.com/cards/autocomplete?q='+encodeURIComponent(q),{signal:searchController.signal,headers:{Accept:'application/json'}});
+   const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/autocomplete?q='+encodeURIComponent(q),{signal:searchController.signal,headers:{Accept:'application/json'}});
    if(!response.ok)throw Error('Scryfall unavailable');
    const data=await response.json();if(token!==searchToken)return;
    matches.replaceChildren();
@@ -81,7 +81,7 @@ async function resolve(cards){
  const found=new Map(),unresolved=new Map(entries.map(c=>[c.name.toLowerCase(),c]));
  const request=async url=>{
   await delay(120);
-  const response=await fetch(url,{headers:{Accept:'application/json'}});
+  const response=await window.commandLedgerScryfallFetch(url,{headers:{Accept:'application/json'}});
   if(response.status===404)return null;
   if(!response.ok)throw Error('Scryfall returned '+response.status);
   return response.json();
@@ -101,7 +101,7 @@ async function resolve(cards){
  for(let i=0;i<remaining.length;i+=75){
   const chunk=remaining.slice(i,i+75);
   if(i)await delay(600);
-  const response=await fetch('https://api.scryfall.com/cards/collection',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({identifiers:chunk.map(c=>({name:c.name}))})});
+  const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/collection',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({identifiers:chunk.map(c=>({name:c.name}))})});
   if(!response.ok)throw Error('Scryfall returned '+response.status+'. Please try again later.');
   const body=await response.json();
   for(const card of body.data||[]){
@@ -138,7 +138,7 @@ async function suggestCards(name){
   ]){
    try{
     await delay(125);
-    const response=await fetch(url,{headers:{Accept:'application/json'}});
+    const response=await window.commandLedgerScryfallFetch(url,{headers:{Accept:'application/json'}});
     if(response.ok){const result=await response.json();if(result.name)add(result.name);for(const n of result.data||[])add(n)}
    }catch(e){/* Suggestions are optional; never block the import. */}
   }
