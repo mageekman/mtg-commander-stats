@@ -59,7 +59,7 @@ const card=cardCache.get(item.name.toLowerCase());
 const tile=document.createElement('div');tile.className='ledger-card';
 if(image(card)){const img=document.createElement('img');img.src=image(card);img.alt=item.name;img.loading='lazy';tile.append(img)}
 const caption=document.createElement('div');caption.textContent=item.qty+'× '+item.name;tile.append(caption);
-if(card?.scryfall_uri){tile.title='Open card on Scryfall';tile.tabIndex=0;tile.setAttribute('role','link');tile.onclick=()=>window.open(card.scryfall_uri,'_blank','noopener,noreferrer');tile.onkeydown=e=>{if(e.key==='Enter')tile.click()}}
+const cardLink=card?.scryfall_uri||'https://scryfall.com/search?q='+encodeURIComponent('!"'+item.name.replace(/"/g,'')+'"');tile.title='Open card on Scryfall';tile.tabIndex=0;tile.setAttribute('role','link');tile.onclick=()=>window.open(cardLink,'_blank','noopener,noreferrer');tile.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tile.click()}}
 return tile;
 }
 async function openDeck(id){
