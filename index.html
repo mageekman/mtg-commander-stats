@@ -168,7 +168,7 @@ const eyebrow=document.createElement('span');eyebrow.className='cl-eyebrow';eyeb
 const profiles=$('profiles'),account=$('account');
 const accountButton=document.createElement('button');accountButton.type='button';accountButton.id='accountButton';accountButton.textContent='Sign in';accountButton.setAttribute('aria-expanded','false');accountButton.setAttribute('aria-controls','account');
 const profileButton=document.createElement('button');profileButton.type='button';profileButton.id='myProfileButton';profileButton.textContent='My Profile';profileButton.onclick=()=>{window.location.href='./profile.html'};
-actions.append(profileButton);actions.append(account);accountButton.hidden=true;
+actions.prepend(profileButton);actions.append(account);accountButton.hidden=true;
 account.hidden=true;
 accountButton.onclick=()=>{window.location.href='./profile.html'};
 const authLabel=$('authStatus');
@@ -362,4 +362,4 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 </style><style>
 #myProfileButton{background:#205d4d;color:#f1ebdb;border:1px solid #c9aa7577;border-radius:9px;padding:10px 15px;font-weight:650}
 #myProfileButton:hover{background:#307763;border-color:#c9aa75}
-</style><style>#quickActions #account{display:none!important}#myProfileButton{white-space:nowrap}</style></html>
+#mainHeader #quickActions{display:grid!important;grid-template-columns:repeat(2,max-content);justify-content:end!important;align-content:center;align-items:center;gap:9px!important;max-width:none}#mainHeader #myProfileButton{grid-column:1/-1;justify-self:end;display:inline-flex;align-items:center;justify-content:center;min-height:36px;margin:0!important;padding:7px 13px!important;font-size:12px;line-height:1.2;background:#0b211e99;color:#e6d2a7;border:1px solid #c9aa7580;border-radius:9px}#mainHeader #myProfileButton:hover{background:#205d4d}#mainHeader #quickActions>#newDeckButton,#mainHeader #quickActions>#ledgerLink{margin:0!important}@media(max-width:650px){#mainHeader #quickActions{width:100%;grid-template-columns:repeat(2,minmax(0,1fr));justify-content:stretch!important}#mainHeader #myProfileButton{justify-self:end}#mainHeader #quickActions>#newDeckButton,#mainHeader #quickActions>#ledgerLink{width:100%}}</style><style>#quickActions #account{display:none!important}#myProfileButton{white-space:nowrap}</style></html>
