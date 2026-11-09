@@ -160,6 +160,23 @@ function elWinRate(deckId,winRates){
  badge.title=stats?.games?stats.wins+' wins in '+stats.games+' games':'No recorded games for this deck';
  return badge;
 }
+function sortDecksForDisplay(list,stats,sort,direction){
+ const multiplier=direction==='asc'?1:-1;
+ return [...list].sort((a,b)=>{
+  const sa=stats.get(a.id),sb=stats.get(b.id);
+  if(sort==='winrate'||sort==='last'){
+   const va=sort==='winrate'?(sa?.games?sa.wins/sa.games:null):(sa?.last||null);
+   const vb=sort==='winrate'?(sb?.games?sb.wins/sb.games:null):(sb?.last||null);
+   if(va===null&&vb!==null)return 1;
+   if(vb===null&&va!==null)return -1;
+   if(va!==null&&vb!==null&&va!==vb)return (va>vb?1:-1)*multiplier;
+  }else{
+   const va=a.created_at||'',vb=b.created_at||'';
+   if(va!==vb)return (va>vb?1:-1)*multiplier;
+  }
+  return (a.name||'').localeCompare(b.name||'');
+ });
+}
 async function refresh(){
 const {data:{user}}=await sb.auth.getUser();if(!user){$('deckGallery').innerHTML='<p>Sign in to view your cloud deck profiles.</p>';const recent=$('recentGames');if(recent)recent.textContent='Sign in to see your recent games.';return}
 let {data,error}=await sb.from('decks').select('id,name,commander,decklist,created_at,bracket_level,theme,notes').order('created_at',{ascending:false});
@@ -171,12 +188,13 @@ const winRates=new Map();
 const {data:gameRows,error:gameError}=await sb.from('personal_games').select('id,deck_id,played_at,won,players,first_player,winner_player').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false}).limit(1000);
 if(!gameError)for(const game of gameRows||[]){
  const stats=winRates.get(game.deck_id)||{games:0,wins:0};
- stats.games++;if(game.won)stats.wins++;winRates.set(game.deck_id,stats);
+ stats.games++;if(game.won)stats.wins++;if(!stats.last||game.played_at>stats.last)stats.last=game.played_at;winRates.set(game.deck_id,stats);
 }
 renderRecentGames(gameRows,gameError);
 const gallery=$('deckGallery');gallery.replaceChildren();gallery.hidden=false;$('deckProfile').hidden=true;
+const sortedDecks=sortDecksForDisplay(decks,winRates,$('homeDeckSort').value,$('homeDeckDirection').value);
 if(!decks.length){gallery.textContent='No cloud decks yet. Import one from Moxfield to see its profile.';return}
-for(const deck of decks){
+for(const deck of sortedDecks){
  const link=document.createElement('a');link.className='deck-entry';link.href='./deck.html?id='+encodeURIComponent(deck.id);
  const image=document.createElement('div');image.className='deck-entry-art';
  const details=document.createElement('div');details.className='deck-entry-details';
@@ -194,5 +212,6 @@ for(const deck of decks){
 }
 }
 const refreshButton=$('refreshProfiles');if(refreshButton)refreshButton.onclick=refresh;
+for(const id of ['homeDeckSort','homeDeckDirection'])$(id)?.addEventListener('change',refresh);
 sb.auth.onAuthStateChange(()=>setTimeout(refresh,0));
 refresh();
