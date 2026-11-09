@@ -195,8 +195,8 @@ function mostCommon(values){
  return [...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0]||null;
 }
 function renderExtraStats(visibleGames){
- const host=$('extraStats');if(!host)return;
- host.replaceChildren();
+ const deckHost=$('deckInsights'),opponentHost=$('opponentInsights');if(!deckHost||!opponentHost)return;
+ deckHost.replaceChildren();opponentHost.replaceChildren();
  const ranked=mostCommon(visibleGames.map(g=>g.deck_id));
  const mostDeck=decks.find(d=>d.id===ranked?.[0]);
  const losses=visibleGames.filter(g=>!g.won);
@@ -213,8 +213,9 @@ function renderExtraStats(visibleGames){
   ['Player you’ve lost to most',player?.[0]||'No named opponents',player?player[1]+' losses':''],
   ['Color combo you’ve lost to most',defeatedBy.length?'Calculating…':'No recorded losses','']
  ];
- for(const [label,value,detail] of cards){const card=el('div');card.className='insight-stat';card.append(el('span',label),el('strong',value));if(detail)card.append(el('small',detail));host.append(card)}
- const comboCard=host.children[4];
+ const renderedCards=[];
+ for(const [label,value,detail] of cards){const card=el('div');card.className='insight-stat';card.append(el('span',label),el('strong',value));if(detail)card.append(el('small',detail));renderedCards.push(card);(renderedCards.length<=2?deckHost:opponentHost).append(card)}
+ const comboCard=renderedCards[4];
  const comboStamp=++comboStatsStamp;
  if(defeatedBy.length){
   Promise.all(defeatedBy.map(async p=>{
@@ -239,7 +240,7 @@ function renderExtraStats(visibleGames){
    if(!small.isConnected)comboCard.append(small);
   }).catch(()=>{if(comboStamp===comboStatsStamp&&comboCard.isConnected)comboCard.querySelector('strong').textContent='Color data unavailable'});
  }
- const colorCard=host.children[1];const names={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
+ const colorCard=renderedCards[1];const names={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
  const stamp=++colorStatsStamp;
  const counted=visibleGames.filter(g=>decks.some(d=>d.id===g.deck_id));
  if(!counted.length){colorCard.querySelector('strong').textContent='No games yet';colorCard.querySelector('small').textContent='';return}
@@ -270,7 +271,7 @@ function render(){
  const summary=$('summary');summary.replaceChildren();
  const rate=visibleGames.length?(wins/visibleGames.length*100).toFixed(1):'0.0';
  const main=el('div');main.className='stats-main';
- main.append(stat('Filtered games',visibleGames.length),stat('Win rate',rate+'%'));
+ main.append(stat('Games played',visibleGames.length));
  const pieCard=el('div');pieCard.className='stats-pie-card';
  const donut=el('div');donut.className='stats-donut';donut.style.setProperty('--win-percent',rate+'%');
  donut.setAttribute('role','img');donut.setAttribute('aria-label',wins+' wins and '+(visibleGames.length-wins)+' losses');
