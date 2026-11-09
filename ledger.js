@@ -177,9 +177,68 @@ function renderBestDeck(displayGames){
   if(card.isConnected&&url)artwork.style.backgroundImage='url("'+url+'")';
  }).catch(()=>{});
 }
+const identityCache=new Map();
+async function commanderIdentity(name){
+ const key=String(name||'').trim().toLowerCase();
+ if(!key)return [];
+ if(!identityCache.has(key))identityCache.set(key,(async()=>{
+  try{
+   const response=await fetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
+   if(!response.ok)return null;
+   const card=await response.json();return Array.isArray(card.color_identity)?card.color_identity:null;
+  }catch{return null}
+ })());
+ return identityCache.get(key);
+}
+function mostCommon(values){
+ const counts=new Map();for(const value of values){const key=String(value||'').trim();if(key)counts.set(key,(counts.get(key)||0)+1)}
+ return [...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0]||null;
+}
+function renderExtraStats(visibleGames){
+ const host=$('extraStats');if(!host)return;
+ host.replaceChildren();
+ const ranked=mostCommon(visibleGames.map(g=>g.deck_id));
+ const mostDeck=decks.find(d=>d.id===ranked?.[0]);
+ const losses=visibleGames.filter(g=>!g.won);
+ const defeatedBy=losses.map(g=>{
+  if(!Array.isArray(g.players)||!Number.isInteger(g.winner_player)||g.winner_player<=0)return null;
+  return g.players[g.winner_player]||null;
+ }).filter(Boolean);
+ const commander=mostCommon(defeatedBy.map(p=>p.commander));
+ const player=mostCommon(defeatedBy.map(p=>p.name).filter(n=>n&&n.toLowerCase()!=='you'));
+ const cards=[
+  ['Most played deck',mostDeck?.name||'No games yet',ranked?ranked[1]+' games':''],
+  ['Most played color','Calculating…','Counted across your played decks'],
+  ['Commander you’ve lost to most',commander?.[0]||'No recorded losses',commander?commander[1]+' losses':''],
+  ['Player you’ve lost to most',player?.[0]||'No named opponents',player?player[1]+' losses':'']
+ ];
+ for(const [label,value,detail] of cards){const card=el('div');card.className='insight-stat';card.append(el('span',label),el('strong',value));if(detail)card.append(el('small',detail));host.append(card)}
+ const colorCard=host.children[1];const names={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
+ const stamp=++colorStatsStamp;
+ const counted=visibleGames.filter(g=>decks.some(d=>d.id===g.deck_id));
+ if(!counted.length){colorCard.querySelector('strong').textContent='No games yet';colorCard.querySelector('small').textContent='';return}
+ Promise.all(counted.map(async g=>{
+  const deck=decks.find(d=>d.id===g.deck_id);
+  const parts=deck.commander.split(/\\s+\\/\\s+|\\s+&\\s+/).map(x=>x.trim()).filter(Boolean);
+  const identities=await Promise.all(parts.map(commanderIdentity));
+  if(identities.some(x=>x===null))return null;
+  return [...new Set(identities.flat())];
+ })).then(results=>{
+  if(stamp!==colorStatsStamp||!colorCard.isConnected)return;
+  const tally=new Map();let unavailable=0;
+  for(const identity of results){if(identity===null){unavailable++;continue}for(const c of identity)tally.set(c,(tally.get(c)||0)+1)}
+  const top=[...tally].sort((a,b)=>b[1]-a[1]||'WUBRG'.indexOf(a[0])-'WUBRG'.indexOf(b[0]))[0];
+  const strong=colorCard.querySelector('strong'),small=colorCard.querySelector('small');
+  strong.replaceChildren();
+  if(top){const img=el('img');img.src='https://svgs.scryfall.io/card-symbols/'+top[0]+'.svg';img.alt=names[top[0]]+' mana';img.width=28;img.height=28;img.style.cssText='width:28px;height:28px;vertical-align:middle;margin-right:8px';strong.append(img,document.createTextNode(names[top[0]]));small.textContent=top[1]+' games'+(unavailable?' · '+unavailable+' unavailable':'')}
+  else{strong.textContent=unavailable?'Color data unavailable':'Colorless';small.textContent=unavailable?unavailable+' games could not be checked':'No colored decks played'}
+ }).catch(()=>{if(stamp===colorStatsStamp&&colorCard.isConnected)colorCard.querySelector('strong').textContent='Color data unavailable'});
+}
+let colorStatsStamp=0;
 function render(){
  const visibleGames=filteredGames();
  renderBestDeck(visibleGames);
+ renderExtraStats(visibleGames);
  const wins=visibleGames.filter(g=>g.won).length;
  const summary=$('summary');summary.replaceChildren();
  const rate=visibleGames.length?(wins/visibleGames.length*100).toFixed(1):'0.0';
