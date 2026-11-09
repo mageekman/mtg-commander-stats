@@ -88,6 +88,8 @@ const grid=document.createElement('div');grid.className='ledger-grid';cards.forE
 if(status.textContent==='Loading card artwork…')status.remove();
 view.scrollIntoView({behavior:'smooth',block:'start'});
 }
+const galleryArtCache=new Map();
+let rerenderDeckGallery=null;
 const recentArtCache=new Map();
 const recentArtPending=new Map();
 let recentArtQueue=Promise.resolve();
@@ -223,11 +225,13 @@ const renderGroup=(list,host,term,archived)=>{
    renderAll();
   };
   wrapper.append(button);host.append(wrapper);
-  const commander=deck.commander.split(/\s+\\/\s+|\s+&\s+/)[0].trim();
+  const commander=deck.commander.split(/\s+\/\s+|\s+&\s+/)[0].trim();
   if(commander){
    const url='https://api.scryfall.com/cards/named?exact='+encodeURIComponent(commander);
+   if(galleryArtCache.has(commander)){const cached=galleryArtCache.get(commander);if(cached){const img=document.createElement('img');img.src=cached;img.alt='Artwork for '+commander;img.loading='lazy';image.append(img)}continue}
    window.commandLedgerScryfallFetch(url,{headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():null).then(card=>{
     const art=card?.image_uris?.art_crop||card?.card_faces?.[0]?.image_uris?.art_crop;
+    galleryArtCache.set(commander,art||null);
     if(art&&image.isConnected){const img=document.createElement('img');img.src=art;img.alt='Artwork for '+commander;img.loading='lazy';image.append(img)}
    }).catch(()=>{});
   }
@@ -238,10 +242,11 @@ function renderAll(){
  renderGroup(decks.filter(d=>!d.archived_at),gallery,$('homeDeckSearch').value,false);
  renderGroup(decks.filter(d=>!!d.archived_at),archivedGallery,$('archivedDeckSearch').value,true);
 }
+rerenderDeckGallery=renderAll;
 renderAll();
 
 }
 const refreshButton=$('refreshProfiles');if(refreshButton)refreshButton.onclick=refresh;
-for(const id of ['homeDeckSort','homeDeckDirection','homeDeckSearch','archivedDeckSearch'])$(id)?.addEventListener(id.includes('Search')?'input':'change',refresh);
+for(const id of ['homeDeckSort','homeDeckDirection','homeDeckSearch','archivedDeckSearch'])$(id)?.addEventListener(id.includes('Search')?'input':'change',()=>rerenderDeckGallery?.());
 sb.auth.onAuthStateChange(()=>setTimeout(refresh,0));
 refresh();
