@@ -372,4 +372,10 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 #mainHeader #quickActions>#myProfileButton:hover,#mainHeader #quickActions>#newDeckButton:hover,#mainHeader #quickActions>#ledgerLink:hover,#mainHeader #quickActions>#findPlayersLink:hover{background:#307763!important;border-color:#9bd5bb!important;color:#fff!important}
 @media(max-width:650px){#mainHeader #quickActions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%!important}#mainHeader #quickActions>#myProfileButton,#mainHeader #quickActions>#newDeckButton,#mainHeader #quickActions>#ledgerLink,#mainHeader #quickActions>#findPlayersLink{width:100%!important;padding:0 10px!important}}
 @media(max-width:360px){#mainHeader #quickActions{grid-template-columns:minmax(0,1fr)!important}}
+</style><style>
+/* Keep homepage navigation at the top edge of the masthead. */
+#mainHeader{align-items:flex-start!important}
+#mainHeader #quickActions{align-self:flex-start!important;align-content:start!important;margin-top:0!important;padding-top:0!important}
+#mainHeader>div:first-child{min-width:0}
+@media(max-width:650px){#mainHeader #quickActions{margin-top:0!important}}
 </style></html>
