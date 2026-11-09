@@ -1,3 +1,12 @@
+function colorIdentityIcons(colors){
+ const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
+ const label=document.createElement('span');label.textContent='Color identity:';wrap.append(label);
+ const names={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};
+ const ordered=[...'WUBRG'].filter(c=>colors.includes(c));
+ if(!ordered.length){const empty=document.createElement('span');empty.textContent='Colorless or unavailable';wrap.append(empty);return wrap}
+ for(const c of ordered){const img=document.createElement('img');img.src='https://svgs.scryfall.io/card-symbols/'+c+'.svg';img.alt=names[c]+' mana';img.title=names[c];img.width=24;img.height=24;img.loading='lazy';img.style.cssText='width:24px;height:24px;object-fit:contain;vertical-align:middle';wrap.append(img)}
+ return wrap;
+}
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
@@ -89,7 +98,7 @@ async function run(){
  hero.append(artPanel);
  const meta=element('div');meta.className='deck-hero-details';meta.append(element('h2',deck.commander));
  const colors=[...new Set(commanderNames.flatMap(n=>cards.get(n.toLowerCase())?.color_identity||[]))];
- meta.append(element('p','Color identity: '+(colors.length?colors.map(c=>({W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'}[c])).join(' / '):'Colorless or unavailable')));
+ meta.append(colorIdentityIcons(colors));
  meta.append(element('p',items.reduce((n,i)=>n+i.qty,0)+' cards listed'));if(deck.bracket_level)meta.append(element('p','Bracket: '+deck.bracket_level));if(deck.theme)meta.append(element('p','Theme: '+deck.theme));if(deck.notes){const note=element('p',deck.notes);note.style.whiteSpace='pre-wrap';meta.append(element('h3','Deck notes'),note)}
  hero.append(meta);root.append(hero);
  await renderDeckPerformance(meta,deck,user);
