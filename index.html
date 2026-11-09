@@ -141,18 +141,20 @@ if(authLabel){
 profiles.querySelector('h2').textContent='My decks';
 profiles.querySelector('p').textContent='Choose a deck to view its cards.';
 add.onclick=()=>{window.location.href='./import.html'};
-const tools=document.createElement('details');tools.id='toolsDetails';
-const summary=document.createElement('summary');summary.textContent='More tools and local game history';
-tools.append(summary);
+// Keep legacy DOM nodes mounted for existing event handlers and cloud workflows,
+// but do not show the retired tools panel on the homepage.
+const legacyContainer=document.createElement('div');
+legacyContainer.id='legacyToolsContainer';
+legacyContainer.hidden=true;
 const backup=$('export')?.closest('section');
 const legacy=$('deckForm')?.closest('section');
 const game=$('gameForm')?.closest('section');
 const standings=$('standings')?.closest('section');
 const history=$('history')?.closest('section');
 const search=$('scryfall'),cloud=$('cloudSection');
-for(const section of [search,cloud,game,standings,history,backup])if(section)tools.append(section);
+for(const section of [search,cloud,game,standings,history,backup])if(section)legacyContainer.append(section);
 if(legacy){legacy.hidden=true;legacy.setAttribute('aria-hidden','true')}
-profiles.after(tools);
+profiles.after(legacyContainer);
 const note=account.querySelector('p:last-child');if(note)note.classList.add('account-note');
 const authStatus=$('authStatus');if(authStatus)authStatus.setAttribute('aria-live','polite');
 })();
