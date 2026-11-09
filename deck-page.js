@@ -83,13 +83,13 @@ async function run(){
  if(!id||!/^[0-9a-f-]{36}$/i.test(id)){$('status').textContent='Invalid deck link.';return}
  const {data:{user}}=await sb.auth.getUser();
  if(!user){$('status').textContent='Please sign in on the Command Ledger home page to view this deck.';return}
- let {data:deck,error}=await sb.from('decks').select('id,name,commander,decklist,bracket_level,theme,notes').eq('id',id).single();
+ let {data:deck,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,bracket_level,theme,notes').eq('id',id).single();
  if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist').eq('id',id).single();if(!fallback.error){deck=fallback.data;error=null}}
 
  if(error||!deck){$('status').textContent='Deck not found or you do not have permission to view it.';return}
  document.title=deck.name+' · Command Ledger';$('deckTitle').textContent=deck.name;
  const edit=element('a','Edit deck');edit.href='./import.html?id='+encodeURIComponent(deck.id);edit.className='edit-deck-link';edit.setAttribute('aria-label','Edit '+deck.name);$('deckTitle').after(edit);
- const items=parse(deck.decklist),commanderNames=deck.commander.split(/\s+\/\s+|\s+&\s+/).map(s=>s.trim()).filter(Boolean);
+ const items=parse(deck.decklist||''),commanderNames=deck.commander.split(/\s+\/\s+|\s+&\s+/).map(s=>s.trim()).filter(Boolean);
  $('status').textContent='Loading card artwork…';
  let cards=new Map();try{cards=await fetchCards([...items.map(i=>i.name),...commanderNames])}catch(e){$('status').textContent=e.message+' — showing card names instead.'}
  const root=$('deckContent'),hero=element('div');hero.className='hero';
@@ -99,7 +99,7 @@ async function run(){
  const meta=element('div');meta.className='deck-hero-details';meta.append(element('h2',deck.commander));
  const colors=[...new Set(commanderNames.flatMap(n=>cards.get(n.toLowerCase())?.color_identity||[]))];
  meta.append(colorIdentityIcons(colors));
- meta.append(element('p',items.reduce((n,i)=>n+i.qty,0)+' cards listed'));if(deck.bracket_level)meta.append(element('p','Bracket: '+deck.bracket_level));if(deck.theme)meta.append(element('p','Theme: '+deck.theme));if(deck.notes){const note=element('p',deck.notes);note.style.whiteSpace='pre-wrap';meta.append(element('h3','Deck notes'),note)}
+ meta.append(element('p',items.length?items.reduce((n,i)=>n+i.qty,0)+' cards listed':'No card list uploaded'));if(deck.decklist_url){const a=element('a','View external decklist');a.href=deck.decklist_url;a.target='_blank';a.rel='noopener noreferrer';meta.append(a)}if(deck.bracket_level)meta.append(element('p','Bracket: '+deck.bracket_level));if(deck.theme)meta.append(element('p','Theme: '+deck.theme));if(deck.notes){const note=element('p',deck.notes);note.style.whiteSpace='pre-wrap';meta.append(element('h3','Deck notes'),note)}
  hero.append(meta);root.append(hero);
  await renderDeckPerformance(meta,deck,user);
  const buckets=new Map();
