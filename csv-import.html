@@ -73,7 +73,7 @@ button:hover:not(:disabled){background:#33745e;border-color:#a7d1b0}
   status.textContent=selected?'Selected '+selected.name+'. Click Validate selected CSV to continue.':'Choose a CSV file, then click Validate selected CSV.';
  });
  document.getElementById('downloadCsvTemplate').addEventListener('click',()=>{
-  const csv='Date,Deck,Result,Opponents,Notes\\n2026-11-01,My Commander Deck,Win,"Krenko; Atraxa; Muldrotha",Fun game\\n';
+  const csv='Date,Deck,Commander,Result,Player,Opponent Commanders,Opponent Names,First Player,Winner,Notes\n2026-11-01,My Commander Deck,My Commander,Win,You,"Krenko; Atraxa; Muldrotha","Alex; Sam; Taylor",1,1,Fun game\n';
   const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   const a=document.createElement('a');a.href=url;a.download='command-ledger-games-template.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
  });
