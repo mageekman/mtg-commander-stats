@@ -79,7 +79,7 @@ async function loadDecks(){
 const {data,error}=await supabase.from('decks').select('id,name,commander,decklist,created_at,archived_at').order('created_at',{ascending:false});
 if(error){$('cloudMessage').textContent=error.message;return}
 const active=(data||[]).filter(d=>!d.archived_at),archived=(data||[]).filter(d=>!!d.archived_at);
-const renderDeck=(d,isArchived)=>'<p class="cloud-deck-entry"><strong>'+escapeHtml(d.name)+'</strong> — '+escapeHtml(d.commander)+' ('+String(d.decklist||'').split(/\\r?\\n/).filter(Boolean).length+' lines) <button type="button" class="deck-archive-action" data-deck-id="'+escapeHtml(d.id)+'" data-archive-action="'+(isArchived?'restore':'archive')+'">'+(isArchived?'Restore deck':'Archive deck')+'</button></p>';
+const renderDeck=(d,isArchived)=>'<p class="cloud-deck-entry"><strong>'+escapeHtml(d.name)+'</strong> — '+escapeHtml(d.commander)+' ('+String(d.decklist||'').split(/\r?\n/).filter(Boolean).length+' lines) <button type="button" class="deck-archive-action" data-deck-id="'+escapeHtml(d.id)+'" data-archive-action="'+(isArchived?'restore':'archive')+'">'+(isArchived?'Restore deck':'Archive deck')+'</button></p>';
 $('cloudDeckList').innerHTML=(active.length?active.map(d=>renderDeck(d,false)).join(''):'<p>No active decks yet.</p>')+(archived.length?'<details class="archived-decks-panel"><summary>Archived decks ('+archived.length+')</summary>'+archived.map(d=>renderDeck(d,true)).join('')+'</details>':'');
 }
 $('cloudDeckList').addEventListener('click',async event=>{
