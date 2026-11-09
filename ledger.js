@@ -142,6 +142,16 @@ function editGame(game){
 $('cancelEdit').onclick=()=>{resetEditor();message('Editing cancelled.')};
 
 for(const id of ['historyDeckFilter','historyPeriodFilter','historyResultFilter'])$(id).addEventListener('change',render);
+let historyView='cards';
+function setHistoryView(view){
+ historyView=view==='compact'?'compact':'cards';
+ $('historyCardsView').setAttribute('aria-pressed',String(historyView==='cards'));
+ $('historyCompactView').setAttribute('aria-pressed',String(historyView==='compact'));
+ render();
+}
+$('historyCardsView').onclick=()=>setHistoryView('cards');
+$('historyCompactView').onclick=()=>setHistoryView('compact');
+
 function filteredGames(){
  const period=$('historyPeriodFilter').value,result=$('historyResultFilter').value,deck=$('historyDeckFilter').value;
  const today=new Date();const localToday=new Date(today.getFullYear(),today.getMonth(),today.getDate());
@@ -302,11 +312,34 @@ function render(){
   }).catch(()=>{});
  }
  if(!decks.length)byDeck.append(el('p','Import a deck first to start tracking.'));
- const history=$('history');history.replaceChildren();
+ const history=$('history');history.replaceChildren();history.classList.toggle('history-compact',historyView==='compact');
  $('historyCount').textContent=visibleGames.length+' of '+games.length+' games match your filters';
  if(!visibleGames.length){history.append(el('p',games.length?'No games match these filters.':'No games recorded yet.'));return}
  for(const g of visibleGames){
   const deck=decks.find(d=>d.id===g.deck_id);
+  if(historyView==='compact'){
+   const item=el('article');item.className='compact-game';
+   const row=el('div');row.className='compact-game-row';
+   const date=el('span',g.played_at);date.className='compact-game-date';
+   const result=el('span',g.won?'Win':'Loss');result.className='compact-game-result '+(g.won?'win':'loss');
+   const deckName=el('span',deck?.name||'Deleted deck');deckName.className='compact-game-deck';
+   const winner=Array.isArray(g.players)&&Number.isInteger(g.winner_player)?g.players[g.winner_player]:null;
+   const winnerName=g.won?'You':winner?.name&&winner.name!=='You'?winner.name:winner?.commander||'Opponent not recorded';
+   const winnerText=el('span','Winner: '+winnerName);winnerText.className='compact-game-winner';
+   const actions=el('div');actions.className='compact-game-actions';
+   const detailsButton=el('button','Details');detailsButton.type='button';detailsButton.setAttribute('aria-expanded','false');
+   const details=el('div');details.className='compact-game-details';details.hidden=true;
+   detailsButton.onclick=()=>{details.hidden=!details.hidden;detailsButton.setAttribute('aria-expanded',String(!details.hidden));detailsButton.textContent=details.hidden?'Details':'Hide'};
+   const editButton=el('button','Edit');editButton.type='button';editButton.onclick=()=>editGame(g);
+   const deleteButton=el('button','Delete');deleteButton.type='button';
+   deleteButton.onclick=async()=>{if(!confirm('Delete this game record?'))return;deleteButton.disabled=true;const r=await sb.from('personal_games').delete().eq('id',g.id).eq('owner_id',user.id);if(r.error){message('Delete failed: '+r.error.message);deleteButton.disabled=false;return}await refresh()};
+   actions.append(detailsButton,editButton,deleteButton);row.append(date,result,deckName,winnerText,actions);item.append(row);
+   if(Array.isArray(g.players)&&g.players.length){
+    for(const [i,p] of g.players.entries()){const line=el('p',(i===g.winner_player?'🏆 ':'')+(p.name||'Player '+(i+1))+' · '+(p.commander||'Unknown commander')+(i===g.first_player?' · Went first':''));details.append(line)}
+   }else if(g.opponents?.length)details.append(el('p','Opponents: '+g.opponents.join(', ')));
+   if(g.notes){const note=el('p',g.notes);note.className='history-note';details.append(note)}
+   item.append(details);history.append(item);continue;
+  }
   const record=el('article');record.className='game-record';
   const header=el('div');header.className='game-record-header';
   const heading=el('div');heading.append(el('strong',(g.won?'Win':'Loss')+' · '+(deck?.name||'Deleted deck')),el('div',g.played_at));
