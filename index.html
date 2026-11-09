@@ -35,7 +35,7 @@ $('gameForm').elements.date.value=new Date().toLocaleDateString('en-CA');render(
  if(recovery){const target=new URL('./reset-password.html',location.href);target.search=location.search;target.hash=location.hash;location.replace(target.href)}
 })();
 </script><script type="module">
-import {createClient} from 'https://esm.sh/@supabase/supabase-js@2';
+import {createClient} from './vendor/supabase-js.mjs';
 const supabase=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
 const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -66,6 +66,7 @@ $('identityForm').onsubmit=async e=>{
 async function refresh(){
 const {data:{user},error}=await supabase.auth.getUser();
 currentUser=error?null:user;
+const profileButton=$('myProfileButton');if(profileButton){profileButton.textContent=currentUser?'My Profile':'Sign in';profileButton.dataset.href=currentUser?'./profile.html':'./sign-in.html'}
 $('accountHeading').textContent=currentUser?'My profile':'Sign in or create an account';
 $('profileInfo').hidden=!currentUser;
 $('profileName').textContent=currentUser?(currentUser.user_metadata?.display_name||'Not set'):'';
@@ -167,7 +168,7 @@ header.after(quickGame);
 const eyebrow=document.createElement('span');eyebrow.className='cl-eyebrow';eyebrow.textContent='THE COMMANDER ARCHIVE';title.prepend(eyebrow);
 const profiles=$('profiles'),account=$('account');
 const accountButton=document.createElement('button');accountButton.type='button';accountButton.id='accountButton';accountButton.textContent='Sign in';accountButton.setAttribute('aria-expanded','false');accountButton.setAttribute('aria-controls','account');
-const profileButton=document.createElement('button');profileButton.type='button';profileButton.id='myProfileButton';profileButton.textContent='Sign in';profileButton.onclick=()=>{window.location.href=profileButton.textContent==='Sign in'?'./sign-in.html':'./profile.html'};const syncProfileButton=()=>{profileButton.textContent=($('authStatus')?.textContent||'').startsWith('Signed in as ')?'My Profile':'Sign in'};syncProfileButton();const profileAuthStatus=$('authStatus');if(profileAuthStatus)new MutationObserver(syncProfileButton).observe(profileAuthStatus,{childList:true,characterData:true,subtree:true});
+const profileButton=document.createElement('button');profileButton.type='button';profileButton.id='myProfileButton';profileButton.textContent='Sign in';profileButton.dataset.href='./sign-in.html';profileButton.onclick=()=>{window.location.href=profileButton.dataset.href};
 actions.prepend(profileButton);actions.append(account);accountButton.hidden=true;
 account.hidden=true;
 accountButton.onclick=()=>{window.location.href='./profile.html'};
