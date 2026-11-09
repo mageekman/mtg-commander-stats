@@ -141,12 +141,24 @@ function editGame(game){
 }
 $('cancelEdit').onclick=()=>{resetEditor();message('Editing cancelled.')};
 
-$('historyDeckFilter').addEventListener('change',render);
+for(const id of ['historyDeckFilter','historyPeriodFilter','historyResultFilter'])$(id).addEventListener('change',render);
+function filteredGames(){
+ const period=$('historyPeriodFilter').value,result=$('historyResultFilter').value,deck=$('historyDeckFilter').value;
+ const today=new Date();const localToday=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+ const cutoff=new Date(localToday);cutoff.setDate(cutoff.getDate()-29);
+ const toDate=d=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(d||''))return null;const [y,m,day]=d.split('-').map(Number);const parsed=new Date(y,m-1,day);return parsed.getFullYear()===y&&parsed.getMonth()===m-1&&parsed.getDate()===day?parsed:null};
+ return games.filter(g=>{
+  if(deck&&g.deck_id!==deck)return false;
+  if(result==='wins'&&!g.won||result==='losses'&&g.won)return false;
+  if(period!=='all'){const date=toDate(g.played_at);if(!date||date>localToday)return false;if(period==='30'&&date<cutoff)return false;if(period==='year'&&date.getFullYear()!==today.getFullYear())return false}
+  return true;
+ });
+}
 function stat(label,value){const box=el('div');box.className='stat';box.append(el('strong',String(value)),el('span',label));return box}
-function renderBestDeck(){
+function renderBestDeck(displayGames){
  const host=$('bestDeck');host.replaceChildren();
  const ranked=decks.map(deck=>{
-  const played=games.filter(g=>g.deck_id===deck.id);
+  const played=displayGames.filter(g=>g.deck_id===deck.id);
   return {deck,games:played.length,wins:played.filter(g=>g.won).length};
  }).filter(d=>d.games>0).sort((a,b)=>(b.wins/b.games)-(a.wins/a.games)||b.games-a.games||b.wins-a.wins);
  if(!ranked.length){const empty=el('div','Record a game to see your best-performing deck.');empty.className='best-deck-empty';host.append(empty);return}
@@ -166,25 +178,26 @@ function renderBestDeck(){
  }).catch(()=>{});
 }
 function render(){
- renderBestDeck();
- const wins=games.filter(g=>g.won).length;
+ const visibleGames=filteredGames();
+ renderBestDeck(visibleGames);
+ const wins=visibleGames.filter(g=>g.won).length;
  const summary=$('summary');summary.replaceChildren();
- const rate=games.length?(wins/games.length*100).toFixed(1):'0.0';
+ const rate=visibleGames.length?(wins/visibleGames.length*100).toFixed(1):'0.0';
  const main=el('div');main.className='stats-main';
- main.append(stat('Total games',games.length),stat('Overall win rate',rate+'%'));
+ main.append(stat('Filtered games',visibleGames.length),stat('Win rate',rate+'%'));
  const pieCard=el('div');pieCard.className='stats-pie-card';
  const donut=el('div');donut.className='stats-donut';donut.style.setProperty('--win-percent',rate+'%');
- donut.setAttribute('role','img');donut.setAttribute('aria-label',wins+' wins and '+(games.length-wins)+' losses');
+ donut.setAttribute('role','img');donut.setAttribute('aria-label',wins+' wins and '+(visibleGames.length-wins)+' losses');
  const inner=el('div');inner.className='stats-donut-inner';inner.append(el('strong',rate+'%'),el('span','Win rate'));donut.append(inner);
  const legend=el('div');legend.className='stats-pie-legend';
- for(const [kind,label,value] of [['win','Wins',wins],['loss','Losses',games.length-wins]]){
+ for(const [kind,label,value] of [['win','Wins',wins],['loss','Losses',visibleGames.length-wins]]){
   const line=el('div');const dot=el('span');dot.className='stats-pie-dot '+kind;
   line.append(dot,el('span',label),el('strong',String(value)));legend.append(line);
  }
  pieCard.append(donut,legend);summary.append(main,pieCard);
  const byDeck=$('deckStats');byDeck.replaceChildren();byDeck.className='deck-stats-grid';
  for(const deck of decks){
-  const played=games.filter(g=>g.deck_id===deck.id),wins=played.filter(g=>g.won).length;
+  const played=visibleGames.filter(g=>g.deck_id===deck.id),wins=played.filter(g=>g.won).length;
   const rate=played.length?(wins/played.length*100).toFixed(1)+'%':'—';
   const card=el('a');card.className='deck-stats-card';card.href='./deck.html?id='+encodeURIComponent(deck.id);
   card.setAttribute('aria-label',deck.name+', '+played.length+' games, '+(played.length?rate+' win rate':'no games')+'. View deck profile');
@@ -203,10 +216,8 @@ function render(){
  }
  if(!decks.length)byDeck.append(el('p','Import a deck first to start tracking.'));
  const history=$('history');history.replaceChildren();
- const selectedDeck=$('historyDeckFilter').value;
- const visibleGames=selectedDeck?games.filter(g=>g.deck_id===selectedDeck):games;
- $('historyCount').textContent=visibleGames.length+' of '+games.length+' games'+(selectedDeck?' · '+(decks.find(d=>d.id===selectedDeck)?.name||'Selected deck'):'');
- if(!visibleGames.length){history.append(el('p',games.length?'No games recorded with this deck yet.':'No games recorded yet.'));return}
+ $('historyCount').textContent=visibleGames.length+' of '+games.length+' games match your filters';
+ if(!visibleGames.length){history.append(el('p',games.length?'No games match these filters.':'No games recorded yet.'));return}
  for(const g of visibleGames){
   const deck=decks.find(d=>d.id===g.deck_id);
   const record=el('article');record.className='game-record';
