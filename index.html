@@ -167,10 +167,10 @@ header.after(quickGame);
 const eyebrow=document.createElement('span');eyebrow.className='cl-eyebrow';eyebrow.textContent='THE COMMANDER ARCHIVE';title.prepend(eyebrow);
 const profiles=$('profiles'),account=$('account');
 const accountButton=document.createElement('button');accountButton.type='button';accountButton.id='accountButton';accountButton.textContent='Sign in';accountButton.setAttribute('aria-expanded','false');accountButton.setAttribute('aria-controls','account');
-const profileButton=document.createElement('button');profileButton.type='button';profileButton.id='myProfileButton';profileButton.textContent='My Profile';profileButton.setAttribute('aria-controls','account');profileButton.onclick=()=>{account.hidden=false;accountButton.setAttribute('aria-expanded','true');document.getElementById('playerIdentity')?.scrollIntoView({block:'nearest',behavior:'smooth'});};
-actions.append(profileButton);actions.append(accountButton);actions.append(account);
+const profileButton=document.createElement('button');profileButton.type='button';profileButton.id='myProfileButton';profileButton.textContent='My Profile';profileButton.onclick=()=>{window.location.href='./profile.html'};
+actions.append(profileButton);actions.append(account);accountButton.hidden=true;
 account.hidden=true;
-accountButton.onclick=()=>{account.hidden=!account.hidden;accountButton.setAttribute('aria-expanded',String(!account.hidden))};
+accountButton.onclick=()=>{window.location.href='./profile.html'};
 const authLabel=$('authStatus');
 if(authLabel){
  const updateAccountButton=()=>{const signedIn=authLabel.textContent.startsWith('Signed in as ');accountButton.textContent=signedIn?'My account':'Sign in / Create account'};
@@ -362,4 +362,4 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 </style><style>
 #myProfileButton{background:#205d4d;color:#f1ebdb;border:1px solid #c9aa7577;border-radius:9px;padding:10px 15px;font-weight:650}
 #myProfileButton:hover{background:#307763;border-color:#c9aa75}
-</style></html>
+</style><style>#quickActions #account{display:none!important}#myProfileButton{white-space:nowrap}</style></html>
