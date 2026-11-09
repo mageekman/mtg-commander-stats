@@ -333,11 +333,11 @@ function sortDecksForDisplay(list,stats,sort,direction){
 }
 
 function renderWinrateTrend(visibleGames){
- const host=$('winrateTrendChart'),empty=$('winrateTrendEmpty'),mode=$('winrateTrendMode').value;
+ const host=$('winrateTrendChart'),empty=$('winrateTrendEmpty');
  host.replaceChildren();
  const ordered=visibleGames.filter(g=>g.played_at).slice().sort((a,b)=>String(a.played_at).localeCompare(String(b.played_at))||String(a.id).localeCompare(String(b.id)));
  empty.hidden=ordered.length>0;if(!ordered.length)return;
- let wins=0;const points=ordered.map((g,i)=>{if(g.won)wins++;const start=Math.max(0,i-9);const window=ordered.slice(start,i+1);const value=mode==='cumulative'?wins/(i+1)*100:window.filter(x=>x.won).length/window.length*100;return {date:g.played_at,value,game:i+1}});
+ let wins=0;const points=ordered.map((g,i)=>{if(g.won)wins++;const value=wins/(i+1)*100;return {date:g.played_at,value,game:i+1}});
  const svgNS='http://www.w3.org/2000/svg',make=(tag,attrs={})=>{const n=document.createElementNS(svgNS,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,String(v));return n};
  const width=900,height=260,left=48,right=18,top=20,bottom=44,plotW=width-left-right,plotH=height-top-bottom;
  const x=i=>left+(points.length===1?plotW/2:i*plotW/(points.length-1)),y=v=>top+(100-v)*plotH/100;
@@ -478,4 +478,4 @@ window.addEventListener('hashchange',()=>{
  if(location.hash==='#gameForm'||location.hash==='#gameEditor')setEditorOpen(true);
 });
 
-$('winrateTrendMode').addEventListener('change',()=>renderWinrateTrend(filteredGames()));
+
