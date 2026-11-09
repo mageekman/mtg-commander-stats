@@ -219,7 +219,7 @@ function renderExtraStats(visibleGames){
  if(!counted.length){colorCard.querySelector('strong').textContent='No games yet';colorCard.querySelector('small').textContent='';return}
  Promise.all(counted.map(async g=>{
   const deck=decks.find(d=>d.id===g.deck_id);
-  const parts=deck.commander.split(/\\s+\\/\\s+|\\s+&\\s+/).map(x=>x.trim()).filter(Boolean);
+  const parts=deck.commander.split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean);
   const identities=await Promise.all(parts.map(commanderIdentity));
   if(identities.some(x=>x===null))return null;
   return [...new Set(identities.flat())];
