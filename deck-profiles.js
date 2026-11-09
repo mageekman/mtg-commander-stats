@@ -68,7 +68,7 @@ for(const name of commanderNames){const card=cardCache.get(name.toLowerCase());i
 const description=document.createElement('div');const title=document.createElement('h3');title.textContent=active.commander;description.append(title);
 const color=document.createElement('p');const colors=[...new Set(commanderNames.flatMap(n=>cardCache.get(n.toLowerCase())?.color_identity||[]))];
 color.textContent='Color identity: '+(colors.length?colors.map(x=>({W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'}[x])).join(' / '):'Colorless or unavailable');description.append(color);
-const count=document.createElement('p');count.textContent=items.reduce((sum,x)=>sum+x.qty,0)+' cards listed';description.append(count);
+const count=document.createElement('p');count.textContent=items.reduce((sum,x)=>sum+x.qty,0)+' cards listed';description.append(count);if(active.bracket_level){const n=document.createElement('p');n.textContent='Bracket: '+active.bracket_level;description.append(n)}if(active.theme){const n=document.createElement('p');n.textContent='Theme: '+active.theme;description.append(n)}if(active.notes){const n=document.createElement('p');n.textContent=active.notes;n.style.whiteSpace='pre-wrap';description.append(n)}
 const performance=document.createElement('p');performance.textContent='Game performance will appear here when cloud game tracking is connected.';description.append(performance);
 hero.append(description);view.append(hero);
 const groups=new Map();
@@ -153,7 +153,7 @@ function elWinRate(deckId,winRates){
 }
 async function refresh(){
 const {data:{user}}=await sb.auth.getUser();if(!user){$('deckGallery').innerHTML='<p>Sign in to view your cloud deck profiles.</p>';const recent=$('recentGames');if(recent)recent.textContent='Sign in to see your recent games.';return}
-const {data,error}=await sb.from('decks').select('id,name,commander,decklist,created_at').order('created_at',{ascending:false});
+const {data,error}=await sb.from('decks').select('id,name,commander,decklist,created_at,bracket_level,theme,notes').order('created_at',{ascending:false});
 if(error){$('deckGallery').textContent=error.message;return}
 decks=data||[];
 const winRates=new Map();
@@ -171,7 +171,7 @@ for(const deck of decks){
  const details=document.createElement('div');details.className='deck-entry-details';
  const title=document.createElement('strong');title.textContent=deck.name;
  const subtitle=document.createElement('span');subtitle.textContent=deck.commander;
- const performance=elWinRate(deck.id,winRates);details.append(title,subtitle);link.append(image,details,performance);gallery.append(link);
+ const performance=elWinRate(deck.id,winRates);details.append(title,subtitle);if(deck.bracket_level||deck.theme){const n=document.createElement('span');n.textContent=[deck.bracket_level?'Bracket '+deck.bracket_level:'',deck.theme||''].filter(Boolean).join(' · ');details.append(n)}link.append(image,details,performance);gallery.append(link);
  const commander=deck.commander.split(/\s+\/\s+|\s+&\s+/)[0].trim();
  if(commander){
  const url='https://api.scryfall.com/cards/named?exact='+encodeURIComponent(commander);
