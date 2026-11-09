@@ -94,8 +94,15 @@ let deckGalleryView='cards';
 function setDeckGalleryView(view){
  deckGalleryView=view==='compact'?'compact':'cards';
  for(const id of ['deckGallery','archivedDeckGallery'])$(id)?.classList.toggle('deck-gallery-compact',deckGalleryView==='compact');
- $('homeDeckCardsView')?.setAttribute('aria-pressed',String(deckGalleryView==='cards'));
- $('homeDeckCompactView')?.setAttribute('aria-pressed',String(deckGalleryView==='compact'));
+ const button=$('homeDeckViewToggle');
+ if(button){
+  const compact=deckGalleryView==='compact';
+  button.setAttribute('aria-pressed',String(compact));
+  button.setAttribute('aria-label',compact?'Switch to cards deck view':'Switch to compact deck view');
+  button.title=compact?'Switch to cards view':'Switch to compact view';
+  $('homeDeckViewIcon').textContent=compact?'▦':'☷';
+  $('homeDeckViewLabel').textContent=compact?'Cards view':'Compact view';
+ }
 }
 
 const recentArtCache=new Map();
@@ -255,8 +262,7 @@ setDeckGalleryView(deckGalleryView);
 renderAll();
 
 }
-$('homeDeckCardsView')?.addEventListener('click',()=>setDeckGalleryView('cards'));
-$('homeDeckCompactView')?.addEventListener('click',()=>setDeckGalleryView('compact'));
+$('homeDeckViewToggle')?.addEventListener('click',()=>setDeckGalleryView(deckGalleryView==='cards'?'compact':'cards'));
 const refreshButton=$('refreshProfiles');if(refreshButton)refreshButton.onclick=refresh;
 for(const id of ['homeDeckSort','homeDeckDirection','homeDeckSearch','archivedDeckSearch'])$(id)?.addEventListener(id.includes('Search')?'input':'change',()=>rerenderDeckGallery?.());
 sb.auth.onAuthStateChange(()=>setTimeout(refresh,0));
