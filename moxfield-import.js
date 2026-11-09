@@ -17,7 +17,9 @@ async function loadExisting(){
  if(!/^[0-9a-f-]{36}$/i.test(editId)){status.textContent='Invalid deck link.';return}
  const {data:{user}}=await sb.auth.getUser();
  if(!user){status.textContent='Sign in on the home page before editing your deck.';return}
- const {data,error}=await sb.from('decks').select('id,name,commander,decklist,bracket_level,theme,notes').eq('id',editId).eq('owner_id',user.id).single();
+ let {data,error}=await sb.from('decks').select('id,name,commander,decklist,bracket_level,theme,notes').eq('id',editId).eq('owner_id',user.id).single();
+ if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist').eq('id',editId).eq('owner_id',user.id).single();if(!fallback.error){data=fallback.data;error=null}}
+
  if(error||!data){status.textContent='Deck not found or you do not have permission to edit it.';return}
  $('importDeckName').value=data.name;
  $('importCommander').value=data.commander;
@@ -102,9 +104,13 @@ saveButton.onclick=async()=>{
  try{
  const {data:{user}}=await sb.auth.getUser();
  if(!user){status.textContent='Sign in to your cloud account before saving. Your pasted list is still here.';return}
- const {error}=isEditing
+ let {error}=isEditing
  ?await sb.from('decks').update({name,commander,decklist:list,bracket_level,theme,notes}).eq('id',editId).eq('owner_id',user.id).select('id').single()
  :await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list,bracket_level,theme,notes});
+ if(error&&/bracket_level|theme|notes|schema cache|column/i.test(error.message)){
+  const basic=isEditing?await sb.from('decks').update({name,commander,decklist:list}).eq('id',editId).eq('owner_id',user.id).select('id').single():await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list});
+  if(!basic.error){error=null;status.textContent='Deck saved. Optional details were not saved because the database has not been upgraded.'}else error=basic.error;
+ }
  if(error)throw Error(error.message);
  status.textContent=isEditing?'Changes saved to your cloud deck.':'Deck saved to your cloud account.';
  window.location.href=isEditing?'./deck.html?id='+encodeURIComponent(editId):'./index.html#profiles';
