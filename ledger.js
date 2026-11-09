@@ -327,8 +327,6 @@ function render(){
  const wins=visibleGames.filter(g=>g.won).length;
  const summary=$('summary');summary.replaceChildren();
  const rate=visibleGames.length?(wins/visibleGames.length*100).toFixed(1):'0.0';
- const main=el('div');main.className='stats-main';
- main.append(stat('Games played',visibleGames.length));
  const pieCard=el('div');pieCard.className='stats-pie-card';
  const donut=el('div');donut.className='stats-donut';donut.style.setProperty('--win-percent',rate+'%');
  donut.setAttribute('role','img');donut.setAttribute('aria-label',wins+' wins and '+(visibleGames.length-wins)+' losses');
@@ -338,7 +336,9 @@ function render(){
   const line=el('div');const dot=el('span');dot.className='stats-pie-dot '+kind;
   line.append(dot,el('span',label),el('strong',String(value)));legend.append(line);
  }
- pieCard.append(donut,legend);summary.append(main,pieCard);
+ const pieMain=el('div');pieMain.className='stats-pie-main';pieMain.append(donut,legend);
+ const total=el('div');total.className='stats-games-total';total.append(el('strong',String(visibleGames.length)),el('span','Total games played'));
+ pieCard.append(pieMain,total);summary.append(pieCard);
  const byDeck=$('deckStats');byDeck.replaceChildren();byDeck.className='deck-stats-carousel';
  const search=($('deckStatsSearch')?.value||'').trim().toLowerCase();
  const deckStats=new Map();
