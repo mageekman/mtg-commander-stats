@@ -48,4 +48,11 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 .card-row a:hover{color:var(--cl-gold)!important;text-decoration:underline}
 @media(max-width:900px){#deckContent>.hero{grid-template-columns:1fr}.deck-hero-art{flex-direction:row;flex-wrap:wrap}}
 @media(max-width:600px){.archive-deck-header{padding:22px}.deck-hero-details .deck-performance-grid{grid-template-columns:1fr}.card-list{columns:1}}
-</style></head><body><header class="archive-deck-header"><a href="./index.html">← Command Ledger / My decks</a><span class="archive-eyebrow">THE COMMANDER ARCHIVE · DECK RECORD</span><h1 id="deckTitle">Loading deck…</h1><p>Every commander has a story.</p></header><main><p id="status" role="status">Checking your account…</p><div id="deckContent"></div></main><script src="./scryfall-client.js"></script><script type="module" src="./deck-page.js"></script></body></html>
+</style></head><body><header class="archive-deck-header"><a href="./index.html">← Command Ledger / My decks</a><span class="archive-eyebrow">THE COMMANDER ARCHIVE · DECK RECORD</span><h1 id="deckTitle">Loading deck…</h1><p>Every commander has a story.</p></header><main><p id="status" role="status">Checking your account…</p><div id="deckContent"></div></main><script src="./scryfall-client.js"></script><script type="module" src="./deck-page.js?v=deck-archive-actions-1"></script></body><style>
+.deck-page-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 16px}
+.deck-page-actions .edit-deck-link{margin:0}
+.deck-archive-toggle{padding:10px 16px;border:1px solid #a28e65;border-radius:8px;background:#29463d;color:#f7e8c8;cursor:pointer;font:inherit}
+.deck-archive-toggle:hover{background:#365c4d}
+.deck-archive-toggle:disabled{opacity:.6;cursor:wait}
+.deck-archive-status{font-size:13px;color:#c8cbb7}
+</style></html>
