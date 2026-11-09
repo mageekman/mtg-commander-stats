@@ -168,7 +168,7 @@ function calendarFilteredGames(){
  const mode=$('statsDatePreset').value;
  if(mode==='all')return games;
  const now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
- const localDate=value=>{if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(value||''))return null;const [y,m,d]=value.split('-').map(Number);const date=new Date(y,m-1,d);return date.getFullYear()===y&&date.getMonth()===m-1&&date.getDate()===d?date:null};
+ const localDate=value=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(value||''))return null;const [y,m,d]=value.split('-').map(Number);const date=new Date(y,m-1,d);return date.getFullYear()===y&&date.getMonth()===m-1&&date.getDate()===d?date:null};
  let start=null,end=today;
  if(mode==='month')start=new Date(today.getFullYear(),today.getMonth(),1);
  else if(mode==='lastMonth'){start=new Date(today.getFullYear(),today.getMonth()-1,1);end=new Date(today.getFullYear(),today.getMonth(),0)}
