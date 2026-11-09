@@ -103,7 +103,7 @@ const key=q.toLowerCase().trim();
 if(cache.has(key))return cache.get(key);
 const wait=Math.max(0,150-(Date.now()-last));if(wait)await new Promise(r=>setTimeout(r,wait));last=Date.now();
 const url='https://api.scryfall.com/cards/named?fuzzy='+encodeURIComponent(q);
-const response=await fetch(url,{headers:{Accept:'application/json'}});
+const response=await window.commandLedgerScryfallFetch(url,{headers:{Accept:'application/json'}});
 const card=await response.json();
 if(!response.ok)throw Error(card.details||'Scryfall request failed ('+response.status+')');
 cache.set(key,card);return card;
