@@ -52,30 +52,40 @@ button:hover:not(:disabled){background:#33745e;border-color:#a7d1b0}
 .archive-return{display:inline-flex;align-items:center;min-height:42px;color:#d9bc87;text-decoration:none;font-weight:650}
 .archive-return:hover{text-decoration:underline}
 @media(max-width:600px){.archive-import-header{padding:22px}.archive-import-header .archive-heading{gap:12px}.archive-import-header .archive-heading img{width:65px}.archive-import-header .archive-nav a{flex:1}.csv-import-actions{align-items:stretch}.csv-import-actions button{width:100%}}
-</style></head>
+#validateCsvButton{display:inline-flex;margin-top:14px;min-width:210px;justify-content:center}#validateCsvButton:disabled{opacity:.5}</style></head>
 <body><header class="archive-import-header"><nav class="archive-nav" aria-label="Page navigation"><a href="./ledger.html">← Back to My Ledger</a><a href="./index.html">My Decks</a></nav><span class="archive-eyebrow">THE COMMANDER ARCHIVE · MATCH RECORDS</span><div class="archive-heading"><img src="./Teal%20and%20Gold%20CL%20Book%20Emblem.png" alt="Command Ledger logo" width="118" height="118"><h1>Import games from CSV</h1></div><p>Bring your Commander game history from Excel, Google Sheets, or another spreadsheet into your Ledger.</p></header>
 <main>
 <section><h2>1. Prepare your CSV</h2><p>Export your spreadsheet as a <strong>.csv</strong> file. Each row should represent one game. Only three columns are required.</p>
 <div class="instructions"><div><strong>Date</strong><p>Use <code>2026-11-01</code> or <code>11/01/2026</code>.</p></div><div><strong>Deck</strong><p>Use a deck name or commander matching one of your imported decks.</p></div><div><strong>Result</strong><p>Use <code>Win</code> or <code>Loss</code>. Yes/No and 1/0 also work.</p></div></div>
 <p class="muted">Optional columns: <strong>Opponents</strong> (separate commanders with semicolons) and <strong>Notes</strong>. We also recognize common alternatives like “Game Date,” “My Commander,” and “Outcome.”</p></section>
 <section><h2>2. Upload and validate</h2><p class="muted">We'll find the closest matching deck or commander, even with spelling mistakes. Review suggested matches, then check errors and duplicates before importing. Nothing is saved until you confirm.</p>
-<div class="csv-import-actions"><button id="downloadCsvTemplate" type="button">Download CSV template</button><label for="csvFile">Select CSV file<input id="csvFile" type="file" accept=".csv,text/csv"></label></div>
-<p id="csvImportStatus" class="muted" role="status">Checking your account…</p><div id="csvImportPreview"></div></section>
+<div class="csv-import-actions"><button id="downloadCsvTemplate" type="button">Download CSV template</button><label for="csvFile">Select CSV file<input id="csvFile" type="file" accept=".csv,text/csv"></label></div><button id="validateCsvButton" type="button" disabled>Validate selected CSV</button>
+<p id="csvImportStatus" class="muted" role="status">Choose a CSV file, then click Validate selected CSV.</p><div id="csvImportPreview"></div></section>
 <section><h2>3. Import valid games</h2><p class="muted">Only rows marked Ready will be imported. You can fix skipped rows in your spreadsheet and upload again.</p><button id="confirmCsvImport" type="button" hidden>Import valid games</button><p><a class="archive-return" href="./ledger.html">← Return to My Ledger</a></p></section></main>
 <script>
 (function(){
- const status=document.getElementById('csvImportStatus');
- let started=false;
- window.__csvImporterStarted=function(){started=true};
- window.addEventListener('error',function(e){
-  if(!started)status.textContent='CSV importer failed to load: '+(e.message||'Script or network error')+'. Please refresh the page.';
+ const file=document.getElementById('csvFile'),button=document.getElementById('validateCsvButton'),status=document.getElementById('csvImportStatus');
+ file.addEventListener('change',()=>{
+  const selected=file.files&&file.files[0];
+  button.disabled=!selected;
+  document.getElementById('confirmCsvImport').hidden=true;
+  document.getElementById('csvImportPreview').replaceChildren();
+  status.textContent=selected?'Selected '+selected.name+'. Click Validate selected CSV to continue.':'Choose a CSV file, then click Validate selected CSV.';
  });
- window.addEventListener('unhandledrejection',function(e){
-  if(!started)status.textContent='CSV importer failed to start: '+(e.reason?.message||'Unexpected error')+'.';
+ document.getElementById('downloadCsvTemplate').addEventListener('click',()=>{
+  const csv='Date,Deck,Result,Opponents,Notes\\n2026-11-01,My Commander Deck,Win,"Krenko; Atraxa; Muldrotha",Fun game\\n';
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download='command-ledger-games-template.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
  });
- setTimeout(function(){
-  if(!started&&status.textContent.includes('Checking your account'))status.textContent='The CSV importer script did not start. Try a hard refresh (Ctrl+Shift+R). If this continues, the script may be blocked or unavailable.';
- },6500);
+ button.addEventListener('click',async()=>{
+  if(!file.files?.length)return;
+  button.disabled=true;button.textContent='Validating…';
+  status.textContent='Starting CSV importer…';
+  try{
+   const importer=await import('./csv-import.js?v=20261109-click-to-validate-1');
+   await importer.runCsvValidation();
+  }catch(err){status.textContent='CSV importer could not start: '+(err.message||String(err));status.classList.add('csv-import-error')}
+  finally{button.disabled=false;button.textContent='Validate selected CSV'}
+ });
 })();
-</script>
-<script type="module" src="./csv-import.js?v=20261109-diagnostics-2"></script></body></html>
+</script></body></html>
