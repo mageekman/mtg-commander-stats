@@ -276,4 +276,24 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 #account button{background:#24624f}
 @media(max-width:760px){#mainHeader{padding:24px!important;min-height:0;display:flex;align-items:flex-start!important}#quickActions{justify-content:flex-start;width:100%;max-width:none}#quickActions>#newDeckButton,#quickActions>#ledgerLink,#quickActions>#accountButton{flex:1 1 auto}#quickActions #account{left:0!important;right:auto!important}#deckGallery{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))!important}}
 @media(max-width:480px){#mainHeader{padding:20px!important}#mainHeader h1{font-size:38px!important}#quickRecordGame{padding:17px!important}#recentGamesSection{padding:17px!important}#deckGallery{grid-template-columns:1fr!important}}
+</style><style>
+/* Modern Archivist | embedded deck profile in the collection */
+#deckProfile{margin-top:20px;padding:clamp(18px,3vw,28px);background:linear-gradient(145deg,#172b2b,#102124);border:1px solid var(--cl-line);border-radius:18px;box-shadow:0 15px 35px #0003}
+#deckProfile>h2{font-family:Georgia,"Iowan Old Style",serif;font-size:clamp(28px,3vw,40px);line-height:1.15;color:var(--cl-ink);margin:16px 0 20px;overflow-wrap:anywhere}
+#deckProfile>button{background:#1c443a!important;color:#f1ebdb!important;border:1px solid #769b81!important;border-radius:9px!important;padding:10px 16px!important}
+#deckProfile .deck-hero{background:#102325!important;border:1px solid #4c685c!important;border-radius:15px!important;padding:clamp(15px,2vw,24px)!important;gap:24px}
+#deckProfile .deck-hero img{border-radius:12px!important;box-shadow:0 10px 25px #0005}
+#deckProfile .deck-hero h3{font-family:Georgia,"Iowan Old Style",serif;font-size:clamp(23px,3vw,33px);color:var(--cl-ink);margin:0 0 12px}
+#deckProfile .deck-hero p{color:#bdcdc3}
+#deckProfile .deck-hero a{color:var(--cl-gold)!important;text-underline-offset:3px}
+#deckProfile .deck-performance,#deckProfile .deck-stats,#deckProfile .deck-card-group{background:#122628!important;border:1px solid #476258!important;border-radius:13px!important}
+#deckProfile .deck-stat{background:#0e2022!important;border-color:#4a685d!important;border-radius:11px!important}
+#deckProfile .deck-stat strong{color:var(--cl-ink)!important}
+#deckProfile .deck-stat:first-child strong{color:var(--cl-gold)!important}
+#deckProfile .deck-chart-card{background:#102426!important;border-color:#4a685d!important}
+#deckProfile .deck-donut-inner{background:#102426!important}
+#deckProfile h3,#deckProfile h4{font-family:Georgia,"Iowan Old Style",serif;color:var(--cl-ink)}
+#deckProfile .card-row a,#deckProfile .deck-card a{color:#d7e2d8}
+#deckProfile .card-row a:hover,#deckProfile .deck-card a:hover{color:var(--cl-gold)}
+@media(max-width:600px){#deckProfile{padding:16px}#deckProfile .deck-hero{padding:14px!important}}
 </style></html>
