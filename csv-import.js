@@ -84,17 +84,12 @@ function csvMatchDeck(name){
  const confident=top.score>=.92&&(!second||top.score-second.score>=.12);
  return {deck:top.score>=.55?top.deck:null,needsReview:!exact&&!confident};
 }
-$('downloadCsvTemplate').onclick=()=>{
- const csv='Date,Deck,Result,Opponents,Notes\n2026-11-01,My Commander Deck,Win,"Krenko; Atraxa; Muldrotha",Fun game\n';
- const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
- const url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='command-ledger-games-template.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-};
-$('csvFile').addEventListener('change',async e=>{
- const chosen=e.target.files?.[0];
+async function validateSelectedCsv(){
+ const chosen=$('csvFile').files?.[0];
  if(chosen)$('csvImportStatus').textContent='Selected '+chosen.name+'. Reading and validating CSV…';
  csvReady=[];$('confirmCsvImport').hidden=true;
  const preview=$('csvImportPreview');preview.replaceChildren();
- const file=e.target.files?.[0];if(!file)return;
+ const file=$('csvFile').files?.[0];if(!file)return;
  const status=$('csvImportStatus');
  if(!user){status.textContent='Your account is still loading or you are signed out. Wait for the Ready message above, then select the CSV again.';return}
  try{
@@ -151,7 +146,7 @@ $('csvFile').addEventListener('change',async e=>{
   const wrap=el('div');wrap.className='csv-import-table-wrap';wrap.append(table);preview.append(wrap);
   update();
  }catch(err){status.textContent='Could not read CSV: '+err.message}
-});
+}
 $('confirmCsvImport').onclick=async()=>{
  if(!user||!csvReady.length)return;
  const button=$('confirmCsvImport');button.disabled=true;
@@ -177,4 +172,14 @@ $('confirmCsvImport').onclick=async()=>{
 };
 
 
-loadImport().catch(e=>{const status=$('csvImportStatus');status.textContent='Unable to prepare import: '+e.message;status.classList.add('csv-import-error')});
+export async function runCsvValidation(){
+ const status=$('csvImportStatus');
+ status.classList.remove('csv-import-error');
+ status.textContent='Checking your account and loading your decks…';
+ user=null;decks=[];games=[];
+ try{
+  await loadImport();
+  if(!user||!decks.length)return;
+  await validateSelectedCsv();
+ }catch(e){status.textContent='Could not prepare CSV import: '+e.message;status.classList.add('csv-import-error')}
+}
