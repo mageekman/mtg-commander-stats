@@ -153,7 +153,9 @@ function elWinRate(deckId,winRates){
 }
 async function refresh(){
 const {data:{user}}=await sb.auth.getUser();if(!user){$('deckGallery').innerHTML='<p>Sign in to view your cloud deck profiles.</p>';const recent=$('recentGames');if(recent)recent.textContent='Sign in to see your recent games.';return}
-const {data,error}=await sb.from('decks').select('id,name,commander,decklist,created_at,bracket_level,theme,notes').order('created_at',{ascending:false});
+let {data,error}=await sb.from('decks').select('id,name,commander,decklist,created_at,bracket_level,theme,notes').order('created_at',{ascending:false});
+if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist,created_at').order('created_at',{ascending:false});if(!fallback.error){data=fallback.data;error=null}}
+
 if(error){$('deckGallery').textContent=error.message;return}
 decks=data||[];
 const winRates=new Map();
