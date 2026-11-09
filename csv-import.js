@@ -5,12 +5,13 @@ const el=(tag,text)=>{const node=document.createElement(tag);if(text!==undefined
 let user=null,decks=[],games=[];
 async function loadImport(){
  const status=$('csvImportStatus');
- const auth=await sb.auth.getUser();user=auth.data.user;
+ const auth=await Promise.race([sb.auth.getUser(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Account check timed out. Refresh the page and sign in again.')),12000))]);if(auth.error)throw auth.error;user=auth.data.user;
  if(!user){status.textContent='Please sign in on the home page before importing games.';$('csvFile').disabled=true;return}
- const [deckResult,gameResult]=await Promise.all([
+ status.textContent='Signed in. Loading your decks and existing games…';
+ const [deckResult,gameResult]=await Promise.race([Promise.all([
   sb.from('decks').select('id,name,commander').eq('owner_id',user.id),
   sb.from('personal_games').select('deck_id,played_at,won').eq('owner_id',user.id)
- ]);
+ ]),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Loading decks and games timed out. Please refresh and try again.')),15000))]);
  if(deckResult.error||gameResult.error){status.textContent='Could not load your account data: '+(deckResult.error?.message||gameResult.error?.message);$('csvFile').disabled=true;return}
  decks=deckResult.data||[];games=gameResult.data||[];
  status.textContent=decks.length?'Ready. Upload a CSV to validate your games before saving.':'Import a deck to your account first, then return here to match games to it.';
@@ -88,11 +89,13 @@ $('downloadCsvTemplate').onclick=()=>{
  const url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download='command-ledger-games-template.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
 $('csvFile').addEventListener('change',async e=>{
+ const chosen=e.target.files?.[0];
+ if(chosen)$('csvImportStatus').textContent='Selected '+chosen.name+'. Reading and validating CSV…';
  csvReady=[];$('confirmCsvImport').hidden=true;
  const preview=$('csvImportPreview');preview.replaceChildren();
  const file=e.target.files?.[0];if(!file)return;
  const status=$('csvImportStatus');
- if(!user){status.textContent='Sign in before importing games.';return}
+ if(!user){status.textContent='Your account is still loading or you are signed out. Wait for the Ready message above, then select the CSV again.';return}
  try{
   if(file.size>3_000_000)throw Error('CSV file is too large (3 MB maximum).');
   const rows=parseCsv(await file.text());
@@ -173,4 +176,4 @@ $('confirmCsvImport').onclick=async()=>{
 };
 
 
-loadImport().catch(e=>$('csvImportStatus').textContent='Unable to prepare import: '+e.message);
+loadImport().catch(e=>{const status=$('csvImportStatus');status.textContent='Unable to prepare import: '+e.message;status.classList.add('csv-import-error')});
