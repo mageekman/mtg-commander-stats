@@ -347,7 +347,7 @@ function render(){
  for(const g of visibleGames){
   const deck=decks.find(d=>d.id===g.deck_id);
   if(historyView==='compact'){
-   const item=el('article');item.className='compact-game';
+   const item=el('article');item.className='compact-game '+(g.won?'compact-game-win':'compact-game-loss');
    const row=el('div');row.className='compact-game-row';
    const date=el('span',g.played_at);date.className='compact-game-date';
    const deckArt=el('div');deckArt.className='compact-game-art';deckArt.setAttribute('aria-hidden','true');row.append(deckArt);
@@ -359,7 +359,7 @@ function render(){
     :['You',...(Array.isArray(g.opponents)?g.opponents:[])];
    players.textContent=playerNames.join(' · ');
    players.title=playerNames.join(', ');
-   const info=el('div');info.className='compact-game-info';info.append(deckName,players);row.append(date,info);item.append(row);history.append(item);continue;
+   const info=el('div');info.className='compact-game-info';const outcome=el('span',g.won?'Win':'Loss');outcome.className='compact-game-outcome';info.append(deckName,players);row.append(date,info,outcome);item.append(row);history.append(item);continue;
   }
   const record=el('article');record.className='game-record';
   const header=el('div');header.className='game-record-header';
