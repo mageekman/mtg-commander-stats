@@ -193,6 +193,31 @@ button:not(:disabled):hover{filter:brightness(1.1)}
 .ledger-chart-row .winrate-trend{justify-content:space-between}
 .ledger-chart-row .winrate-trend-chart{flex:1;min-height:180px}
 @media(max-width:900px){.ledger-chart-row{grid-template-columns:minmax(0,1fr)!important}.ledger-chart-row>#summary,.ledger-chart-row>.winrate-trend{min-height:300px}.ledger-chart-row #summary>.stats-pie-card{min-height:300px}}
+
+/* Dashboard chart geometry: one consistent card height and centered content. */
+@media(min-width:901px){
+ .ledger-chart-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;align-items:stretch!important}
+ .ledger-chart-row>#summary,.ledger-chart-row>.winrate-trend{height:320px!important;min-height:0!important;max-height:320px!important}
+ .ledger-chart-row #summary>.stats-pie-card{height:320px!important;min-height:0!important;max-height:320px!important}
+}
+.ledger-chart-row #summary{min-width:0;align-self:stretch}
+.ledger-chart-row .stats-pie-card{overflow:hidden;box-sizing:border-box;gap:14px!important;padding:18px!important}
+.ledger-chart-row .stats-pie-main{gap:16px!important;flex-wrap:nowrap!important}
+.ledger-chart-row .stats-donut{width:clamp(110px,12vw,145px)!important}
+.ledger-chart-row .stats-games-total{width:100%;padding-top:10px!important}
+.ledger-chart-row .winrate-trend{overflow:hidden;display:flex;flex-direction:column;padding:18px!important;gap:8px;box-sizing:border-box}
+.ledger-chart-row .winrate-trend-heading{flex:none;margin-bottom:0!important;gap:8px}
+.ledger-chart-row .winrate-trend-heading h3{font-size:19px}
+.ledger-chart-row .winrate-trend-heading p{font-size:12px}
+.ledger-chart-row .winrate-trend-chart{width:100%;flex:1 1 0;min-height:0!important;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.ledger-chart-row .winrate-trend-chart svg{display:block;width:100%;height:100%;max-height:220px;object-fit:contain}
+@media(max-width:900px){
+ .ledger-chart-row>#summary,.ledger-chart-row>.winrate-trend{height:auto!important;max-height:none!important;min-height:285px!important}
+ .ledger-chart-row #summary>.stats-pie-card{height:auto!important;min-height:285px!important;max-height:none!important}
+ .ledger-chart-row .winrate-trend-chart{min-height:195px!important}
+ .ledger-chart-row .winrate-trend-chart svg{height:auto;max-height:220px}
+}
+@media(max-width:420px){.ledger-chart-row .stats-pie-main{flex-wrap:wrap!important}.ledger-chart-row .stats-donut{width:125px!important}}
 </style><script src="./commander-art-position.js"></script><link rel="icon" type="image/svg+xml" href="./command-ledger-logo.svg"><link rel="apple-touch-icon" href="./command-ledger-logo.svg"><style>.brand-logo-heading{display:flex;align-items:center;gap:12px}.brand-logo-heading img{display:block;flex:none;border-radius:9px}</style></head><body><header class="archive-header"><div class="archive-header-copy"><a class="archive-back" href="./index.html">← Command Ledger / My decks</a><span class="archive-eyebrow">THE COMMANDER ARCHIVE · MATCH RECORDS</span><h1>My Ledger</h1><p class="archive-intro">Every match has a story. Keep yours on record.</p></div><div class="archive-seal" aria-hidden="true"><span>CL</span><small>EST. 2026</small></div></header><p id="message" role="status">Checking account…</p>
 <div class="ledger-toolbar"><button id="openGameForm" type="button" aria-expanded="false" aria-controls="gameEditor">+ Add a game</button><a class="csv-import-nav" href="./csv-import.html">Import via CSV</a></div>
 <section id="gameEditor" hidden><h2 id="formTitle">Record a game</h2><form id="gameForm"><div class="grid"><label>Your deck<select id="deck" required><option value="">Loading decks…</option></select></label><label>Game date<input id="date" type="date" required></label></div><h3>Players and commanders</h3><p class="muted">You're Player 1. Add the other players at your table.</p><div id="playerRows" class="pod-layout"></div><button type="button" id="addPlayer">+ Add player</button> <button type="button" id="removePlayer">− Remove player</button><div class="grid"><label>Who went first?<select id="firstPlayer" required></select></label><label>Who won?<select id="winnerPlayer" required></select></label></div><label>Notes (optional)<textarea id="notes" placeholder="Memorable plays, how the game ended…"></textarea></label><button id="save" type="submit">Save game to cloud</button> <button id="cancelEdit" type="button" hidden>Cancel editing</button></form></section>
