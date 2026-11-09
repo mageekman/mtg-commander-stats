@@ -179,8 +179,8 @@ function sortDecksForDisplay(list,stats,sort,direction){
 }
 async function refresh(){
 const {data:{user}}=await sb.auth.getUser();if(!user){$('deckGallery').innerHTML='<p>Sign in to view your decks.</p>';const recent=$('recentGames');if(recent)recent.textContent='Sign in to see your recent games.';return}
-let {data,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,created_at,bracket_level,theme,notes').order('created_at',{ascending:false});
-if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist,created_at').order('created_at',{ascending:false});if(!fallback.error){data=fallback.data;error=null}}
+let {data,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,created_at,archived_at,bracket_level,theme,notes').order('created_at',{ascending:false});
+if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist,created_at,archived_at').order('created_at',{ascending:false});if(!fallback.error){data=fallback.data;error=null}}
 
 if(error){$('deckGallery').textContent=error.message;return}
 decks=data||[];
@@ -191,27 +191,57 @@ if(!gameError)for(const game of gameRows||[]){
  stats.games++;if(game.won)stats.wins++;if(!stats.last||game.played_at>stats.last)stats.last=game.played_at;winRates.set(game.deck_id,stats);
 }
 renderRecentGames(gameRows,gameError);
-const gallery=$('deckGallery');gallery.replaceChildren();gallery.hidden=false;$('deckProfile').hidden=true;
-const sortedDecks=sortDecksForDisplay(decks,winRates,$('homeDeckSort').value,$('homeDeckDirection').value);
-if(!decks.length){gallery.textContent='No decks yet. Add your first deck to get started.';return}
-for(const deck of sortedDecks){
- const link=document.createElement('a');link.className='deck-entry';link.href='./deck.html?id='+encodeURIComponent(deck.id);
- const image=document.createElement('div');image.className='deck-entry-art';
- const details=document.createElement('div');details.className='deck-entry-details';
- const title=document.createElement('strong');title.textContent=deck.name;
- const subtitle=document.createElement('span');subtitle.textContent=deck.commander;
- const performance=elWinRate(deck.id,winRates);details.append(title,subtitle);if(deck.bracket_level||deck.theme){const n=document.createElement('span');n.textContent=[deck.bracket_level?'Bracket '+deck.bracket_level:'',deck.theme||''].filter(Boolean).join(' · ');details.append(n)}link.append(image,details,performance);gallery.append(link);
- const commander=deck.commander.split(/\s+\/\s+|\s+&\s+/)[0].trim();
- if(commander){
- const url='https://api.scryfall.com/cards/named?exact='+encodeURIComponent(commander);
- window.commandLedgerScryfallFetch(url,{headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():null).then(card=>{
- const art=card?.image_uris?.art_crop||card?.card_faces?.[0]?.image_uris?.art_crop;
- if(art){const img=document.createElement('img');img.src=art;img.alt='Artwork for '+commander;img.loading='lazy';image.append(img)}
- }).catch(()=>{});
+const gallery=$('deckGallery'),archivedGallery=$('archivedDeckGallery'),archivedSection=$('archivedDeckSection');
+gallery.replaceChildren();archivedGallery.replaceChildren();gallery.hidden=false;$('deckProfile').hidden=true;
+const activeDecks=decks.filter(d=>!d.archived_at),archivedDecks=decks.filter(d=>!!d.archived_at);
+archivedSection.hidden=!archivedDecks.length;
+$('archivedDeckCount').textContent='('+archivedDecks.length+')';
+const sort=$('homeDeckSort').value,direction=$('homeDeckDirection').value;
+const renderGroup=(list,host,term,archived)=>{
+ const filtered=sortDecksForDisplay(list,winRates,sort,direction).filter(d=>(d.name+' '+d.commander).toLowerCase().includes(term.toLowerCase().trim()));
+ if(!filtered.length){const p=document.createElement('p');p.textContent=term?'No matching decks.':archived?'No archived decks.':'No active decks. Create a deck or restore an archived one.';host.append(p);return}
+ for(const deck of filtered){
+  const wrapper=document.createElement('div');wrapper.className='deck-gallery-card';
+  const link=document.createElement('a');link.className='deck-entry';link.href='./deck.html?id='+encodeURIComponent(deck.id);
+  const image=document.createElement('div');image.className='deck-entry-art';
+  const details=document.createElement('div');details.className='deck-entry-details';
+  const title=document.createElement('strong');title.textContent=deck.name;
+  const subtitle=document.createElement('span');subtitle.textContent=deck.commander;
+  const performance=elWinRate(deck.id,winRates);details.append(title,subtitle);
+  if(deck.bracket_level||deck.theme){const n=document.createElement('span');n.textContent=[deck.bracket_level?'Bracket '+deck.bracket_level:'',deck.theme||''].filter(Boolean).join(' · ');details.append(n)}
+  link.append(image,details,performance);wrapper.append(link);
+  const button=document.createElement('button');button.type='button';button.className='deck-gallery-archive-button';button.textContent=archived?'Restore deck':'Archive deck';
+  button.setAttribute('aria-label',(archived?'Restore ':'Archive ')+deck.name);
+  button.onclick=async()=>{
+   if(!archived&&!confirm('Archive '+deck.name+'? Its games and statistics will be preserved.'))return;
+   button.disabled=true;button.textContent=archived?'Restoring…':'Archiving…';
+   const {error}=await sb.from('decks').update({archived_at:archived?null:new Date().toISOString()}).eq('id',deck.id).eq('owner_id',user.id);
+   if(error){button.disabled=false;button.textContent=archived?'Restore deck':'Archive deck';alert('Could not update deck: '+error.message);return}
+   deck.archived_at=archived?null:new Date().toISOString();
+   const archiveCount=decks.filter(d=>!!d.archived_at).length;
+   archivedSection.hidden=!archiveCount;$('archivedDeckCount').textContent='('+archiveCount+')';
+   renderAll();
+  };
+  wrapper.append(button);host.append(wrapper);
+  const commander=deck.commander.split(/\s+\\/\s+|\s+&\s+/)[0].trim();
+  if(commander){
+   const url='https://api.scryfall.com/cards/named?exact='+encodeURIComponent(commander);
+   window.commandLedgerScryfallFetch(url,{headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():null).then(card=>{
+    const art=card?.image_uris?.art_crop||card?.card_faces?.[0]?.image_uris?.art_crop;
+    if(art&&image.isConnected){const img=document.createElement('img');img.src=art;img.alt='Artwork for '+commander;img.loading='lazy';image.append(img)}
+   }).catch(()=>{});
+  }
  }
+};
+function renderAll(){
+ gallery.replaceChildren();archivedGallery.replaceChildren();
+ renderGroup(decks.filter(d=>!d.archived_at),gallery,$('homeDeckSearch').value,false);
+ renderGroup(decks.filter(d=>!!d.archived_at),archivedGallery,$('archivedDeckSearch').value,true);
 }
+renderAll();
+
 }
 const refreshButton=$('refreshProfiles');if(refreshButton)refreshButton.onclick=refresh;
-for(const id of ['homeDeckSort','homeDeckDirection'])$(id)?.addEventListener('change',refresh);
+for(const id of ['homeDeckSort','homeDeckDirection','homeDeckSearch','archivedDeckSearch'])$(id)?.addEventListener(id.includes('Search')?'input':'change',refresh);
 sb.auth.onAuthStateChange(()=>setTimeout(refresh,0));
 refresh();
