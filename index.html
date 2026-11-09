@@ -315,4 +315,10 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 #accountSecurity p,#forgotPasswordPanel p,#inviteFriends p{color:#b6c9bd;font-size:12px}
 .account-invite-actions{display:flex;flex-wrap:wrap;gap:8px}
 .account-invite-actions button{flex:1 1 125px}
+</style><style>
+/* Keep the account menu above archive content and other stacking contexts. */
+#mainHeader{position:relative!important;z-index:1000!important;isolation:auto!important;overflow:visible!important}
+#quickActions{position:relative!important;z-index:1001!important;overflow:visible!important}
+#quickActions #account{position:absolute!important;z-index:1100!important;overflow-y:auto!important}
+#quickActions #account[hidden]{display:none!important}
 </style></html>
