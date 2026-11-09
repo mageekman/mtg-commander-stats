@@ -167,7 +167,8 @@ header.after(quickGame);
 const eyebrow=document.createElement('span');eyebrow.className='cl-eyebrow';eyebrow.textContent='THE COMMANDER ARCHIVE';title.prepend(eyebrow);
 const profiles=$('profiles'),account=$('account');
 const accountButton=document.createElement('button');accountButton.type='button';accountButton.id='accountButton';accountButton.textContent='Sign in';accountButton.setAttribute('aria-expanded','false');accountButton.setAttribute('aria-controls','account');
-actions.append(accountButton);actions.append(account);
+const profileButton=document.createElement('button');profileButton.type='button';profileButton.id='myProfileButton';profileButton.textContent='My Profile';profileButton.setAttribute('aria-controls','account');profileButton.onclick=()=>{account.hidden=false;accountButton.setAttribute('aria-expanded','true');document.getElementById('playerIdentity')?.scrollIntoView({block:'nearest',behavior:'smooth'});};
+actions.append(profileButton);actions.append(accountButton);actions.append(account);
 account.hidden=true;
 accountButton.onclick=()=>{account.hidden=!account.hidden;accountButton.setAttribute('aria-expanded',String(!account.hidden))};
 const authLabel=$('authStatus');
@@ -358,4 +359,7 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 .identity-eyebrow{font-size:10px;letter-spacing:.18em;color:#c9aa75;font-weight:700}
 #identityDisplay{display:block;font:600 22px Georgia,serif}.identity-handle{color:#78b9a0;font-size:13px}.identity-bio{margin:8px 0;color:#c4d1cb;font-size:13px;overflow-wrap:anywhere}#identityCommander{color:#c9aa75}
 #editIdentity{margin-top:12px;border:1px solid #38514d;border-radius:12px;padding:12px}#editIdentity summary{cursor:pointer;color:#f1ebdb;font-weight:600}#identityForm{display:grid;gap:12px;margin-top:14px}#identityForm label{display:grid;gap:5px;font-size:13px;color:#d6e2dc}#identityForm input,#identityForm textarea,#identityForm select{box-sizing:border-box;width:100%;padding:10px;border-radius:8px;border:1px solid #49645e;background:#0c1c1f;color:#f1ebdb}#identityForm small{color:#a9b9b2}#identityMessage{min-height:1.3em}
+</style><style>
+#myProfileButton{background:#205d4d;color:#f1ebdb;border:1px solid #c9aa7577;border-radius:9px;padding:10px 15px;font-weight:650}
+#myProfileButton:hover{background:#307763;border-color:#c9aa75}
 </style></html>
