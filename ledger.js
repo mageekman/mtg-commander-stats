@@ -351,7 +351,7 @@ function render(){
    const row=el('div');row.className='compact-game-row';
    const date=el('span',g.played_at);date.className='compact-game-date';
    const result=el('span',g.won?'Win':'Loss');result.className='compact-game-result '+(g.won?'win':'loss');
-   const deckName=el('span',deck?.name||'Deleted deck');deckName.className='compact-game-deck';
+   const deckName=el('span');deckName.className='compact-game-deck';const deckTitle=el('strong',deck?.name||'Deleted deck');deckTitle.className='compact-game-deck-title';deckName.append(deckTitle);if(deck?.commander){const commander=el('small',deck.commander);commander.className='compact-game-commander';commander.title=deck.commander;deckName.append(commander)}
    const winner=Array.isArray(g.players)&&Number.isInteger(g.winner_player)?g.players[g.winner_player]:null;
    const winnerName=g.won?'You':winner?.name&&winner.name!=='You'?winner.name:winner?.commander||'Opponent not recorded';
    const winnerText=el('span','Winner: '+winnerName);winnerText.className='compact-game-winner';
