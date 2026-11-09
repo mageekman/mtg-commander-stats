@@ -122,6 +122,62 @@ async function resolve(cards){
  }
  return {found,missing:[...unresolved.values()].map(c=>c.name)};
 }
+
+const suggestionCache=new Map();
+async function suggestCards(name){
+ const key=name.trim().toLowerCase();
+ if(suggestionCache.has(key))return suggestionCache.get(key);
+ const job=(async()=>{
+  const suggestions=[];
+  const add=n=>{if(n&&!suggestions.some(x=>x.toLowerCase()===n.toLowerCase()))suggestions.push(n)};
+  for(const url of [
+   'https://api.scryfall.com/cards/named?fuzzy='+encodeURIComponent(name),
+   'https://api.scryfall.com/cards/autocomplete?q='+encodeURIComponent(name)
+  ]){
+   try{
+    await delay(125);
+    const response=await fetch(url,{headers:{Accept:'application/json'}});
+    if(response.ok){const result=await response.json();if(result.name)add(result.name);for(const n of result.data||[])add(n)}
+   }catch(e){/* Suggestions are optional; never block the import. */}
+  }
+  return suggestions.slice(0,5);
+ })();
+ suggestionCache.set(key,job);return job;
+}
+let suggestionVersion=0;
+async function showCorrections(details,missing,version){
+ if(!missing.length)return;
+ const heading=document.createElement('h4');heading.textContent='Unrecognized cards — choose a Scryfall match';details.append(heading);
+ const explanation=document.createElement('p');explanation.textContent='Suggestions are not applied automatically. Select the right card to correct your decklist.';details.append(explanation);
+ for(const name of missing){
+  if(version!==suggestionVersion)return;
+  const row=document.createElement('div');row.style.cssText='padding:12px;margin:9px 0;border:1px solid #64748b;border-radius:8px';
+  const label=document.createElement('strong');label.textContent=name;row.append(label);
+  const options=document.createElement('div');options.textContent='Searching Scryfall…';row.append(options);details.append(row);
+  const choices=await suggestCards(name);
+  if(version!==suggestionVersion||!details.isConnected)return;
+  options.replaceChildren();
+  if(!choices.length){options.textContent='No close match found. Check the spelling in your list.';continue}
+  const select=document.createElement('select');select.style.cssText='width:100%;margin:8px 0;padding:10px';
+  const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Choose a suggested card…';select.append(placeholder);
+  for(const choice of choices){const opt=document.createElement('option');opt.value=choice;opt.textContent=choice;select.append(opt)}
+  const apply=document.createElement('button');apply.type='button';apply.textContent='Use selected card';apply.disabled=true;
+  select.onchange=()=>apply.disabled=!select.value;
+  apply.onclick=async()=>{
+   const replacement=select.value;if(!replacement)return;
+   const original=parsed.cards.filter(c=>c.name.toLowerCase()===name.toLowerCase());
+   if(!original.length)return;
+   for(const card of original)card.name=replacement;
+   suggestionVersion++;saveButton.disabled=true;status.textContent='Checking corrected card with Scryfall…';
+   try{
+    const checked=await resolve(parsed.cards);
+    parsed={...parsed,...checked};
+    draw();
+   }catch(e){status.textContent='Correction check failed: '+e.message}
+  };
+  options.append(select,apply);
+ }
+}
 function draw(){
  if(!parsed)return;
  const {cards,invalid,found,missing}=parsed;
@@ -150,9 +206,11 @@ function draw(){
  const cp=document.createElement('p');cp.textContent='Commander: '+(commanderName|| (candidates.length===1?'Suggested: '+candidates[0]:'Not explicitly marked; select a commander above.'));details.append(cp);
  if(total!==100){const warn=document.createElement('p');warn.textContent='Deck contains '+total+' cards, not 100. Check your export.';details.append(warn)}
  if(repeat.length){const warn=document.createElement('p');warn.textContent='Repeated nonbasic names (review for exceptions): '+repeat.slice(0,12).join(', ');details.append(warn)}
- if(invalid.length||missing.length){const warn=document.createElement('p');warn.style.color='#fca5a5';warn.textContent='Issues: '+[...invalid,...missing.map(x=>'Unrecognized: '+x)].join(' | ');details.append(warn)}
+ if(invalid.length){const warn=document.createElement('p');warn.style.color='#fca5a5';warn.textContent='Invalid lines (check quantity and formatting): '+invalid.join(' | ');details.append(warn)}
+ if(missing.length){const warn=document.createElement('p');warn.style.color='#fca5a5';warn.textContent=missing.length+' unrecognized card name(s). Select corrections below.';details.append(warn)}
  const sample=document.createElement('p');sample.textContent='Recognized examples: '+main.filter(c=>found.has(c.name.toLowerCase())).slice(0,8).map(c=>c.name).join(', ');details.append(sample);
  preview.replaceChildren(details);
+ const version=++suggestionVersion;showCorrections(details,missing,version).catch(()=>{});
  $('importCommander').value=commanderName||$('importCommander').value;
  saveButton.disabled=!!(invalid.length||missing.length)||!main.length;
  status.textContent=saveButton.disabled?'Fix unrecognized lines before saving.':'Review the deck and save when ready.';
