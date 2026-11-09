@@ -17,11 +17,11 @@ async function loadExisting(){
  if(!/^[0-9a-f-]{36}$/i.test(editId)){status.textContent='Invalid deck link.';return}
  const {data:{user}}=await sb.auth.getUser();
  if(!user){status.textContent='Sign in on the home page before editing your deck.';return}
- const {data,error}=await sb.from('decks').select('id,name,commander,decklist').eq('id',editId).eq('owner_id',user.id).single();
+ const {data,error}=await sb.from('decks').select('id,name,commander,decklist,bracket_level,theme,notes').eq('id',editId).eq('owner_id',user.id).single();
  if(error||!data){status.textContent='Deck not found or you do not have permission to edit it.';return}
  $('importDeckName').value=data.name;
  $('importCommander').value=data.commander;
- $('importText').value=data.decklist;
+ $('importText').value=data.decklist;$('importBracket').value=data.bracket_level==null?'':String(data.bracket_level);$('importTheme').value=data.theme||'';$('importNotes').value=data.notes||'';
  status.textContent='Deck loaded. Preview and validate before saving changes.';
 }
 loadExisting().catch(e=>status.textContent='Unable to load deck: '+e.message);
@@ -96,14 +96,15 @@ saveButton.onclick=async()=>{
  if(!parsed||parsed.invalid.length||parsed.missing.length)return;
  const name=$('importDeckName').value.trim(),commander=$('importCommander').value.trim();
  if(!name||!commander){status.textContent='Enter a deck name and commander.';return}
+ const bracket_level=$('importBracket').value?Number($('importBracket').value):null,theme=$('importTheme').value.trim()||null,notes=$('importNotes').value.trim()||null;
  const list=parsed.cards.filter(c=>['main','commander'].includes(c.zone)).map(c=>c.qty+' '+c.name+(c.set?' ('+c.set.toUpperCase()+') '+c.number:'')).join('\n');
  saveButton.disabled=true;
  try{
  const {data:{user}}=await sb.auth.getUser();
  if(!user){status.textContent='Sign in to your cloud account before saving. Your pasted list is still here.';return}
  const {error}=isEditing
- ?await sb.from('decks').update({name,commander,decklist:list}).eq('id',editId).eq('owner_id',user.id).select('id').single()
- :await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list});
+ ?await sb.from('decks').update({name,commander,decklist:list,bracket_level,theme,notes}).eq('id',editId).eq('owner_id',user.id).select('id').single()
+ :await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list,bracket_level,theme,notes});
  if(error)throw Error(error.message);
  status.textContent=isEditing?'Changes saved to your cloud deck.':'Deck saved to your cloud account.';
  window.location.href=isEditing?'./deck.html?id='+encodeURIComponent(editId):'./index.html#profiles';
