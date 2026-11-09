@@ -90,6 +90,14 @@ view.scrollIntoView({behavior:'smooth',block:'start'});
 }
 const galleryArtCache=new Map();
 let rerenderDeckGallery=null;
+let deckGalleryView='cards';
+function setDeckGalleryView(view){
+ deckGalleryView=view==='compact'?'compact':'cards';
+ for(const id of ['deckGallery','archivedDeckGallery'])$(id)?.classList.toggle('deck-gallery-compact',deckGalleryView==='compact');
+ $('homeDeckCardsView')?.setAttribute('aria-pressed',String(deckGalleryView==='cards'));
+ $('homeDeckCompactView')?.setAttribute('aria-pressed',String(deckGalleryView==='compact'));
+}
+
 const recentArtCache=new Map();
 const recentArtPending=new Map();
 let recentArtQueue=Promise.resolve();
@@ -243,9 +251,12 @@ function renderAll(){
  renderGroup(decks.filter(d=>!!d.archived_at),archivedGallery,$('archivedDeckSearch').value,true);
 }
 rerenderDeckGallery=renderAll;
+setDeckGalleryView(deckGalleryView);
 renderAll();
 
 }
+$('homeDeckCardsView')?.addEventListener('click',()=>setDeckGalleryView('cards'));
+$('homeDeckCompactView')?.addEventListener('click',()=>setDeckGalleryView('compact'));
 const refreshButton=$('refreshProfiles');if(refreshButton)refreshButton.onclick=refresh;
 for(const id of ['homeDeckSort','homeDeckDirection','homeDeckSearch','archivedDeckSearch'])$(id)?.addEventListener(id.includes('Search')?'input':'change',()=>rerenderDeckGallery?.());
 sb.auth.onAuthStateChange(()=>setTimeout(refresh,0));
