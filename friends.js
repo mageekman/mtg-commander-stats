@@ -3,7 +3,7 @@ const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable
 const node=(tag,text)=>{const el=document.createElement(tag);if(text)el.textContent=text;return el};
 const mounts=new Set();
 async function rpc(name,args){const {data,error}=await sb.rpc(name,args);if(error)throw error;return data}
-export async function mountFriendAction(host,handle,initial){
+export async function mountFriendAction(host,handle,initial,{allowRemove=false}={}){
  if(!handle)return;
  const state={host,handle,relationship:initial,busy:false};mounts.add(state);
  async function draw(){
@@ -13,7 +13,7 @@ export async function mountFriendAction(host,handle,initial){
   if(state.relationship==='self')return;
   const status=node('span',({none:'',outgoing:'Request sent',incoming:'Friend request received',friends:'Friends'})[state.relationship]);status.className='friend-relationship';
   const feedback=node('span');feedback.className='friend-feedback';feedback.setAttribute('role','status');host.append(status);
-  const choices={none:[['send','Send friend request']],incoming:[['accept','Accept'],['decline','Decline']],outgoing:[['cancel','Cancel request']],friends:[['remove','Remove friend']]};
+  const choices={none:[['send','Send friend request']],incoming:[['accept','Accept'],['decline','Decline']],outgoing:[['cancel','Cancel request']],friends:allowRemove?[['remove','Remove friend']]:[]};
   for(const [action,label] of choices[state.relationship]||[]){
    const button=node('button',label);button.type='button';button.disabled=state.busy;
    button.onclick=async()=>{

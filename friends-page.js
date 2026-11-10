@@ -3,7 +3,7 @@ import {mountRecentFriendGames} from './recent-friend-games.js?v=2';
 import {renderFriendDashboard} from './friends-dashboard.js?v=2';
 import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=2';
 import {createClient} from './vendor/supabase-js.mjs';
-import {mountFriendAction,mountRequestsPanel} from './friends.js?v=2';
+import {mountRequestsPanel} from './friends.js?v=3';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const node=(tag,text)=>{const el=document.createElement(tag);if(text)el.textContent=text;return el};
 const status=document.getElementById('friendsPageStatus'),host=document.getElementById('friendsPageContent');
@@ -49,7 +49,7 @@ async function loadFriends(){
   const grid=node('div');grid.className='friends-passport-grid';host.append(grid);const jobs=[];
   for(const friend of friends){
    const card=node('article');card.className='friend-passport';const link=node('a');link.className='friend-passport-link';link.href='./player.html?user='+encodeURIComponent(friend.handle);link.setAttribute('aria-label','View '+(friend.display_name||friend.handle)+' player passport');
-   const shade=node('div');shade.className='friend-passport-shade';const copy=node('div');copy.className='friend-passport-copy';const handle=node('span','@'+friend.handle);handle.className='friend-passport-handle';copy.append(node('h2',friend.display_name||friend.handle),handle);link.append(shade,copy);const actions=node('div');card.append(link,actions);grid.append(card);mountFriendAction(actions,friend.handle,'friends');jobs.push(()=>fillPassport(link,friend,loadPassport));
+   const shade=node('div');shade.className='friend-passport-shade';const copy=node('div');copy.className='friend-passport-copy';const handle=node('span','@'+friend.handle);handle.className='friend-passport-handle';copy.append(node('h2',friend.display_name||friend.handle),handle);link.append(shade,copy);card.append(link);grid.append(card);jobs.push(()=>fillPassport(link,friend,loadPassport));
   }
   status.textContent='';host.hidden=false;
   let next=0;await Promise.all(Array.from({length:Math.min(4,jobs.length)},async()=>{while(next<jobs.length&&current===version)await jobs[next++]()}));

@@ -11,7 +11,7 @@ document.getElementById('copyPlayerInvite').addEventListener('click',async()=>{
  catch{const input=document.getElementById('playerInviteUrl');input.value=playerInviteUrl;document.getElementById('playerInviteFallback').hidden=false;input.focus();input.select();status.textContent='Copy this link to invite someone to Command Ledger.'}
 });
 </script><script src="./scryfall-client.js"></script><script type="module">
-import {mountFriendAction} from './friends.js?v=2';
+import {mountFriendAction} from './friends.js?v=3';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const form=document.getElementById('playerSearch'),input=document.getElementById('username'),status=document.getElementById('status'),results=document.getElementById('results');
