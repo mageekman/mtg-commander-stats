@@ -162,9 +162,9 @@ async function loadSharedLedger(handle,options={}){
  const colors=new Map(),combos=new Map();let unavailable=0;
  const identityCache=new Map();
  async function identity(name){
-  const parts=String(name||'').split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean);
-  if(!parts.length)return null;
-  const ids=await Promise.all(parts.map(part=>{
+  const full=String(name||'').trim();
+  if(!full)return null;
+  async function lookup(part){
    const key=part.toLowerCase();
    if(!identityCache.has(key))identityCache.set(key,(async()=>{
     try{
@@ -175,7 +175,13 @@ async function loadSharedLedger(handle,options={}){
     }catch{return null}
    })());
    return identityCache.get(key);
-  }));
+  }
+  // Check the full name first. Ampersands also occur in single-card names.
+  const exact=await lookup(full);
+  if(exact!==null)return [...new Set(exact)].filter(x=>'WUBRG'.includes(x)).sort((a,b)=>'WUBRG'.indexOf(a)-'WUBRG'.indexOf(b)).join('');
+  const parts=full.split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean);
+  if(parts.length<2)return null;
+  const ids=await Promise.all(parts.map(lookup));
   if(ids.some(x=>x===null))return null;
   return [...new Set(ids.flat())].filter(x=>'WUBRG'.includes(x)).sort((a,b)=>'WUBRG'.indexOf(a)-'WUBRG'.indexOf(b)).join('');
  }
