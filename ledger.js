@@ -1,5 +1,6 @@
+import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=1';
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=history-2';
-import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=1';
+import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=2';
 import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=1';
 import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
@@ -381,6 +382,7 @@ function render(){
  renderWinrateTrend(visibleGames);
  renderBestDeck(visibleGames);
  renderExtraStats(visibleGames);
+ renderAdditionalLedgerStats($('ledgerAdditionalStats'),{games:visibleGames,allGames:games,decks,names:friendDisplayNames});
  const wins=visibleGames.filter(g=>g.won).length;
  const summary=$('summary');summary.replaceChildren();
  const rate=visibleGames.length?(wins/visibleGames.length*100).toFixed(1):'0.0';
