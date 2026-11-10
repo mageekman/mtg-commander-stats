@@ -1,3 +1,4 @@
+import {setupDeckRemoval} from './deck-removal.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
@@ -23,6 +24,7 @@ async function loadExisting(){
  if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist').eq('id',editId).eq('owner_id',user.id).single();if(!fallback.error){data=fallback.data;error=null}}
 
  if(error||!data){status.textContent='Deck not found or you do not have permission to edit it.';return}
+ setupDeckRemoval({sb,deckId:editId,ownerId:user.id,onComplete:()=>{window.location.href='./index.html#profiles'}});
  $('importDeckName').value=data.name;
  $('importCommander').value=data.commander;
  $('importText').value=data.decklist||'';$('importDeckUrl').value=data.decklist_url||'';$('importBracket').value=data.bracket_level==null?'':String(data.bracket_level);$('importTheme').value=data.theme||'';$('importNotes').value=data.notes||'';
