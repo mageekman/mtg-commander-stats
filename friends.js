@@ -30,18 +30,20 @@ export async function mountFriendAction(host,handle,initial){
  state.draw=draw;await draw();
 }
 document.addEventListener('friends-changed',event=>{for(const state of mounts){if(!state.host.isConnected){mounts.delete(state);continue}if(state.handle===event.detail.handle&&!state.busy){state.relationship=event.detail.relationship;state.draw()}}});
-export function mountFriendsPanel(host){
+export function mountRequestsPanel(host){
+ const epoch=(Number(host.dataset.requestEpoch)||0)+1;host.dataset.requestEpoch=String(epoch);
+ const alive=()=>Number(host.dataset.requestEpoch)===epoch;
  host.classList.add('friends-panel');
- const heading=node('div');heading.className='friends-heading';heading.append(node('h2','Friends'));
+ const heading=node('div');heading.className='friends-heading';heading.append(node('h2','Requests'));
  const refresh=node('button','Refresh');refresh.type='button';heading.append(refresh);
- const intro=node('p','Connect with other Commander players. Manage incoming and sent requests here.');
+ const intro=node('p','Accept or decline incoming requests, or cancel a request you sent.');
  const find=node('a','Find players');find.href='./find-players.html';intro.append(document.createTextNode(' '),find);
  const status=node('p');status.setAttribute('role','status');
  const lists=node('div');host.append(heading,intro,status,lists);
  let generation=0;
- async function load(){const current=++generation;refresh.disabled=true;status.textContent='Loading friends…';
-  try{const connections=await rpc('list_friend_connections');if(current!==generation)return;lists.replaceChildren();
-   for(const [type,title,empty]of [['incoming','Friend requests','No incoming requests.'],['friends','Your friends','No friends yet. Find a player to send your first request.'],['outgoing','Sent requests','No sent requests.']]){
+ async function load(){if(!alive())return;const current=++generation;refresh.disabled=true;status.textContent='Loading friends…';
+  try{const connections=await rpc('list_friend_connections');if(current!==generation||!alive())return;lists.replaceChildren();
+   for(const [type,title,empty]of [['incoming','Incoming requests','No incoming requests.'],['outgoing','Sent requests','No sent requests.']]){
     const section=node('section');const rows=(connections||[]).filter(c=>c.relationship===type);section.append(node('h3',title+' ('+rows.length+')'));
     if(!rows.length)section.append(node('p',empty));lists.append(section);
     for(const connection of rows){const row=node('div');row.className='friend-row';const link=node('a',connection.display_name?connection.display_name+' · @'+connection.handle:'@'+connection.handle);link.href='./player.html?user='+encodeURIComponent(connection.handle);const actions=node('div');row.append(link,actions);section.append(row);mountFriendAction(actions,connection.handle,connection.relationship)}
