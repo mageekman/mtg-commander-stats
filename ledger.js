@@ -15,11 +15,8 @@ function getCommanderArtwork(name){
  if(artPending.has(key))return artPending.get(key);
  const job=artQueue.then(async()=>{
   await new Promise(resolve=>setTimeout(resolve,125));
-  const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
-  if(!response.ok)throw Error('Scryfall '+response.status);
-  const card=await response.json();
-  const url=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.large||card.card_faces?.[0]?.image_uris?.large||null;
-  artCache.set(key,url);return url;
+  const url=await window.commandLedgerCommanderArtwork(name);
+  if(url)artCache.set(key,url);return url;
  });
  artQueue=job.catch(()=>{});
  artPending.set(key,job);
@@ -212,7 +209,7 @@ function renderBestDeck(displayGames){
  const winrate=el('strong',rate+' win rate');winrate.className='best-deck-rate';
  const record=el('span',best.wins+' wins in '+best.games+' games');record.className='best-deck-record';
  content.append(label,name,commander,winrate,record);card.append(artwork,content);host.append(card);
- const commanderName=best.deck.commander.split(' / ')[0].split(' & ')[0].trim();
+ const commanderName=best.deck.commander.trim();
  if(commanderName)getCommanderArtwork(commanderName).then(url=>{
   if(card.isConnected&&url)artwork.style.backgroundImage='url("'+url+'")';
  }).catch(()=>{});
@@ -269,7 +266,7 @@ function featuredStat(host,deck,label,primary,secondary){
  const content=el('div');content.className='best-deck-content';
  for(const [tag,value,cls] of [['span',label,'best-deck-label'],['strong',deck.name,'best-deck-name'],['span',deck.commander,'best-deck-commander'],['strong',primary,'best-deck-rate'],['span',secondary,'best-deck-record']]){const node=el(tag,value);node.className=cls;content.append(node)}
  card.append(art,content);host.append(card);
- const name=commanderParts(deck.commander)[0];
+ const name=deck.commander;
  if(name)getCommanderArtwork(name).then(url=>{if(card.isConnected&&url)art.style.backgroundImage='url("'+url+'")'}).catch(()=>{});
 }
 function renderExtraStats(visibleGames){
@@ -294,9 +291,9 @@ function renderExtraStats(visibleGames){
   const card=el('div');card.className='best-deck-card';
   const art=el('div');art.className='best-deck-art';art.setAttribute('aria-hidden','true');
   const content=el('div');content.className='best-deck-content';
-  for(const [tag,value,cls] of [['span','★ Commander you’ve lost to most','best-deck-label'],['strong',topCommander[0],'best-deck-name'],['strong',topCommander[1]+' losses','best-deck-rate'],['span','Against this commander','best-deck-record']]){const node=el(tag,value);node.className=cls;content.append(node)}
+  for(const [tag,value,cls] of [['span','★ Rival Commander','best-deck-label'],['strong',topCommander[0],'best-deck-name'],['strong',topCommander[1]+' losses','best-deck-rate'],['span','Against this commander','best-deck-record']]){const node=el(tag,value);node.className=cls;content.append(node)}
   card.append(art,content);nemesis.append(card);
-  const name=commanderParts(topCommander[0])[0];
+  const name=topCommander[0];
   if(name)getCommanderArtwork(name).then(url=>{if(card.isConnected&&url)art.style.backgroundImage='url("'+url+'")'}).catch(()=>{});
  }else{const empty=el('div','No recorded losses to named commanders yet.');empty.className='best-deck-empty';nemesis.append(empty)}
  const gameDecks=visibleGames.map(g=>decks.find(d=>d.id===g.deck_id));
@@ -314,17 +311,8 @@ function renderExtraStats(visibleGames){
  Promise.all(opponents.map(p=>commanderColors(p.commander))).then(ids=>{
   if(stamp!==colorStatsStamp)return;
   const top=mostCommon(ids.filter(x=>x!==null)),strong=cards[2].querySelector('strong'),small=cards[2].querySelector('small');
-  const unresolved=opponents.filter((p,i)=>ids[i]===null);
-  const missingCount=unresolved.length;
-  const missingNames=[...new Set(unresolved.map(p=>String(p.commander||'').trim()||'Commander not recorded'))];
-  if(top){manaIdentity(strong,top[0]);small.textContent=top[1]+' losses'+(missingCount?' · '+missingCount+' games missing color data':'')}
-  else{strong.textContent=ids.length?'Color data unavailable':'No recorded losses';small.textContent=missingCount?missingCount+' games missing color data':''}
-  if(missingCount){
-   const info=el('span','Check opponent commanders: '+missingNames.join(', '));
-   info.className='missing-color-info';info.style.cssText='display:block;margin-top:6px;font-size:12px;line-height:1.45;color:#c9c8b5;overflow-wrap:anywhere';
-   info.title='These commander names could not be matched to Scryfall. Check the game records for missing names, spelling, or temporary lookup failures.';
-   cards[2].append(info);
-  }
+  if(top){manaIdentity(strong,top[0]);small.textContent=top[1]+' losses'}
+  else{strong.textContent=ids.length?'Color data unavailable':'No recorded losses';small.textContent=''}
  }).catch(()=>{if(stamp===colorStatsStamp)cards[2].querySelector('strong').textContent='Color data unavailable'});
 }
 let colorStatsStamp=0;
@@ -408,7 +396,7 @@ function render(){
   const percentage=el('div',rate);percentage.className='deck-stats-rate';percentage.append(el('small','Win rate'));
   const record=el('span',played.length?wins+' wins · '+(played.length-wins)+' losses':'No games yet');record.className='deck-stats-record';
   bottom.append(percentage,record);content.append(name,commander,bottom);card.append(artwork,content);byDeck.append(card);
-  const commanderName=deck.commander.split(' / ')[0].split(' & ')[0].trim();
+  const commanderName=deck.commander.trim();
   if(commanderName)getCommanderArtwork(commanderName).then(url=>{
    if(card.isConnected&&url)artwork.style.backgroundImage='url("'+url+'")';
   }).catch(()=>{});
@@ -438,7 +426,7 @@ function render(){
    const row=el('div');row.className='compact-game-row';
    const date=el('span',g.played_at);date.className='compact-game-date';
    const deckArt=el('div');deckArt.className='compact-game-art';deckArt.setAttribute('aria-hidden','true');row.append(deckArt);
-   if(deck?.commander){const artName=deck.commander.split(' / ')[0].split(' & ')[0].trim();if(artName)getCommanderArtwork(artName).then(url=>{if(deckArt.isConnected&&url)deckArt.style.backgroundImage='url("'+url+'")'}).catch(()=>{})}
+   if(deck?.commander){const artName=deck.commander.trim();if(artName)getCommanderArtwork(artName).then(url=>{if(deckArt.isConnected&&url)deckArt.style.backgroundImage='url("'+url+'")'}).catch(()=>{})}
    const deckName=el('strong',deck?.name||'Deleted deck');deckName.className='compact-game-deck-title';
    const players=el('span');players.className='compact-game-players';
    const playerNames=Array.isArray(g.players)&&g.players.length
@@ -446,7 +434,7 @@ function render(){
     :['You',...(Array.isArray(g.opponents)?g.opponents:[])];
    players.textContent=playerNames.join(' · ');
    players.title=playerNames.join(', ');
-   const info=el('div');info.className='compact-game-info';const outcome=el('span',g.won?'Win':'Loss');outcome.className='compact-game-outcome';info.append(deckName,players);row.append(date,info,outcome);item.append(row);history.append(item);continue;
+   const info=el('div');info.className='compact-game-info';const outcome=el('span',g.won?'Win':'Loss');outcome.className='compact-game-outcome';info.append(deckName,players);const edit=el('button','Edit');edit.type='button';edit.className='compact-game-edit';edit.setAttribute('aria-label','Edit game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));edit.onclick=()=>editGame(g);row.append(date,info,outcome,edit);item.append(row);history.append(item);continue;
   }
   const record=el('article');record.className='game-record';
   const header=el('div');header.className='game-record-header';
