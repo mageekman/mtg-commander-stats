@@ -87,7 +87,7 @@ async function run(){
  if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist,archived_at,owner_id').eq('id',id).single();if(!fallback.error){deck=fallback.data;error=null}}
 
  if(error||!deck){$('status').textContent='Deck not found or you do not have permission to view it.';return}
- document.title=deck.name+' · Command Ledger';$('deckTitle').textContent=deck.name;
+ document.title=deck.name+' · Command Ledger';$('deckTitle').querySelector('.site-heading-title').textContent=deck.name;
  const actions=element('div');actions.className='deck-page-actions';
  const edit=element('a','Edit deck');edit.href='./import.html?id='+encodeURIComponent(deck.id);edit.className='edit-deck-link';edit.setAttribute('aria-label','Edit '+deck.name);actions.append(edit);
  const archiveButton=element('button');archiveButton.type='button';archiveButton.className='deck-archive-toggle';
