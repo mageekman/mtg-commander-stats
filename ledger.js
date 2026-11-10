@@ -1,3 +1,4 @@
+import {createLedgerArtController} from './ledger-art-adjustment.js?v=1';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=1';
 import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=1';
 import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
@@ -11,6 +12,7 @@ const friendService=createGameFriendService(sb);
 const $=id=>document.getElementById(id);
 let friendDisplayNames=new Map();
 let user=null,decks=[],games=[],playerCount=4,editingGameId=null;
+const ledgerArt=createLedgerArtController(sb,()=>user);
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
 const message=t=>$('message').textContent=t;
 const scryfallLink=name=>'https://scryfall.com/search?q='+encodeURIComponent('!"'+name.replace(/"/g,'')+'"');
@@ -100,7 +102,7 @@ $('deck').addEventListener('change',syncOwnCommander);
 drawPlayers();
 $('date').value=new Date().toLocaleDateString('en-CA');
 async function load(){
- const auth=await sb.auth.getUser();user=auth.data.user;friendService.clear();friendDisplayNames=new Map();
+ const auth=await sb.auth.getUser();user=auth.data.user;await ledgerArt.load(user);friendService.clear();friendDisplayNames=new Map();
  if(!user){decks=demoDecks;games=demoGames;$('save').disabled=true;const filter=$('historyDeckFilter');filter.replaceChildren(el('option','All decks'));filter.firstChild.value='';for(const deck of decks){const option=el('option',deck.name);option.value=deck.id;filter.append(option)}message('Example Ledger — sign in to record your own games.');render();return}
  $('save').disabled=false;
  const d=await sb.from('decks').select('id,name,commander,created_at,archived_at').eq('owner_id',user.id).order('name');
@@ -234,7 +236,7 @@ function renderBestDeck(displayGames){
  content.append(label,name,commander,winrate,record);card.append(artwork,content);host.append(card);
  const commanderName=best.deck.commander.trim();
  if(commanderName)getCommanderArtwork(commanderName).then(url=>{
-  if(card.isConnected&&url)artwork.style.backgroundImage='url("'+url+'")';
+  if(card.isConnected&&url){artwork.style.backgroundImage='url("'+url+'")';ledgerArt.attach(card,artwork,{slot:'best-deck',commander:commanderName,url,title:best.deck.name})}
  }).catch(()=>{});
 }
 const identityCache=new Map();
@@ -281,7 +283,7 @@ function featuredStat(host,deck,label,primary,secondary){
  for(const [tag,value,cls] of [['span',label,'best-deck-label'],['strong',deck.name,'best-deck-name'],['span',deck.commander,'best-deck-commander'],['strong',primary,'best-deck-rate'],['span',secondary,'best-deck-record']]){const node=el(tag,value);node.className=cls;content.append(node)}
  card.append(art,content);host.append(card);
  const name=deck.commander;
- if(name)getCommanderArtwork(name).then(url=>{if(card.isConnected&&url)art.style.backgroundImage='url("'+url+'")'}).catch(()=>{});
+ if(name)getCommanderArtwork(name).then(url=>{if(card.isConnected&&url){art.style.backgroundImage='url("'+url+'")';ledgerArt.attach(card,art,{slot:'most-played-deck',commander:name,url,title:deck.name})}}).catch(()=>{});
 }
 function renderExtraStats(visibleGames){
  const host=$('statInsights'),nemesis=$('nemesisCommander');if(!host||!nemesis)return;
@@ -308,7 +310,7 @@ function renderExtraStats(visibleGames){
   for(const [tag,value,cls] of [['span','★ Rival Commander','best-deck-label'],['strong',topCommander[0],'best-deck-name'],['strong',topCommander[1]+' losses','best-deck-rate'],['span','Against this commander','best-deck-record']]){const node=el(tag,value);node.className=cls;content.append(node)}
   card.append(art,content);nemesis.append(card);
   const name=topCommander[0];
-  if(name)getCommanderArtwork(name).then(url=>{if(card.isConnected&&url)art.style.backgroundImage='url("'+url+'")'}).catch(()=>{});
+  if(name)getCommanderArtwork(name).then(url=>{if(card.isConnected&&url){art.style.backgroundImage='url("'+url+'")';ledgerArt.attach(card,art,{slot:'rival-commander',commander:name,url,title:name})}}).catch(()=>{});
  }else{const empty=el('div','No recorded losses to named commanders yet.');empty.className='best-deck-empty';nemesis.append(empty)}
  const gameDecks=visibleGames.map(g=>decks.find(d=>d.id===g.deck_id));
  Promise.all(gameDecks.map(d=>d?commanderColors(d.commander):Promise.resolve(null))).then(ids=>{
@@ -393,8 +395,8 @@ function render(){
  for(const deck of matchingDecks){
   const played=visibleGames.filter(g=>g.deck_id===deck.id),wins=played.filter(g=>g.won).length;
   const rate=played.length?(wins/played.length*100).toFixed(1)+'%':'—';
-  const card=el('a');card.className='deck-stats-card';card.href='./deck.html?id='+encodeURIComponent(deck.id);
-  card.setAttribute('aria-label',deck.name+', '+played.length+' games, '+(played.length?rate+' win rate':'no games')+'. View deck profile');
+  const card=el('div');card.className='deck-stats-card';const deckLink=el('a');deckLink.className='ledger-deck-art-link';deckLink.href='./deck.html?id='+encodeURIComponent(deck.id);card.append(deckLink);
+  deckLink.setAttribute('aria-label',deck.name+', '+played.length+' games, '+(played.length?rate+' win rate':'no games')+'. View deck profile');
   const artwork=el('div');artwork.className='deck-stats-art';artwork.setAttribute('aria-hidden','true');
   const content=el('div');content.className='deck-stats-content';
   const name=el('strong',deck.name);name.className='deck-stats-name';
@@ -405,7 +407,7 @@ function render(){
   bottom.append(percentage,record);content.append(name,commander,bottom);card.append(artwork,content);byDeck.append(card);
   const commanderName=deck.commander.trim();
   if(commanderName)getCommanderArtwork(commanderName).then(url=>{
-   if(card.isConnected&&url)artwork.style.backgroundImage='url("'+url+'")';
+   if(card.isConnected&&url){artwork.style.backgroundImage='url("'+url+'")';ledgerArt.attach(card,artwork,{slot:'deck:'+deck.id,commander:commanderName,url,title:deck.name})}
   }).catch(()=>{});
  }
  if(!decks.length)byDeck.append(el('p','Import a deck first to start tracking.'));
