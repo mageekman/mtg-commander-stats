@@ -1,4 +1,4 @@
-import {setFriendNotificationUser} from './friend-notifications.js?v=1';
+import {setFriendNotificationUser} from './friend-notifications.js?v=2';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 let guest=true,currentUser=null;
