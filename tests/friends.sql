@@ -1,0 +1,37 @@
+begin;
+create temp table friends_test_users(id uuid,handle text);
+insert into friends_test_users select gen_random_uuid(),'friendtest_'||substr(md5(random()::text),1,8) from generate_series(1,3);
+insert into auth.users(id,email,raw_user_meta_data) select id,handle||'@example.invalid',jsonb_build_object('display_name',handle) from friends_test_users;
+insert into public.profiles(id,handle,display_name) select id,handle,handle from friends_test_users on conflict(id) do update set handle=excluded.handle;
+do $$
+declare ids uuid[]; handles text[]; result text; total int;
+begin
+ select array_agg(id order by handle),array_agg(handle order by handle) into ids,handles from friends_test_users;
+ perform set_config('request.jwt.claim.sub',ids[1]::text,true);
+ if public.friend_action(handles[2],'send')<>'outgoing' then raise exception 'Send failed';end if;
+ perform public.friend_action(handles[2],'send');
+ select count(*) into total from public.friend_connections where requester_id=ids[1];if total<>1 then raise exception 'Duplicate request';end if;
+ begin perform public.friend_action(handles[1],'send');raise exception 'Self request allowed';exception when raise_exception then if sqlerrm='Self request allowed' then raise;end if;end;
+ begin perform public.friend_action(handles[2],'accept');raise exception 'Sender accepted request';exception when raise_exception then if sqlerrm='Sender accepted request' then raise;end if;end;
+ perform set_config('request.jwt.claim.sub',ids[3]::text,true);
+ if exists(select 1 from public.list_friend_connections()) then raise exception 'Connections leaked';end if;
+ begin perform public.friend_action(handles[1],'accept');raise exception 'Outsider accepted request';exception when raise_exception then if sqlerrm='Outsider accepted request' then raise;end if;end;
+ execute 'set local role authenticated';
+ if exists(select 1 from public.friend_connections) then raise exception 'RLS leaked connection';end if;
+ begin insert into public.friend_connections(requester_id,recipient_id) values(ids[3],ids[1]);raise exception 'Direct mutation allowed';exception when insufficient_privilege then null;end;
+ execute 'reset role';
+ perform set_config('request.jwt.claim.sub',ids[2]::text,true);
+ if public.friend_connection_status(handles[1])<>'incoming' then raise exception 'Incoming missing';end if;
+ if public.friend_action(handles[1],'accept')<>'friends' then raise exception 'Accept failed';end if;
+ if (select count(*) from public.list_friend_connections() where relationship='friends')<>1 then raise exception 'List failed';end if;
+ if public.friend_action(handles[1],'remove')<>'none' then raise exception 'Remove failed';end if;
+ perform set_config('request.jwt.claim.sub',ids[1]::text,true);perform public.friend_action(handles[2],'send');perform public.friend_action(handles[2],'cancel');
+ if public.friend_connection_status(handles[2])<>'none' then raise exception 'Cancel failed';end if;
+ perform public.friend_action(handles[2],'send');perform set_config('request.jwt.claim.sub',ids[2]::text,true);perform public.friend_action(handles[1],'decline');
+ if public.friend_connection_status(handles[1])<>'none' then raise exception 'Decline failed';end if;
+ perform set_config('request.jwt.claim.sub','',true);
+ begin perform public.list_friend_connections();raise exception 'Anonymous access allowed';exception when insufficient_privilege then null;end;
+ if has_function_privilege('anon','public.friend_action(text,text)','EXECUTE') then raise exception 'Anonymous function grant';end if;
+ raise notice 'PASS send/duplicate/self/roles/RLS/accept/remove/cancel/decline/anonymous';
+end $$;
+rollback;
