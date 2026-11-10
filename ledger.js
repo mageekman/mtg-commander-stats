@@ -1,3 +1,4 @@
+import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=1';
 import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
 import {gameMatchesSearch} from './game-history-search.js?v=1';
@@ -5,6 +6,7 @@ import {isGenericOpponentName} from './opponent-names.js?v=1';
 import {renderWinrateTrendChart} from './ledger-chart.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
+const friendService=createGameFriendService(sb);
 const $=id=>document.getElementById(id);
 let user=null,decks=[],games=[],playerCount=4,editingGameId=null;
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
@@ -63,6 +65,7 @@ function attachCommanderSearch(input){
  input.addEventListener('blur',()=>setTimeout(close,160));
  updateLink();
  input.getSelectedCommander=()=>selected;
+ input.setSelectedCommander=value=>{clearTimeout(timer);controller?.abort();sequence++;choose(value)};
 }
 
 async function showHistoryArt(element,name){
@@ -74,13 +77,13 @@ async function showHistoryArt(element,name){
 }
 
 function drawPlayers(prefill=null){
- const container=$('playerRows');const old=prefill||[...container.querySelectorAll('.player-row')].map(r=>({name:r.querySelector('.player-name').value,commander:r.querySelector('.player-commander').value}));container.replaceChildren();
+ const container=$('playerRows');const old=prefill||[...container.querySelectorAll('.player-row')].map(gamePlayerSnapshot);container.replaceChildren();
  for(let i=0;i<playerCount;i++){
   const row=el('div');row.className='player-row';const art=el('div');art.className='commander-art';art.setAttribute('aria-hidden','true');row.append(art,el('h4',i===0?'Player 1 · You':'Player '+(i+1)));
   const fields=el('div');fields.className='player-fields';
   const nameLabel=el('label','Player name');const name=el('input');name.className='player-name';name.placeholder=i===0?'You':'Player '+(i+1);name.required=i!==0;name.maxLength=80;name.value=old[i]?.name||'';if(i===0){name.value='You';name.readOnly=true}nameLabel.append(name);
   const commanderLabel=el('label',i===0?'Your commander (from selected deck)':'Commander');const commander=el('input');commander.className='player-commander';commander.required=true;commander.maxLength=200;commander.placeholder='Commander name';commander.value=old[i]?.commander||'';if(i===0)commander.readOnly=true;commanderLabel.append(commander);if(i!==0)attachCommanderSearch(commander);
-  fields.append(nameLabel,commanderLabel);row.append(fields);container.append(row);if(i!==0&&old[i]?.commander)showCommanderArt(row,old[i].commander);
+  fields.append(nameLabel,commanderLabel);row.append(fields);container.append(row);if(i!==0)attachGameFriend({row,name,commander,snapshot:old[i],service:friendService,onCommander:value=>showCommanderArt(row,value)});if(i!==0&&old[i]?.commander)showCommanderArt(row,old[i].commander);
  }
  const table=el('div');table.className='pod-table';table.setAttribute('aria-hidden','true');table.append(el('strong','COMMANDER'),el('span','The Pod'));container.append(table);
  const first=$('firstPlayer'),winner=$('winnerPlayer'),previousFirst=first.value,previousWinner=winner.value;first.replaceChildren();winner.replaceChildren();
@@ -95,7 +98,7 @@ $('deck').addEventListener('change',syncOwnCommander);
 drawPlayers();
 $('date').value=new Date().toLocaleDateString('en-CA');
 async function load(){
- const auth=await sb.auth.getUser();user=auth.data.user;
+ const auth=await sb.auth.getUser();user=auth.data.user;friendService.clear();
  if(!user){decks=demoDecks;games=demoGames;$('save').disabled=true;const filter=$('historyDeckFilter');filter.replaceChildren(el('option','All decks'));filter.firstChild.value='';for(const deck of decks){const option=el('option',deck.name);option.value=deck.id;filter.append(option)}message('Example Ledger — sign in to record your own games.');render();return}
  $('save').disabled=false;
  const d=await sb.from('decks').select('id,name,commander,created_at,archived_at').eq('owner_id',user.id).order('name');
@@ -469,7 +472,8 @@ $('gameForm').onsubmit=async e=>{
  e.preventDefault();if(!user)return;
  const deck_id=$('deck').value;if(!decks.some(d=>d.id===deck_id)){message('Select one of your decks.');return}
  const played_at=$('date').value;
- const players=[...document.querySelectorAll('.player-row')].map((row,i)=>({name:i===0?'You':row.querySelector('.player-name').value.trim(),commander:row.querySelector('.player-commander').value.trim()}));
+ if([...document.querySelectorAll('.player-row')].some(row=>row.friendLoading)){message('Wait for the friend deck choices to finish loading.');return}
+ const players=[...document.querySelectorAll('.player-row')].map((row,i)=>({...gamePlayerSnapshot(row),...(i===0?{name:'You'}:{})}));
  if(!played_at||players.length<2||players.length>6||players.some(p=>!p.name||!p.commander)){message('Enter a date, player names, and commanders for everyone.');return}
  const opponentInputs=[...document.querySelectorAll('.player-row')].slice(1).map(r=>r.querySelector('.player-commander'));
  if(opponentInputs.some(input=>input.getSelectedCommander?.()!==input.value.trim())){message('Select each opponent commander from the Scryfall suggestions.');return}
