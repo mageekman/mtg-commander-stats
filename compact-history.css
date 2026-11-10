@@ -27,7 +27,7 @@
  #history .compact-game-row>.compact-game-info{grid-column:2/4!important;grid-row:1!important;gap:5px!important}
  #history .compact-game-info>.compact-game-deck-title{font-size:16px!important}
  #history .compact-game-info>.compact-game-players{font-size:12px!important}
- #history .compact-game-row>.compact-game-outcome{grid-column:2!important;grid-row:2!important;width:58px;justify-self:start;font-size:14px!important}
+ #history .compact-game-row>.compact-game-outcome{grid-column:2!important;grid-row:2!important;width:100%;justify-self:stretch;font-size:14px!important}
  #history .compact-game-row>.compact-game-actions{grid-column:3!important;grid-row:2!important;justify-self:end}
  #history .compact-game-actions button{width:44px;font-size:10px}
 }
