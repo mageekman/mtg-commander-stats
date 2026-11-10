@@ -1,4 +1,4 @@
-import {renderFriendDashboard} from './friends-dashboard.js?v=1';
+import {renderFriendDashboard} from './friends-dashboard.js?v=2';
 import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 import {mountFriendAction,mountRequestsPanel} from './friends.js?v=2';
@@ -6,11 +6,18 @@ const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable
 const node=(tag,text)=>{const el=document.createElement(tag);if(text)el.textContent=text;return el};
 const status=document.getElementById('friendsPageStatus'),host=document.getElementById('friendsPageContent');
 async function rpc(name,args){const {data,error}=await sb.rpc(name,args);if(error)throw error;return data}
-async function fillPassport(link,friend){
+function createPassportLoader(){
+ const cache=new Map();
+ return handle=>{
+  if(!cache.has(handle))cache.set(handle,rpc('get_player_passport',{target_handle:handle}).then(rows=>rows?.[0]||null).catch(error=>{cache.delete(handle);throw error}));
+  return cache.get(handle);
+ };
+}
+async function fillPassport(link,friend,loadPassport){
  try{
-  const rows=await rpc('get_player_passport',{target_handle:friend.handle});
+  const profile=await loadPassport(friend.handle);
   if(!link.isConnected)return;
-  const profile=rows?.[0];if(!profile)return;
+  if(!profile)return;
   link.querySelector('h2').textContent=profile.display_name||profile.handle;
   const copy=link.querySelector('.friend-passport-copy');
   if(profile.pronouns)copy.append(node('p',profile.pronouns));
@@ -23,10 +30,10 @@ async function fillPassport(link,friend){
   }
  }catch{if(link.isConnected)link.querySelector('.friend-passport-copy').append(node('p','Open passport to view player details.'))}
 }
-async function loadRankings(dashboard){
+async function loadRankings(dashboard,loadPassport){
  dashboard.setAttribute('aria-busy','true');dashboard.textContent='Loading friend rankings…';
- try{const data=await rpc('get_friend_rankings');if(dashboard.isConnected)renderFriendDashboard(dashboard,data)}
- catch(error){if(dashboard.isConnected){dashboard.replaceChildren();dashboard.className='dashboard-error';const text=node('p','Rankings could not load: '+error.message);const retry=node('button','Try again');retry.type='button';retry.className='friends-page-button';retry.onclick=()=>loadRankings(dashboard);dashboard.append(text,retry)}}
+ try{const data=await rpc('get_friend_rankings');if(dashboard.isConnected)renderFriendDashboard(dashboard,data,{loadPassport,loadArtwork:name=>window.commandLedgerCommanderArtwork(name)})}
+ catch(error){if(dashboard.isConnected){dashboard.replaceChildren();dashboard.className='dashboard-error';const text=node('p','Rankings could not load: '+error.message);const retry=node('button','Try again');retry.type='button';retry.className='friends-page-button';retry.onclick=()=>loadRankings(dashboard,loadPassport);dashboard.append(text,retry)}}
  finally{dashboard.removeAttribute('aria-busy')}
 }
 let version=0;
@@ -37,13 +44,14 @@ async function loadFriends(){
   const friends=(connections||[]).filter(c=>c.relationship==='friends');host.replaceChildren();
   const heading=node('div');heading.className='friends-list-heading';heading.append(node('p',friends.length+' friend'+(friends.length===1?'':'s')));
   const refresh=node('button','Refresh');refresh.type='button';refresh.className='friends-page-button';refresh.onclick=loadFriends;heading.append(refresh);host.append(heading);
-  const dashboard=node('section');dashboard.setAttribute('aria-label','Friend rankings dashboard');host.append(dashboard);loadRankings(dashboard);
+  const loadPassport=createPassportLoader();
+  const dashboard=node('section');dashboard.setAttribute('aria-label','Friend rankings dashboard');host.append(dashboard);loadRankings(dashboard,loadPassport);
   host.append(node('h2',"Friends’ Player Passports"));
   if(!friends.length){const empty=node('div');empty.className='friends-list-empty';empty.append(node('h2','Build your circle'),node('p','Find players and send a request. Once a request is accepted, their passport appears here.'));const find=node('a','Find Players');find.href='./find-players.html';find.className='friends-page-button';empty.append(find);host.append(empty)}
   const grid=node('div');grid.className='friends-passport-grid';host.append(grid);const jobs=[];
   for(const friend of friends){
    const card=node('article');card.className='friend-passport';const link=node('a');link.className='friend-passport-link';link.href='./player.html?user='+encodeURIComponent(friend.handle);link.setAttribute('aria-label','View '+(friend.display_name||friend.handle)+' player passport');
-   const shade=node('div');shade.className='friend-passport-shade';const copy=node('div');copy.className='friend-passport-copy';const label=node('span','PLAYER PASSPORT');label.className='friends-eyebrow';const handle=node('span','@'+friend.handle);handle.className='friend-passport-handle';copy.append(label,node('h2',friend.display_name||friend.handle),handle);link.append(shade,copy);const actions=node('div');card.append(link,actions);grid.append(card);mountFriendAction(actions,friend.handle,'friends');jobs.push(()=>fillPassport(link,friend));
+   const shade=node('div');shade.className='friend-passport-shade';const copy=node('div');copy.className='friend-passport-copy';const label=node('span','PLAYER PASSPORT');label.className='friends-eyebrow';const handle=node('span','@'+friend.handle);handle.className='friend-passport-handle';copy.append(label,node('h2',friend.display_name||friend.handle),handle);link.append(shade,copy);const actions=node('div');card.append(link,actions);grid.append(card);mountFriendAction(actions,friend.handle,'friends');jobs.push(()=>fillPassport(link,friend,loadPassport));
   }
   status.textContent='';host.hidden=false;
   let next=0;await Promise.all(Array.from({length:Math.min(4,jobs.length)},async()=>{while(next<jobs.length&&current===version)await jobs[next++]()}));
