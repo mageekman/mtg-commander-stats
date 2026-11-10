@@ -1,13 +1,15 @@
+import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=1';
 import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=1';
 import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
-import {gameMatchesSearch} from './game-history-search.js?v=1';
+import {gameMatchesSearch} from './game-history-search.js?v=2';
 import {isGenericOpponentName} from './opponent-names.js?v=1';
 import {renderWinrateTrendChart} from './ledger-chart.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const friendService=createGameFriendService(sb);
 const $=id=>document.getElementById(id);
+let friendDisplayNames=new Map();
 let user=null,decks=[],games=[],playerCount=4,editingGameId=null;
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
 const message=t=>$('message').textContent=t;
@@ -98,7 +100,7 @@ $('deck').addEventListener('change',syncOwnCommander);
 drawPlayers();
 $('date').value=new Date().toLocaleDateString('en-CA');
 async function load(){
- const auth=await sb.auth.getUser();user=auth.data.user;friendService.clear();
+ const auth=await sb.auth.getUser();user=auth.data.user;friendService.clear();friendDisplayNames=new Map();
  if(!user){decks=demoDecks;games=demoGames;$('save').disabled=true;const filter=$('historyDeckFilter');filter.replaceChildren(el('option','All decks'));filter.firstChild.value='';for(const deck of decks){const option=el('option',deck.name);option.value=deck.id;filter.append(option)}message('Example Ledger — sign in to record your own games.');render();return}
  $('save').disabled=false;
  const d=await sb.from('decks').select('id,name,commander,created_at,archived_at').eq('owner_id',user.id).order('name');
@@ -118,7 +120,8 @@ async function load(){
  syncOwnCommander();await refresh();
 }
 async function refresh(){
- const r=await sb.from('personal_games').select('id,deck_id,played_at,won,opponents,notes,players,first_player,winner_player').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false});
+ const [r,names]=await Promise.all([sb.from('personal_games').select('id,deck_id,played_at,won,opponents,notes,players,first_player,winner_player').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false}),loadFriendDisplayNames(sb)]);
+ friendDisplayNames=names;
  if(r.error){message('Unable to load your games. Please contact the app administrator. '+r.error.message);$('save').disabled=true;return}
  games=r.data||[];message('');render();
 }
@@ -205,7 +208,7 @@ function filteredGames(){
  const toDate=d=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(d||''))return null;const [y,m,day]=d.split('-').map(Number);const parsed=new Date(y,m-1,day);return parsed.getFullYear()===y&&parsed.getMonth()===m-1&&parsed.getDate()===day?parsed:null};
  return games.filter(g=>{
   if(deck&&g.deck_id!==deck)return false;
-  if(!gameMatchesSearch(g,decks.find(d=>d.id===g.deck_id),$('historySearch').value))return false;
+  if(!gameMatchesSearch(g,decks.find(d=>d.id===g.deck_id),$('historySearch').value,friendDisplayNames))return false;
   if(result==='wins'&&!g.won||result==='losses'&&g.won)return false;
   if(period!=='all'){const date=toDate(g.played_at);if(!date||date>localToday)return false;if(period==='30'&&date<cutoff)return false;if(period==='year'&&date.getFullYear()!==today.getFullYear())return false}
   return true;
@@ -430,7 +433,7 @@ function render(){
    const deckName=el('strong',deck?.name||'Deleted deck');deckName.className='compact-game-deck-title';
    const players=el('span');players.className='compact-game-players';
    const playerNames=Array.isArray(g.players)&&g.players.length
-    ?g.players.map((p,i)=>p.name?.trim()||('Player '+(i+1)))
+    ?g.players.map((p,i)=>gamePlayerDisplayName(p,friendDisplayNames,'Player '+(i+1)))
     :['You',...(Array.isArray(g.opponents)?g.opponents:[])];
    players.textContent=playerNames.join(' · ');
    players.title=playerNames.join(', ');
@@ -453,7 +456,7 @@ function render(){
     const tags=el('div');tags.className='history-player-tags';
     if(i===g.winner_player)tags.append(el('span','🏆 Winner'));
     if(i===g.first_player)tags.append(el('span','Went first'));
-    info.append(tags,el('strong',p.name||'Player '+(i+1)));
+    info.append(tags,el('strong',gamePlayerDisplayName(p,friendDisplayNames,'Player '+(i+1))));
     const commander=el('a',p.commander||'Unknown commander');commander.href=scryfallLink(p.commander||'');commander.target='_blank';commander.rel='noopener noreferrer';info.append(commander);
     tile.append(info);pod.append(tile);
     showHistoryArt(art,p.commander);
