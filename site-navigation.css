@@ -1,0 +1,8 @@
+/* Shared top navigation button styling. */
+.site-top-nav{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:15px;margin-bottom:24px}
+.site-top-nav nav{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:9px}
+.site-top-nav>a,.site-top-nav nav>a{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:0 15px;border:1px solid #557369;border-radius:9px;background:#152d2b;color:#f1ebdb;text-decoration:none;font-size:13px;font-weight:650;line-height:1;white-space:nowrap;transition:background .2s,border-color .2s}
+.site-top-nav>.nav-back{border-color:#c9aa7570;color:#e8d6ae;background:#142b29}
+.site-top-nav>a:hover,.site-top-nav nav>a:hover{background:#307763;border-color:#9bd5bb;color:#fff}
+nav.site-top-nav{justify-content:flex-start;gap:9px}
+@media(max-width:650px){.site-top-nav{gap:10px}.site-top-nav nav,nav.site-top-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}.site-top-nav nav>a,nav.site-top-nav>a{white-space:normal;text-align:center;padding:0 9px}}
