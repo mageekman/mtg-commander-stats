@@ -492,7 +492,7 @@ $('gameForm').onsubmit=async e=>{
  resetEditor();await refresh();
 };
 
-load().catch(e=>message('Unable to load Ledger: '+e.message));
+window.commandLedgerLoading.track(load(),'Loading your Ledger…').catch(e=>message('Unable to load Ledger: '+e.message));
 if(location.hash==='#gameForm'||location.hash==='#gameEditor'){
  setEditorOpen(true);
  requestAnimationFrame(()=>$('formTitle').scrollIntoView({block:'start'}));
