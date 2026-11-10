@@ -1,0 +1,246 @@
+[
+  {
+    "name": null,
+    "generic": true
+  },
+  {
+    "name": "",
+    "generic": true
+  },
+  {
+    "name": "  ",
+    "generic": true
+  },
+  {
+    "name": "???",
+    "generic": true
+  },
+  {
+    "name": "Opponent",
+    "generic": true
+  },
+  {
+    "name": "opponent 1",
+    "generic": true
+  },
+  {
+    "name": "OPPONENT #02",
+    "generic": true
+  },
+  {
+    "name": "Opponent12",
+    "generic": true
+  },
+  {
+    "name": "OpponentX",
+    "generic": true
+  },
+  {
+    "name": "enemy",
+    "generic": true
+  },
+  {
+    "name": "ENEMY-3",
+    "generic": true
+  },
+  {
+    "name": "Player",
+    "generic": true
+  },
+  {
+    "name": "Player 10",
+    "generic": true
+  },
+  {
+    "name": "player_one",
+    "generic": true
+  },
+  {
+    "name": "Player No. 17",
+    "generic": true
+  },
+  {
+    "name": "PLAYER #1 (unknown)",
+    "generic": true
+  },
+  {
+    "name": "unknown player",
+    "generic": true
+  },
+  {
+    "name": "Unnamed Opponent",
+    "generic": true
+  },
+  {
+    "name": "Default Player Name",
+    "generic": true
+  },
+  {
+    "name": "Opponent 1 / Player 2",
+    "generic": true
+  },
+  {
+    "name": "Opponent #3 (imported from CSV)",
+    "generic": true
+  },
+  {
+    "name": "other human",
+    "generic": true
+  },
+  {
+    "name": "random guest",
+    "generic": true
+  },
+  {
+    "name": "guest #8",
+    "generic": true
+  },
+  {
+    "name": "seat four",
+    "generic": true
+  },
+  {
+    "name": "slot IV",
+    "generic": true
+  },
+  {
+    "name": "Pod 2",
+    "generic": true
+  },
+  {
+    "name": "Host",
+    "generic": true
+  },
+  {
+    "name": "Winner",
+    "generic": true
+  },
+  {
+    "name": "Someone",
+    "generic": true
+  },
+  {
+    "name": "Anonymous",
+    "generic": true
+  },
+  {
+    "name": "n/a",
+    "generic": true
+  },
+  {
+    "name": "none",
+    "generic": true
+  },
+  {
+    "name": "not provided",
+    "generic": true
+  },
+  {
+    "name": "no name",
+    "generic": true
+  },
+  {
+    "name": "you",
+    "generic": true
+  },
+  {
+    "name": "Yourself",
+    "generic": true
+  },
+  {
+    "name": "SELF",
+    "generic": true
+  },
+  {
+    "name": "me",
+    "generic": true
+  },
+  {
+    "name": "undefined",
+    "generic": true
+  },
+  {
+    "name": "Missing",
+    "generic": true
+  },
+  {
+    "name": "Other Enemy",
+    "generic": true
+  },
+  {
+    "name": "Alex",
+    "generic": false
+  },
+  {
+    "name": "Sarah",
+    "generic": false
+  },
+  {
+    "name": "Chris",
+    "generic": false
+  },
+  {
+    "name": "Alex2",
+    "generic": false
+  },
+  {
+    "name": "Jean-Luc",
+    "generic": false
+  },
+  {
+    "name": "O'Connor",
+    "generic": false
+  },
+  {
+    "name": "María",
+    "generic": false
+  },
+  {
+    "name": "李明",
+    "generic": false
+  },
+  {
+    "name": "Player Slayer",
+    "generic": false
+  },
+  {
+    "name": "Enemy Within",
+    "generic": false
+  },
+  {
+    "name": "AI Chen",
+    "generic": false
+  },
+  {
+    "name": "CPU Killer",
+    "generic": false
+  },
+  {
+    "name": "Rivalry",
+    "generic": false
+  },
+  {
+    "name": "Guesthouse",
+    "generic": false
+  },
+  {
+    "name": "The Professor",
+    "generic": false
+  },
+  {
+    "name": "Opponent of Fate",
+    "generic": false
+  },
+  {
+    "name": "A. J.",
+    "generic": false
+  },
+  {
+    "name": "John Doe",
+    "generic": false
+  },
+  {
+    "name": "Minsc & Boo",
+    "generic": false
+  }
+]
