@@ -103,8 +103,8 @@ $('adjustHistoryArtwork').onclick=async()=>{
  const actor=user?.id,deck=decks.find(d=>d.id===$('deck').value);if(!actor||!deck?.commander)return;
  const button=$('adjustHistoryArtwork'),name=deck.commander.trim();button.disabled=true;$('historyArtworkStatus').textContent='Loading artwork…';
  try{const url=await getCommanderArtwork(name);if(user?.id!==actor||$('deck').value!==deck.id)return;if(!url)throw Error('Artwork is unavailable for this commander.');
-  const art=document.querySelector('#history .compact-game-art'),width=$('history').getBoundingClientRect().width||600;
-  const aspect=art?.offsetHeight?art.offsetWidth/art.offsetHeight:(innerWidth<=600?width*.72:Math.max(210,Math.min(450,width*.43)))/88;
+  const art=document.querySelector('#history .compact-game-art');
+  const aspect=art?.offsetHeight?art.offsetWidth/art.offsetHeight:(innerWidth<=600?Math.max(68,Math.min(110,innerWidth*.24)):Math.max(160,Math.min(300,innerWidth*.24)))/(innerWidth<=600?164:112);
   $('historyArtworkStatus').textContent='';ledgerArt.edit({slot:'compact-history',commander:name,url,title:name,aspect,defaultFrame:{x:50,y:30,zoom:1},note:'Adjust the compact game-history artwork for '+name+'. Saving applies this crop to all your games using this commander, including future games.'});
  }catch(error){$('historyArtworkStatus').textContent=error.message}finally{button.disabled=false}
 };
@@ -449,7 +449,7 @@ function render(){
     :['You',...(Array.isArray(g.opponents)?g.opponents:[])];
    players.textContent=playerNames.join(' · ');
    players.title=playerNames.join(', ');
-   const info=el('div');info.className='compact-game-info';const outcome=el('span',g.won?'Win':'Loss');outcome.className='compact-game-outcome';info.append(deckName,players);const edit=el('button',user?'Edit':'Sign in to edit');edit.type='button';edit.className='compact-game-edit';edit.setAttribute('aria-label','Edit game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));edit.onclick=()=>editGame(g);const actions=el('div');actions.className='compact-game-actions';edit.textContent='Edit';actions.append(edit);if(user){const remove=el('button','Delete');remove.type='button';remove.className='compact-game-delete';remove.setAttribute('aria-label','Delete game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));remove.onclick=()=>deleteGame(g,remove);actions.append(remove)}row.append(date,info,outcome,actions);item.append(row);history.append(item);continue;
+   const info=el('div');info.className='compact-game-info';const outcome=el('span',g.won?'Win':'Loss');outcome.className='compact-game-outcome';info.append(date,deckName,players);const edit=el('button',user?'Edit':'Sign in to edit');edit.type='button';edit.className='compact-game-edit';edit.setAttribute('aria-label','Edit game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));edit.onclick=()=>editGame(g);const actions=el('div');actions.className='compact-game-actions';edit.textContent='Edit';actions.append(edit);if(user){const remove=el('button','Delete');remove.type='button';remove.className='compact-game-delete';remove.setAttribute('aria-label','Delete game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));remove.onclick=()=>deleteGame(g,remove);actions.append(remove)}row.append(info,outcome,actions);item.append(row);history.append(item);continue;
   }
   const record=el('article');record.className='game-record';
   const header=el('div');header.className='game-record-header';
