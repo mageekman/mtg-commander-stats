@@ -1,0 +1,6 @@
+#siteNavigation a[hidden],#siteFooter a[hidden]{display:none!important}
+#guestIntroduction{padding:clamp(20px,3vw,32px);margin:22px 0;border:1px solid #557369;border-radius:16px;background:linear-gradient(120deg,#19342f,#122426);color:#c8d7cd;line-height:1.65}
+#guestIntroduction h2{font:600 clamp(25px,3vw,34px) Georgia,serif;color:#f1ebdb;margin:10px 0}
+#guestIntroduction p{max-width:85ch}#guestIntroduction[hidden]{display:none}
+.guest-label{font:700 11px/1.5 system-ui,sans-serif;letter-spacing:.12em;color:#dfbc7f}
+.guest-signup{display:inline-block;padding:10px 16px;border:1px solid #89af92;border-radius:9px;background:#24624f;color:#f1ebdb;text-decoration:none}

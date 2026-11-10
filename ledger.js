@@ -1,3 +1,4 @@
+import {demoDecks,demoGames} from './demo-data.js?v=1';
 import {gameMatchesSearch} from './game-history-search.js?v=1';
 import {isGenericOpponentName} from './opponent-names.js?v=1';
 import {renderWinrateTrendChart} from './ledger-chart.js?v=1';
@@ -94,7 +95,8 @@ drawPlayers();
 $('date').value=new Date().toLocaleDateString('en-CA');
 async function load(){
  const auth=await sb.auth.getUser();user=auth.data.user;
- if(!user){message('Sign in on the home page to use your personal Ledger.');$('save').disabled=true;return}
+ if(!user){decks=demoDecks;games=demoGames;$('save').disabled=true;const filter=$('historyDeckFilter');filter.replaceChildren(el('option','All decks'));filter.firstChild.value='';for(const deck of decks){const option=el('option',deck.name);option.value=deck.id;filter.append(option)}message('Example Ledger — sign in to record your own games.');render();return}
+ $('save').disabled=false;
  const d=await sb.from('decks').select('id,name,commander,created_at,archived_at').eq('owner_id',user.id).order('name');
  if(d.error){message('Unable to load decks: '+d.error.message);return}
  decks=d.data||[];const select=$('deck');select.replaceChildren(el('option','Select your deck'));select.firstChild.value='';
@@ -131,6 +133,7 @@ function resetEditor(){
  playerCount=4;drawPlayers([]);$('firstPlayer').value='0';$('winnerPlayer').value='0';setEditorOpen(false);
 }
 function editGame(game){
+ if(!user){location.href='./sign-in.html';return}
  setEditorOpen(true);editingGameId=game.id;$('formTitle').textContent='Edit game';$('save').textContent='Save changes';$('cancelEdit').hidden=false;
  $('deck').value=game.deck_id;$('date').value=game.played_at;$('notes').value=game.notes||'';
  const own=decks.find(d=>d.id===game.deck_id);
@@ -416,14 +419,14 @@ function render(){
     :['You',...(Array.isArray(g.opponents)?g.opponents:[])];
    players.textContent=playerNames.join(' · ');
    players.title=playerNames.join(', ');
-   const info=el('div');info.className='compact-game-info';const outcome=el('span',g.won?'Win':'Loss');outcome.className='compact-game-outcome';info.append(deckName,players);const edit=el('button','Edit');edit.type='button';edit.className='compact-game-edit';edit.setAttribute('aria-label','Edit game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));edit.onclick=()=>editGame(g);row.append(date,info,outcome,edit);item.append(row);history.append(item);continue;
+   const info=el('div');info.className='compact-game-info';const outcome=el('span',g.won?'Win':'Loss');outcome.className='compact-game-outcome';info.append(deckName,players);const edit=el('button',user?'Edit':'Sign in to edit');edit.type='button';edit.className='compact-game-edit';edit.setAttribute('aria-label','Edit game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));edit.onclick=()=>editGame(g);row.append(date,info,outcome,edit);item.append(row);history.append(item);continue;
   }
   const record=el('article');record.className='game-record';
   const header=el('div');header.className='game-record-header';
   const heading=el('div');heading.append(el('strong',(g.won?'Win':'Loss')+' · '+(deck?.name||'Deleted deck')),el('div',g.played_at));
-  const edit=el('button','Edit');edit.type='button';edit.onclick=()=>editGame(g);
-  const remove=el('button','Delete');remove.type='button';
-  remove.onclick=async()=>{if(!confirm('Delete this game record?'))return;remove.disabled=true;const r=await sb.from('personal_games').delete().eq('id',g.id).eq('owner_id',user.id);if(r.error){message('Delete failed: '+r.error.message);remove.disabled=false;return}await refresh()};
+  const edit=el('button',user?'Edit':'Sign in to edit');edit.type='button';edit.onclick=()=>editGame(g);
+  const remove=el('button','Delete');remove.type='button';remove.hidden=!user;
+  remove.onclick=async()=>{if(!user){location.href='./sign-in.html';return}if(!confirm('Delete this game record?'))return;remove.disabled=true;const r=await sb.from('personal_games').delete().eq('id',g.id).eq('owner_id',user.id);if(r.error){message('Delete failed: '+r.error.message);remove.disabled=false;return}await refresh()};
   const actions=el('div');actions.className='game-record-actions';actions.append(edit,remove);header.append(heading,actions);record.append(header);
   if(Array.isArray(g.players)&&g.players.length){
    const pod=el('div');pod.className='history-pod';
@@ -477,3 +480,5 @@ window.addEventListener('hashchange',()=>{
 });
 
 
+
+sb.auth.onAuthStateChange((_event,session)=>{if((session?.user?.id||null)!==(user?.id||null))setTimeout(()=>load().catch(e=>message(e.message)),0)});
