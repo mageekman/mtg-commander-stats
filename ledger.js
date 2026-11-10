@@ -1,3 +1,4 @@
+import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
 import {gameMatchesSearch} from './game-history-search.js?v=1';
 import {isGenericOpponentName} from './opponent-names.js?v=1';
@@ -131,6 +132,17 @@ function resetEditor(){
  editingGameId=null;$('formTitle').textContent='Record a game';$('save').textContent='Save game';$('cancelEdit').hidden=true;
  $('deck').value='';$('notes').value='';$('date').value=new Date().toLocaleDateString('en-CA');
  playerCount=4;drawPlayers([]);$('firstPlayer').value='0';$('winnerPlayer').value='0';setEditorOpen(false);
+}
+async function deleteGame(game,button){
+ if(!user){location.href='./sign-in.html';return}
+ button.disabled=true;
+ try{
+  if(!await confirmGameDeletion())return;
+  const {error}=await sb.from('personal_games').delete().eq('id',game.id).eq('owner_id',user.id).select('id').single();
+  if(error)throw error;
+  if(editingGameId===game.id)resetEditor();
+  await refresh();
+ }catch(error){message('Delete failed: '+error.message)}finally{button.disabled=false}
 }
 function editGame(game){
  if(!user){location.href='./sign-in.html';return}
@@ -419,14 +431,14 @@ function render(){
     :['You',...(Array.isArray(g.opponents)?g.opponents:[])];
    players.textContent=playerNames.join(' · ');
    players.title=playerNames.join(', ');
-   const info=el('div');info.className='compact-game-info';const outcome=el('span',g.won?'Win':'Loss');outcome.className='compact-game-outcome';info.append(deckName,players);const edit=el('button',user?'Edit':'Sign in to edit');edit.type='button';edit.className='compact-game-edit';edit.setAttribute('aria-label','Edit game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));edit.onclick=()=>editGame(g);row.append(date,info,outcome,edit);item.append(row);history.append(item);continue;
+   const info=el('div');info.className='compact-game-info';const outcome=el('span',g.won?'Win':'Loss');outcome.className='compact-game-outcome';info.append(deckName,players);const edit=el('button',user?'Edit':'Sign in to edit');edit.type='button';edit.className='compact-game-edit';edit.setAttribute('aria-label','Edit game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));edit.onclick=()=>editGame(g);const actions=el('div');actions.className='compact-game-actions';edit.textContent='Edit';actions.append(edit);if(user){const remove=el('button','Delete');remove.type='button';remove.className='compact-game-delete';remove.setAttribute('aria-label','Delete game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));remove.onclick=()=>deleteGame(g,remove);actions.append(remove)}row.append(date,info,outcome,actions);item.append(row);history.append(item);continue;
   }
   const record=el('article');record.className='game-record';
   const header=el('div');header.className='game-record-header';
   const heading=el('div');heading.append(el('strong',(g.won?'Win':'Loss')+' · '+(deck?.name||'Deleted deck')),el('div',g.played_at));
   const edit=el('button',user?'Edit':'Sign in to edit');edit.type='button';edit.onclick=()=>editGame(g);
   const remove=el('button','Delete');remove.type='button';remove.hidden=!user;
-  remove.onclick=async()=>{if(!user){location.href='./sign-in.html';return}if(!confirm('Delete this game record?'))return;remove.disabled=true;const r=await sb.from('personal_games').delete().eq('id',g.id).eq('owner_id',user.id);if(r.error){message('Delete failed: '+r.error.message);remove.disabled=false;return}await refresh()};
+  remove.onclick=()=>deleteGame(g,remove);
   const actions=el('div');actions.className='game-record-actions';actions.append(edit,remove);header.append(heading,actions);record.append(header);
   if(Array.isArray(g.players)&&g.players.length){
    const pod=el('div');pod.className='history-pod';
