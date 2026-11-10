@@ -149,7 +149,8 @@ function editGame(game){
 }
 $('cancelEdit').onclick=()=>{resetEditor();message('Editing cancelled.')};
 
-for(const id of ['historyDeckFilter','historyPeriodFilter','historyResultFilter','historyDateSort'])$(id).addEventListener('change',render);
+let historyPage=1;
+for(const id of ['historyDeckFilter','historyPeriodFilter','historyResultFilter','historyDateSort','historyPageSize'])$(id).addEventListener('change',()=>{historyPage=1;render()});
 let historyView='compact';
 function setHistoryView(view){
  historyView=view==='compact'?'compact':'cards';
@@ -400,15 +401,30 @@ function render(){
  }
  if(!decks.length)byDeck.append(el('p','Import a deck first to start tracking.'));
  const history=$('history');history.replaceChildren();history.classList.toggle('history-compact',historyView==='compact');
+ const pagination=$('historyPagination');pagination.replaceChildren();
  $('historyCount').textContent=historyVisibleGames.length+' of '+games.length+' games match your filters';
  if(!historyVisibleGames.length){history.append(el('p',games.length?'No games match these filters.':'No games recorded yet.'));return}
- const historyGames=[...historyVisibleGames].sort((a,b)=>$('historyDateSort').value==='oldest'?a.played_at.localeCompare(b.played_at)||String(a.id).localeCompare(String(b.id)):b.played_at.localeCompare(a.played_at)||String(b.id).localeCompare(String(a.id)));
+ const sortedHistoryGames=[...historyVisibleGames].sort((a,b)=>$('historyDateSort').value==='oldest'?a.played_at.localeCompare(b.played_at)||String(a.id).localeCompare(String(b.id)):b.played_at.localeCompare(a.played_at)||String(b.id).localeCompare(String(a.id)));
+ const pageSize=Number($('historyPageSize').value)||10;
+ const pageCount=Math.max(1,Math.ceil(sortedHistoryGames.length/pageSize));
+ historyPage=Math.max(1,Math.min(historyPage,pageCount));
+ const historyGames=sortedHistoryGames.slice((historyPage-1)*pageSize,historyPage*pageSize);
+ const goToPage=page=>{historyPage=page;render();$('gameHistorySection').scrollIntoView({block:'start',behavior:'smooth'})};
+ if(pageCount>1){
+  const pageButton=(label,page,disabled=false,current=false)=>{const b=el('button',label);b.type='button';b.disabled=disabled;if(current)b.setAttribute('aria-current','page');b.onclick=()=>goToPage(page);pagination.append(b)};
+  pageButton('‹',historyPage-1,historyPage===1);
+  const pageNumbers=new Set([1,pageCount]);for(let p=Math.max(1,historyPage-2);p<=Math.min(pageCount,historyPage+2);p++)pageNumbers.add(p);
+  let previous=0;for(const page of [...pageNumbers].sort((a,b)=>a-b)){if(previous&&page>previous+1)pagination.append(el('span','…'));pageButton(String(page),page,false,page===historyPage);previous=page}
+  pageButton('›',historyPage+1,historyPage===pageCount);
+ }
  for(const g of historyGames){
   const deck=decks.find(d=>d.id===g.deck_id);
   if(historyView==='compact'){
    const item=el('article');item.className='compact-game '+(g.won?'compact-game-win':'compact-game-loss');
    const row=el('div');row.className='compact-game-row';
    const date=el('span',g.played_at);date.className='compact-game-date';
+   const deckArt=el('div');deckArt.className='compact-game-art';deckArt.setAttribute('aria-hidden','true');row.append(deckArt);
+   if(deck?.commander){const artName=deck.commander.split(' / ')[0].split(' & ')[0].trim();if(artName)getCommanderArtwork(artName).then(url=>{if(deckArt.isConnected&&url)deckArt.style.backgroundImage='url("'+url+'")'}).catch(()=>{})}
    const deckName=el('strong',deck?.name||'Deleted deck');deckName.className='compact-game-deck-title';
    const players=el('span');players.className='compact-game-players';
    const playerNames=Array.isArray(g.players)&&g.players.length
