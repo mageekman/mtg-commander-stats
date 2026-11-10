@@ -1,6 +1,7 @@
+import {applyPassportArt} from './passport-art.js?v=1';
 import {mountGameInvitations} from './game-invitations.js?v=1';
 import {mountRecentFriendGames} from './recent-friend-games.js?v=2';
-import {renderFriendDashboard} from './friends-dashboard.js?v=2';
+import {renderFriendDashboard} from './friends-dashboard.js?v=art-3';
 import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=2';
 import {createClient} from './vendor/supabase-js.mjs';
 import {mountRequestsPanel} from './friends.js?v=3';
@@ -23,13 +24,13 @@ async function fillPassport(link,friend,loadPassport){
   link.querySelector('h2').textContent=profile.display_name||profile.handle;
   if(profile.favorite_commander){
    const url=await window.commandLedgerCommanderArtwork(profile.favorite_commander);
-   if(url&&link.isConnected){const image=node('img');image.src=url;image.alt='';image.loading='lazy';image.decoding='async';link.prepend(image)}
+   if(url&&link.isConnected){const image=node('img');image.src=url;image.alt='';image.loading='lazy';image.decoding='async';link.prepend(image);applyPassportArt(sb,image,profile.handle,profile.favorite_commander)}
   }
  }catch{/* Keep the compact name and handle when profile artwork is unavailable. */}
 }
 async function loadRankings(dashboard,loadPassport){
  dashboard.setAttribute('aria-busy','true');dashboard.textContent='Loading friend rankings…';
- try{const data=await rpc('get_friend_rankings');if(dashboard.isConnected)renderFriendDashboard(dashboard,data,{loadPassport,loadArtwork:name=>window.commandLedgerCommanderArtwork(name)})}
+ try{const data=await rpc('get_friend_rankings');if(dashboard.isConnected)renderFriendDashboard(dashboard,data,{loadPassport,applyArtwork:(image,profile)=>applyPassportArt(sb,image,profile.handle,profile.favorite_commander),loadArtwork:name=>window.commandLedgerCommanderArtwork(name)})}
  catch(error){if(dashboard.isConnected){dashboard.replaceChildren();dashboard.className='dashboard-error';const text=node('p','Rankings could not load: '+error.message);const retry=node('button','Try again');retry.type='button';retry.className='friends-page-button';retry.onclick=()=>loadRankings(dashboard,loadPassport);dashboard.append(text,retry)}}
  finally{dashboard.removeAttribute('aria-busy')}
 }
