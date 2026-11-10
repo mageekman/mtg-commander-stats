@@ -34,5 +34,5 @@ $('identityForm').onsubmit=async e=>{e.preventDefault();if(!user)return;const f=
 $('loginForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),{error}=await sb.auth.signInWithPassword({email:String(f.get('email')).trim(),password:String(f.get('password'))});$('authStatus').textContent=error?error.message:'Signed in.';if(!error)await refresh()};
 $('signupForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),{error}=await sb.auth.signUp({email:String(f.get('email')).trim(),password:String(f.get('password')),options:{data:{display_name:String(f.get('display')).trim()},emailRedirectTo:new URL('./profile.html',location.href).href}});$('authStatus').textContent=error?error.message:'Check your email for a confirmation link.';if(!error)await refresh()};
 $('recoveryForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),{error}=await sb.auth.resetPasswordForEmail(String(f.get('email')).trim(),{redirectTo:new URL('./reset-password.html',location.href).href});$('recoveryStatus').textContent=error?error.message:'If the account exists, a reset email will arrive shortly.'};
-refresh();
+window.commandLedgerLoading.track(refresh(),'Loading your profile…').catch(console.error);
 </script></body></html>
