@@ -34,7 +34,7 @@ $('gameForm').elements.date.value=new Date().toLocaleDateString('en-CA');render(
  const recovery=q.get('type')==='recovery'||hash.get('type')==='recovery'||q.has('token_hash')&&q.get('type')==='recovery';
  if(recovery){const target=new URL('./reset-password.html',location.href);target.search=location.search;target.hash=location.hash;location.replace(target.href)}
 })();
-</script><script src="./scryfall-client.js?v=20261109-safe"></script><script type="module">
+</script><script src="./loading-progress.js?v=1"></script><script src="./scryfall-client.js?v=20261109-safe"></script><script type="module">
 import {createClient} from './vendor/supabase-js.mjs';
 const supabase=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
@@ -138,7 +138,7 @@ if(isCommander){const button=document.createElement('button');button.type='butto
 $('scryResult').append(wrap);$('scryMessage').textContent='Card found.';
 }catch(err){$('scryMessage').textContent='Lookup failed: '+err.message}
 };
-</script><style>.ledger-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:14px}.ledger-card{cursor:pointer}.ledger-card img{width:100%;border-radius:10px}.ledger-card div{font-size:13px;margin:4px 0 12px}.deck-hero{display:flex;gap:20px;align-items:center;background:#0f172a;border-radius:12px;padding:15px;margin:15px 0;flex-wrap:wrap}.deck-hero img{width:230px;max-width:100%;height:170px;object-fit:cover;border-radius:10px}.deck-entry{display:block;width:100%;text-align:left;padding:14px;margin:8px 0}</style><script type="module" src="./deck-profiles.js?v=gallery-render-fix-1"></script><style>
+</script><style>.ledger-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:14px}.ledger-card{cursor:pointer}.ledger-card img{width:100%;border-radius:10px}.ledger-card div{font-size:13px;margin:4px 0 12px}.deck-hero{display:flex;gap:20px;align-items:center;background:#0f172a;border-radius:12px;padding:15px;margin:15px 0;flex-wrap:wrap}.deck-hero img{width:230px;max-width:100%;height:170px;object-fit:cover;border-radius:10px}.deck-entry{display:block;width:100%;text-align:left;padding:14px;margin:8px 0}</style><script type="module" src="./deck-profiles.js?v=loading-progress-1"></script><style>
 body{max-width:1100px;margin:auto;padding:24px;background:#101827;color:#f1f5f9}
 #mainHeader{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 24px}
 #mainHeader h1{margin:0;font-size:30px}
