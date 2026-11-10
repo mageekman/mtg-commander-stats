@@ -178,9 +178,9 @@ const $=id=>document.getElementById(id);
 const heading=document.querySelector('body > h1'),tagline=heading?.nextElementSibling;
 const header=document.createElement('header');header.id='mainHeader';
 const title=document.createElement('div');title.append(heading);if(tagline){tagline.textContent='Your decks. Your games. Every story worth remembering.';title.append(tagline)}
-const actions=document.createElement('div');actions.id='quickActions';
+const actions=document.createElement('nav');actions.id='quickActions';actions.className='site-top-nav';actions.setAttribute('aria-label','Main navigation');
 const add=document.createElement('button');add.id='newDeckButton';add.type='button';add.textContent='+ New deck';
-actions.append(add);const ledgerLink=document.createElement('a');ledgerLink.href='./ledger.html';ledgerLink.textContent='My Ledger';ledgerLink.id='ledgerLink';actions.append(ledgerLink);const findPlayersLink=document.createElement('a');findPlayersLink.href='./find-players.html';findPlayersLink.id='findPlayersLink';findPlayersLink.textContent='Find Players';actions.append(findPlayersLink);header.append(title,actions);document.body.prepend(header);
+actions.append(add);const ledgerLink=document.createElement('a');ledgerLink.href='./ledger.html';ledgerLink.textContent='My Ledger';ledgerLink.id='ledgerLink';actions.append(ledgerLink);const findPlayersLink=document.createElement('a');findPlayersLink.href='./find-players.html';findPlayersLink.id='findPlayersLink';findPlayersLink.textContent='Find Players';actions.append(findPlayersLink);header.append(title);document.body.prepend(actions,header);
 const quickGame=document.createElement('a');quickGame.id='quickRecordGame';quickGame.href='./ledger.html#gameForm';quickGame.innerHTML='<span class="quick-game-icon" aria-hidden="true">＋</span><span><strong>Record a game</strong><small>Log a Commander match in your Ledger</small></span><span class="quick-game-arrow" aria-hidden="true">→</span>';
 header.after(quickGame);
 
@@ -493,4 +493,9 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 #archivedDeckGallery.deck-gallery-compact .deck-winrate{
  position:relative!important;z-index:1!important;
 }
+</style><link rel="stylesheet" href="./site-navigation.css?v=2"><style>
+/* Let the wordmark fill the masthead now that navigation sits above it. */
+#mainHeader>div:first-child{width:100%;max-width:none!important;flex:1 1 100%}
+#mainHeader .homepage-brand-logo{width:100%!important;max-width:100%!important;max-height:none!important;height:auto!important;object-position:center!important}
+#mainHeader p{max-width:none!important;font-size:clamp(18px,2.2vw,25px)!important;line-height:1.6;margin:14px 0 0!important}
 </style></html>
