@@ -1,3 +1,4 @@
+import {gameMatchesSearch} from './game-history-search.js?v=1';
 import {isGenericOpponentName} from './opponent-names.js?v=1';
 import {renderWinrateTrendChart} from './ledger-chart.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
@@ -147,6 +148,7 @@ $('cancelEdit').onclick=()=>{resetEditor();message('Editing cancelled.')};
 
 let historyPage=1;
 for(const id of ['historyDeckFilter','historyPeriodFilter','historyResultFilter','historyDateSort','historyPageSize'])$(id).addEventListener('change',()=>{historyPage=1;render()});
+$('historySearch').addEventListener('input',()=>{historyPage=1;render()});
 let historyView='compact';
 function setHistoryView(view){
  historyView=view==='compact'?'compact':'cards';
@@ -185,6 +187,7 @@ function filteredGames(){
  const toDate=d=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(d||''))return null;const [y,m,day]=d.split('-').map(Number);const parsed=new Date(y,m-1,day);return parsed.getFullYear()===y&&parsed.getMonth()===m-1&&parsed.getDate()===day?parsed:null};
  return games.filter(g=>{
   if(deck&&g.deck_id!==deck)return false;
+  if(!gameMatchesSearch(g,decks.find(d=>d.id===g.deck_id),$('historySearch').value))return false;
   if(result==='wins'&&!g.won||result==='losses'&&g.won)return false;
   if(period!=='all'){const date=toDate(g.played_at);if(!date||date>localToday)return false;if(period==='30'&&date<cutoff)return false;if(period==='year'&&date.getFullYear()!==today.getFullYear())return false}
   return true;
