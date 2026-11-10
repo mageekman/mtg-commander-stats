@@ -1,3 +1,4 @@
+import {mountRecentFriendGames} from './recent-friend-games.js?v=1';
 import {renderFriendDashboard} from './friends-dashboard.js?v=2';
 import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
@@ -46,6 +47,7 @@ async function loadFriends(){
   const refresh=node('button','Refresh');refresh.type='button';refresh.className='friends-page-button';refresh.onclick=loadFriends;heading.append(refresh);host.append(heading);
   const loadPassport=createPassportLoader();
   const dashboard=node('section');dashboard.setAttribute('aria-label','Friend rankings dashboard');host.append(dashboard);loadRankings(dashboard,loadPassport);
+  const recentGames=node('section');recentGames.setAttribute('aria-label','Recent games with friends');host.append(recentGames);mountRecentFriendGames(recentGames,{loadGames:()=>rpc('get_recent_friend_games'),loadArtwork:name=>window.commandLedgerCommanderArtwork(name)});
   host.append(node('h2',"Friends’ Player Passports"));
   if(!friends.length){const empty=node('div');empty.className='friends-list-empty';empty.append(node('h2','Build your circle'),node('p','Find players and send a request. Once a request is accepted, their passport appears here.'));const find=node('a','Find Players');find.href='./find-players.html';find.className='friends-page-button';empty.append(find);host.append(empty)}
   const grid=node('div');grid.className='friends-passport-grid';host.append(grid);const jobs=[];
