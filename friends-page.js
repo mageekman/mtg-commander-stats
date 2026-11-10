@@ -1,3 +1,4 @@
+import {renderFriendDashboard} from './friends-dashboard.js?v=1';
 import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 import {mountFriendAction,mountRequestsPanel} from './friends.js?v=2';
@@ -22,6 +23,12 @@ async function fillPassport(link,friend){
   }
  }catch{if(link.isConnected)link.querySelector('.friend-passport-copy').append(node('p','Open passport to view player details.'))}
 }
+async function loadRankings(dashboard){
+ dashboard.setAttribute('aria-busy','true');dashboard.textContent='Loading friend rankings…';
+ try{const data=await rpc('get_friend_rankings');if(dashboard.isConnected)renderFriendDashboard(dashboard,data)}
+ catch(error){if(dashboard.isConnected){dashboard.replaceChildren();dashboard.className='dashboard-error';const text=node('p','Rankings could not load: '+error.message);const retry=node('button','Try again');retry.type='button';retry.className='friends-page-button';retry.onclick=()=>loadRankings(dashboard);dashboard.append(text,retry)}}
+ finally{dashboard.removeAttribute('aria-busy')}
+}
 let version=0;
 async function loadFriends(){
  const current=++version;status.textContent='Loading friends…';
@@ -30,6 +37,8 @@ async function loadFriends(){
   const friends=(connections||[]).filter(c=>c.relationship==='friends');host.replaceChildren();
   const heading=node('div');heading.className='friends-list-heading';heading.append(node('p',friends.length+' friend'+(friends.length===1?'':'s')));
   const refresh=node('button','Refresh');refresh.type='button';refresh.className='friends-page-button';refresh.onclick=loadFriends;heading.append(refresh);host.append(heading);
+  const dashboard=node('section');dashboard.setAttribute('aria-label','Friend rankings dashboard');host.append(dashboard);loadRankings(dashboard);
+  host.append(node('h2',"Friends’ Player Passports"));
   if(!friends.length){const empty=node('div');empty.className='friends-list-empty';empty.append(node('h2','Build your circle'),node('p','Find players and send a request. Once a request is accepted, their passport appears here.'));const find=node('a','Find Players');find.href='./find-players.html';find.className='friends-page-button';empty.append(find);host.append(empty)}
   const grid=node('div');grid.className='friends-passport-grid';host.append(grid);const jobs=[];
   for(const friend of friends){
