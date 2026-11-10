@@ -1,4 +1,4 @@
-import {createLedgerArtController} from './ledger-art-adjustment.js?v=1';
+import {createLedgerArtController} from './ledger-art-adjustment.js?v=history-2';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=1';
 import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=1';
 import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
@@ -95,9 +95,19 @@ function drawPlayers(prefill=null){
  first.value=previousFirst&&Number(previousFirst)<playerCount?previousFirst:'0';winner.value=previousWinner&&Number(previousWinner)<playerCount?previousWinner:'0';$('addPlayer').disabled=playerCount>=6;$('removePlayer').disabled=playerCount<=2;
  syncOwnCommander();
 }
-function syncOwnCommander(){const deck=decks.find(d=>d.id===$('deck').value);const input=$('playerRows').querySelector('.player-commander');if(input){input.value=deck?.commander||'';showCommanderArt(input.closest('.player-row'),input.value)}}
+function syncOwnCommander(){const deck=decks.find(d=>d.id===$('deck').value);const input=$('playerRows').querySelector('.player-commander');if(input){input.value=deck?.commander||'';showCommanderArt(input.closest('.player-row'),input.value)}updateHistoryArtworkControl()}
 $('addPlayer').onclick=()=>{if(playerCount<6){playerCount++;drawPlayers()}};
 $('removePlayer').onclick=()=>{if(playerCount>2){playerCount--;drawPlayers()}};
+function updateHistoryArtworkControl(){const deck=decks.find(d=>d.id===$('deck').value);$('adjustHistoryArtwork').hidden=!user||!deck?.commander;$('historyArtworkStatus').textContent=''}
+$('adjustHistoryArtwork').onclick=async()=>{
+ const actor=user?.id,deck=decks.find(d=>d.id===$('deck').value);if(!actor||!deck?.commander)return;
+ const button=$('adjustHistoryArtwork'),name=deck.commander.trim();button.disabled=true;$('historyArtworkStatus').textContent='Loading artwork…';
+ try{const url=await getCommanderArtwork(name);if(user?.id!==actor||$('deck').value!==deck.id)return;if(!url)throw Error('Artwork is unavailable for this commander.');
+  const art=document.querySelector('#history .compact-game-art'),width=$('history').getBoundingClientRect().width||600;
+  const aspect=art?.offsetHeight?art.offsetWidth/art.offsetHeight:(innerWidth<=600?width*.72:Math.max(210,Math.min(450,width*.43)))/88;
+  $('historyArtworkStatus').textContent='';ledgerArt.edit({slot:'compact-history',commander:name,url,title:name,aspect,defaultFrame:{x:50,y:30,zoom:1},note:'Adjust the compact game-history artwork for '+name+'. Saving applies this crop to all your games using this commander, including future games.'});
+ }catch(error){$('historyArtworkStatus').textContent=error.message}finally{button.disabled=false}
+};
 $('deck').addEventListener('change',syncOwnCommander);
 drawPlayers();
 $('date').value=new Date().toLocaleDateString('en-CA');
@@ -431,7 +441,7 @@ function render(){
    const row=el('div');row.className='compact-game-row';
    const date=el('span',g.played_at);date.className='compact-game-date';
    const deckArt=el('div');deckArt.className='compact-game-art';deckArt.setAttribute('aria-hidden','true');row.append(deckArt);
-   if(deck?.commander){const artName=deck.commander.trim();if(artName)getCommanderArtwork(artName).then(url=>{if(deckArt.isConnected&&url)deckArt.style.backgroundImage='url("'+url+'")'}).catch(()=>{})}
+   if(deck?.commander){const artName=deck.commander.trim(),image=el('div');image.className='compact-game-art-image';deckArt.append(image);ledgerArt.watch(image,{slot:'compact-history',commander:artName});if(artName)getCommanderArtwork(artName).then(url=>{if(image.isConnected&&url)image.style.backgroundImage='url("'+url+'")'}).catch(()=>{})}
    const deckName=el('strong',deck?.name||'Deleted deck');deckName.className='compact-game-deck-title';
    const players=el('span');players.className='compact-game-players';
    const playerNames=Array.isArray(g.players)&&g.players.length
