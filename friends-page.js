@@ -1,4 +1,4 @@
-import {mountFriendRivalries} from './friend-rivalries.js?v=1';
+import {mountFriendRivalries} from './friend-rivalries.js?v=versus-2';
 import {rankingPeriods,rankingRange,dateString} from './friend-ranking-period.js?v=1';
 import {applyPassportArt} from './passport-art.js?v=1';
 import {mountGameInvitations} from './game-invitations.js?v=1';
@@ -64,7 +64,7 @@ async function loadFriends(){
   const heading=node('div');heading.className='friends-list-heading';heading.append(node('p',friends.length+' friend'+(friends.length===1?'':'s')));
   const refresh=node('button','Refresh');refresh.type='button';refresh.className='friends-page-button';refresh.onclick=loadFriends;heading.append(refresh);host.append(heading);
   const loadPassport=createPassportLoader();
-  const dashboard=node('section');dashboard.setAttribute('aria-label','Friend rankings dashboard');const rivalry=node('section');rivalry.setAttribute('aria-label','Friend rivalries');host.append(dashboard,rivalry);const rivalryView=mountFriendRivalries(rivalry,{initialFriendId:selectedRivalFriend,onSelect:id=>selectedRivalFriend=id,loadGames:loadRivalryGames,loadFriends:()=>rpc('list_game_friends')});mountRankings(dashboard,loadPassport,range=>rivalryView.setRange(range));
+  const dashboard=node('section');dashboard.setAttribute('aria-label','Friend rankings dashboard');const rivalry=node('section');rivalry.setAttribute('aria-label','Friend rivalries');host.append(dashboard,rivalry);const rivalryView=mountFriendRivalries(rivalry,{loadSelf:async()=>{const {data,error}=await sb.from('profiles').select('display_name,handle,favorite_commander').eq('id',activeUser.id).maybeSingle();if(error)throw error;return data},loadPassport,loadArtwork:name=>window.commandLedgerCommanderArtwork(name),applyArtwork:(image,profile)=>applyPassportArt(sb,image,profile.handle,profile.favorite_commander),initialFriendId:selectedRivalFriend,onSelect:id=>selectedRivalFriend=id,loadGames:loadRivalryGames,loadFriends:()=>rpc('list_game_friends')});mountRankings(dashboard,loadPassport,range=>rivalryView.setRange(range));
   const recentGames=node('section');recentGames.setAttribute('aria-label','Recent games with friends');host.append(recentGames);mountRecentFriendGames(recentGames,{loadGames:()=>rpc('get_recent_friend_games'),loadFriendNames:()=>rpc('list_game_friends'),loadArtwork:name=>window.commandLedgerCommanderArtwork(name)});
   host.append(node('h2',"Friends’ Player Passports"));
   if(!friends.length){const empty=node('div');empty.className='friends-list-empty';empty.append(node('h2','Build your circle'),node('p','Find players and send a request. Once a request is accepted, their passport appears here.'));const find=node('a','Find Players');find.href='./find-players.html';find.className='friends-page-button';empty.append(find);host.append(empty)}
