@@ -160,14 +160,38 @@ async function loadSharedLedger(handle,options={}){
  }
  feature('★ Best deck',data.best_deck);feature('★ Most played deck',data.most_played_deck);
  const colors=new Map(),combos=new Map();let unavailable=0;
- async function identity(name){try{const first=String(name||'').split(' / ')[0].split(' & ')[0].trim();if(!first)return null;const res=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(first));if(!res.ok)return null;const c=await res.json();return (c.color_identity||[]).filter(x=>'WUBRG'.includes(x)).sort((a,b)=>'WUBRG'.indexOf(a)-'WUBRG'.indexOf(b)).join('')||'C'}catch{return null}}
+ const identityCache=new Map();
+ async function identity(name){
+  const parts=String(name||'').split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean);
+  if(!parts.length)return null;
+  const ids=await Promise.all(parts.map(part=>{
+   const key=part.toLowerCase();
+   if(!identityCache.has(key))identityCache.set(key,(async()=>{
+    try{
+     const res=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(part),{headers:{Accept:'application/json'}});
+     if(!res.ok)return null;
+     const card=await res.json();
+     return Array.isArray(card.color_identity)?card.color_identity:null;
+    }catch{return null}
+   })());
+   return identityCache.get(key);
+  }));
+  if(ids.some(x=>x===null))return null;
+  return [...new Set(ids.flat())].filter(x=>'WUBRG'.includes(x)).sort((a,b)=>'WUBRG'.indexOf(a)-'WUBRG'.indexOf(b)).join('');
+ }
  const colorPromises=(data.color_decks||[]).map(async d=>({d,color:await identity(d.commander)}));
  const [deckColors,lossColors]=await Promise.all([Promise.all(colorPromises),Promise.all((data.lost_color_commanders||[]).map(identity))]);
  for(const {d,color} of deckColors){if(!color){unavailable++;continue}for(const c of color){if(c!=='C')colors.set(c,(colors.get(c)||0)+d.games)}const stat=combos.get(color)||{games:0,wins:0};stat.games+=d.games;stat.wins+=d.wins;combos.set(color,stat)}
  const manaSymbols=(code)=>{const holder=document.createElement('span');holder.className='mana-icons';const names={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};if(!code||code==='C'){const img=document.createElement('img');img.src='https://svgs.scryfall.io/card-symbols/C.svg';img.alt='Colorless mana';holder.append(img);return holder}for(const c of code){if(!names[c])continue;const img=document.createElement('img');img.src='https://svgs.scryfall.io/card-symbols/'+c+'.svg';img.alt=names[c]+' mana';img.title=names[c];holder.append(img)}return holder};const colorStat=(label,code,detail)=>{const box=document.createElement('div');box.className='shared-stat';const caption=document.createElement('span');caption.textContent=label;const value=document.createElement('strong');if(code)value.append(manaSymbols(code));else value.textContent='No data';const small=document.createElement('small');small.textContent=detail||'';const line=document.createElement('div');line.className='color-stat-line';line.append(value,small);box.append(caption,line);badge(box,({'Most played color':'share_most_played_color','Highest color combo win rate':'share_best_color_combo',"Color combo you've lost to most":'share_lost_to_color'})[label]);rivals.append(box)};
  if(data.color_permissions?.most_played){const top=[...colors].sort((a,b)=>b[1]-a[1])[0];colorStat('Most played color',top?.[0],top?Math.round(100*top[1]/Math.max(1,deckColors.reduce((sum,x)=>sum+(Number(x.d.games)||0),0)))+'% · '+top[1]+' games':'')}
  if(data.color_permissions?.best_combo){const best=[...combos].sort((a,b)=>b[1].wins/b[1].games-a[1].wins/a[1].games||b[1].games-a[1].games)[0];colorStat('Highest color combo win rate',best?.[0],best?Math.round(100*best[1].wins/best[1].games)+'% wins · '+best[1].games+' games':'')}
- if(data.lost_color_enabled){const counts=new Map();for(const c of lossColors)if(c)counts.set(c,(counts.get(c)||0)+1);const top=[...counts].sort((a,b)=>b[1]-a[1])[0];colorStat("Color combo you've lost to most",top?.[0],top?Math.round(100*top[1]/Math.max(1,lossColors.length))+'% losses · '+top[1]+' games':'No recorded losses')}
+ if(data.lost_color_enabled){
+  const counts=new Map();
+  for(const c of lossColors)if(c!==null)counts.set(c,(counts.get(c)||0)+1);
+  const top=[...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0];
+  const missing=lossColors.filter(x=>x===null).length;
+  colorStat("Color combo you've lost to most",top?.[0]??null,top?top[1]+' losses'+(missing?' · '+missing+' games missing color data':''):'No recorded losses');
+ }
  if(data.nemesis_player)addStat(rivals,"Player you've lost to most",data.nemesis_player.player,data.nemesis_player.losses+' losses');
  if(data.nemesis_commander_enabled){if(data.nemesis_commander){const card={name:data.nemesis_commander.commander,commander:data.nemesis_commander.commander,games:data.nemesis_commander.losses,wins:0};feature("★ Rival Commander",card)}else{addStat(rivals,"Rival Commander",'No recorded losses')}}
  if(data.decks_enabled){$('sharedDeckSection').hidden=false;badge($('sharedDeckSection'),'share_deck_stats');const toolbar=document.createElement('div');toolbar.className='shared-deck-toolbar';const search=document.createElement('input');search.placeholder='Search decks or commanders…';search.setAttribute('aria-label','Search decks');const sort=document.createElement('select');for(const [value,label] of [['games','Games played'],['winrate','Win rate'],['name','Name']]){const opt=document.createElement('option');opt.value=value;opt.textContent=label;sort.append(opt)}const prev=document.createElement('button'),next=document.createElement('button');
