@@ -150,7 +150,7 @@ function editGame(game){
 $('cancelEdit').onclick=()=>{resetEditor();message('Editing cancelled.')};
 
 for(const id of ['historyDeckFilter','historyPeriodFilter','historyResultFilter','historyDateSort'])$(id).addEventListener('change',render);
-let historyView='cards';
+let historyView='compact';
 function setHistoryView(view){
  historyView=view==='compact'?'compact':'cards';
  $('historyCardsView').setAttribute('aria-pressed',String(historyView==='cards'));
@@ -409,8 +409,6 @@ function render(){
    const item=el('article');item.className='compact-game '+(g.won?'compact-game-win':'compact-game-loss');
    const row=el('div');row.className='compact-game-row';
    const date=el('span',g.played_at);date.className='compact-game-date';
-   const deckArt=el('div');deckArt.className='compact-game-art';deckArt.setAttribute('aria-hidden','true');row.append(deckArt);
-   if(deck?.commander){const artName=deck.commander.split(' / ')[0].split(' & ')[0].trim();if(artName)getCommanderArtwork(artName).then(url=>{if(deckArt.isConnected&&url)deckArt.style.backgroundImage='url("'+url+'")'}).catch(()=>{})}
    const deckName=el('strong',deck?.name||'Deleted deck');deckName.className='compact-game-deck-title';
    const players=el('span');players.className='compact-game-players';
    const playerNames=Array.isArray(g.players)&&g.players.length
