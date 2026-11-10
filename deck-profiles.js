@@ -88,7 +88,6 @@ const grid=document.createElement('div');grid.className='ledger-grid';cards.forE
 if(status.textContent==='Loading card artwork…')status.remove();
 view.scrollIntoView({behavior:'smooth',block:'start'});
 }
-const galleryArtCache=new Map();
 let rerenderDeckGallery=null;
 let deckGalleryView='cards';
 function setDeckGalleryView(view){
@@ -114,11 +113,8 @@ function getRecentArtwork(name){
  if(recentArtPending.has(key))return recentArtPending.get(key);
  const job=recentArtQueue.then(async()=>{
   await new Promise(resolve=>setTimeout(resolve,125));
-  const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name.trim()),{headers:{Accept:'application/json'}});
-  if(!response.ok)throw Error('Scryfall '+response.status);
-  const card=await response.json();
-  const url=card.image_uris?.art_crop||card.card_faces?.[0]?.image_uris?.art_crop||card.image_uris?.large||card.card_faces?.[0]?.image_uris?.large||null;
-  recentArtCache.set(key,url);return url;
+  const url=await window.commandLedgerCommanderArtwork(name);
+  if(url)recentArtCache.set(key,url);return url;
  });
  recentArtQueue=job.catch(()=>{});
  recentArtPending.set(key,job);
@@ -227,16 +223,10 @@ const renderGroup=(list,host,term,archived)=>{
   const performance=elWinRate(deck.id,winRates);details.append(title,subtitle);
   if(deck.bracket_level||deck.theme){const n=document.createElement('span');n.textContent=[deck.bracket_level?'Bracket '+deck.bracket_level:'',deck.theme||''].filter(Boolean).join(' · ');details.append(n)}
   link.append(image,details,performance);wrapper.append(link);host.append(wrapper);
-  const commander=deck.commander.split(/\s+\/\s+|\s+&\s+/)[0].trim();
-  if(commander){
-   const url='https://api.scryfall.com/cards/named?exact='+encodeURIComponent(commander);
-   if(galleryArtCache.has(commander)){const cached=galleryArtCache.get(commander);if(cached){const img=document.createElement('img');img.src=cached;img.alt='Artwork for '+commander;img.loading='lazy';image.append(img)}continue}
-   window.commandLedgerScryfallFetch(url,{headers:{Accept:'application/json'}}).then(r=>r.ok?r.json():null).then(card=>{
-    const art=card?.image_uris?.art_crop||card?.card_faces?.[0]?.image_uris?.art_crop;
-    galleryArtCache.set(commander,art||null);
-    if(art&&image.isConnected){const img=document.createElement('img');img.src=art;img.alt='Artwork for '+commander;img.loading='lazy';image.append(img)}
-   }).catch(()=>{});
-  }
+  const commander=String(deck.commander||'').trim();
+  if(commander)getRecentArtwork(commander).then(art=>{
+   if(art&&image.isConnected){const img=document.createElement('img');img.src=art;img.alt='Artwork for '+commander;img.loading='lazy';image.append(img)}
+  }).catch(()=>{});
  }
 };
 function renderAll(){

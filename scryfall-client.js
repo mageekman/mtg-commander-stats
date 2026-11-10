@@ -31,4 +31,17 @@ if(canCache){const value=task.then(v=>typeof v==='string'?response(v):v.clone())
 return task;
 }
 window.commandLedgerScryfallFetch=(input,opts)=>isScryfall(input)?request(input,opts):nativeFetch(input,opts);
+// Resolve a whole card name before interpreting separators as partner commanders.
+window.commandLedgerCommanderArtwork=async name=>{
+ const full=String(name||'').trim();if(!full)return null;
+ async function lookup(value){
+  const result=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(value),{headers:{Accept:'application/json'}});
+  if(result.status===404)return null;
+  if(!result.ok)throw Error('Scryfall '+result.status);
+  return result.json();
+ }
+ let card=await lookup(full);
+ if(!card){const parts=full.split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean);if(parts.length>1)card=await lookup(parts[0])}
+ return card?.image_uris?.art_crop||card?.card_faces?.find(face=>face.image_uris?.art_crop)?.image_uris?.art_crop||card?.image_uris?.large||card?.card_faces?.find(face=>face.image_uris?.large)?.image_uris?.large||null;
+};
 })();
