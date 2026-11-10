@@ -1,8 +1,9 @@
+import {setFriendNotificationUser} from './friend-notifications.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 let guest=true,currentUser=null;
 function update(user){
- currentUser=user;guest=!user;document.body.classList.toggle('guest-preview',guest);
+ currentUser=user;guest=!user;setFriendNotificationUser(user);document.body.classList.toggle('guest-preview',guest);
  for(const nav of document.querySelectorAll('#siteNavigation,#siteFooter nav'))for(const link of nav.querySelectorAll('a')){
   const path=new URL(link.href,location.href).pathname.split('/').pop();
   if(path==='find-players.html'||path==='friends.html')link.hidden=guest;

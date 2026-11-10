@@ -1,3 +1,4 @@
+import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 import {mountFriendAction,mountRequestsPanel} from './friends.js?v=2';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
@@ -41,9 +42,9 @@ async function loadFriends(){
 }
 let activeUser=null;
 async function start(){
- try{const {data:{user},error}=await sb.auth.getUser();if(error)throw error;activeUser=user;document.querySelector('.friends-page-tools').hidden=!user;
-  if(!user){host.hidden=true;status.textContent='Sign in to see your friends and requests.';document.getElementById('friendsPageSignIn').hidden=false;return}
-  document.getElementById('friendsPageSignIn').hidden=true;
+ try{const {data:{user},error}=await sb.auth.getUser();if(error)throw error;activeUser=user;setFriendNotificationUser(user);document.querySelector('.friends-page-tools').hidden=!user;
+  if(!user){showFriendNotifications(document.getElementById('friendUpdates'));host.hidden=true;status.textContent='Sign in to see your friends and requests.';document.getElementById('friendsPageSignIn').hidden=false;return}
+  document.getElementById('friendsPageSignIn').hidden=true;updateNotifications();
   if(document.body.dataset.friendsPage==='requests'){host.replaceChildren();host.hidden=false;status.textContent='';mountRequestsPanel(host)}else await loadFriends();
  }catch(error){status.textContent='Unable to load your connections: '+error.message}
 }
@@ -51,3 +52,7 @@ document.addEventListener('friends-changed',()=>{if(activeUser&&document.body.da
 window.addEventListener('focus',()=>{if(activeUser&&document.body.dataset.friendsPage==='friends')loadFriends()});
 sb.auth.onAuthStateChange((_event,session)=>{if((session?.user?.id||null)!==(activeUser?.id||null)){version++;host.replaceChildren();host.hidden=true;setTimeout(start,0)}});
 start();
+
+function updateNotifications(){if(activeUser)showFriendNotifications(document.getElementById('friendUpdates'),{markSeen:document.body.dataset.friendsPage==='requests'})}
+document.addEventListener('friend-notifications-updated',updateNotifications);
+window.addEventListener('focus',updateNotifications);
