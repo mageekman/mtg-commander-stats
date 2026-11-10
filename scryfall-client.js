@@ -1,10 +1,21 @@
 /* Shared, conservative Scryfall API client. Loaded before page modules. */
 (()=>{'use strict';
 const nativeFetch=window.fetch.bind(window),prefix='command-ledger:scryfall:v1:',ttl=7*24*60*60*1000;
-const pending=new Map();let queue=Promise.resolve(),nextAt=0,blockedUntil=0;const spacing=500;
+const memoryCache=new Map(),pending=new Map();let queue=Promise.resolve(),nextAt=0,blockedUntil=0;const spacing=500;
 function keyFor(url,opts){const method=(opts?.method||'GET').toUpperCase();return method+' '+url+(method==='POST'?' '+String(opts?.body||''):'')}
-function cached(key){try{const raw=localStorage.getItem(prefix+key);if(!raw)return null;const v=JSON.parse(raw);if(Date.now()>v.until){localStorage.removeItem(prefix+key);return null}return v.body}catch{return null}}
-function store(key,body){if(body.length>250000)return;try{localStorage.setItem(prefix+key,JSON.stringify({until:Date.now()+ttl,body}));const keys=Object.keys(localStorage).filter(k=>k.startsWith(prefix));if(keys.length>100){for(const k of keys.slice(0,keys.length-100))localStorage.removeItem(k)}}catch{/* Storage is optional. */}}
+function cached(key){
+ let entry=memoryCache.get(key);
+ if(!entry)try{const raw=localStorage.getItem(prefix+key);if(raw)entry=JSON.parse(raw)}catch{/* Storage is optional. */}
+ if(!entry)return null;
+ if(Date.now()>entry.until){memoryCache.delete(key);try{localStorage.removeItem(prefix+key)}catch{}return null}
+ memoryCache.set(key,entry);return entry.body;
+}
+function store(key,body){
+ if(body.length>250000)return;
+ const entry={until:Date.now()+ttl,body};memoryCache.set(key,entry);
+ if(memoryCache.size>300)memoryCache.delete(memoryCache.keys().next().value);
+ try{localStorage.setItem(prefix+key,JSON.stringify(entry));const keys=Object.keys(localStorage).filter(k=>k.startsWith(prefix));if(keys.length>100){for(const k of keys.slice(0,keys.length-100))localStorage.removeItem(k)}}catch{/* Storage is optional. */}
+}
 function response(body){return new Response(body,{status:200,headers:{'Content-Type':'application/json'}})}
 function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
 function isScryfall(input){try{const url=new URL(typeof input==='string'?input:input.url,location.href);return url.protocol==='https:'&&url.hostname==='api.scryfall.com'}catch{return false}}
@@ -30,7 +41,37 @@ queue=task.then(()=>{},()=>{});
 if(canCache){const value=task.then(v=>typeof v==='string'?response(v):v.clone());pending.set(key,value);value.finally(()=>pending.delete(key)).catch(()=>{});return (await value).clone()}
 return task;
 }
-window.commandLedgerScryfallFetch=(input,opts)=>isScryfall(input)?request(input,opts):nativeFetch(input,opts);
+const commanderBatches=new Map();
+const namedUrl=name=>'https://api.scryfall.com/cards/named?exact='+encodeURIComponent(name);
+// Seed individual named-card cache entries from collection requests (up to 75 cards).
+window.commandLedgerPrefetchCommanders=names=>{
+ const unique=[...new Map(names.map(name=>String(name||'').trim()).filter(Boolean).map(name=>[name.toLowerCase(),name])).values()];
+ const missing=unique.filter(name=>!commanderBatches.has(name.toLowerCase())&&cached(keyFor(namedUrl(name.toLowerCase())))===null);
+ const jobs=[];
+ for(let i=0;i<missing.length;i+=75){
+  const chunk=missing.slice(i,i+75);
+  const job=request('https://api.scryfall.com/cards/collection',{method:'POST',headers:{Accept:'application/json','Content-Type':'application/json'},body:JSON.stringify({identifiers:chunk.map(name=>({name}))})}).then(async result=>{
+   if(!result.ok)return;
+   const body=await result.json();
+   const cards=new Map((body.data||[]).map(card=>[card.name.toLowerCase(),card]));
+   for(const name of chunk){const card=cards.get(name.toLowerCase());if(card)store(keyFor(namedUrl(name.toLowerCase())),JSON.stringify(card))}
+  }).catch(()=>{}).finally(()=>{for(const name of chunk)if(commanderBatches.get(name.toLowerCase())===job)commanderBatches.delete(name.toLowerCase())});
+  for(const name of chunk)commanderBatches.set(name.toLowerCase(),job);
+  jobs.push(job);
+ }
+ return Promise.all(jobs);
+};
+window.commandLedgerScryfallFetch=async(input,opts)=>{
+ if(!isScryfall(input))return nativeFetch(input,opts);
+ const url=new URL(typeof input==='string'?input:input.url);
+ if(url.pathname==='/cards/named'&&url.searchParams.has('exact')&&!opts?.signal){
+  const name=url.searchParams.get('exact'),batch=commanderBatches.get(name.trim().toLowerCase());
+  if(batch)await batch;
+  // Different capitalization still shares the canonical prefetched card.
+  const hit=cached(keyFor(namedUrl(name.trim().toLowerCase())));if(hit!==null)return response(hit);
+ }
+ return request(input,opts);
+};
 // Resolve a whole card name before interpreting separators as partner commanders.
 window.commandLedgerCommanderArtwork=async name=>{
  const full=String(name||'').trim();if(!full)return null;
