@@ -4,7 +4,7 @@
 .site-heading-title{min-width:0;overflow-wrap:anywhere}.site-header-home:focus-visible,.homepage-logo-heading>a:focus-visible{outline:2px solid #c9aa75;outline-offset:5px;border-radius:5px}.homepage-logo-heading>a{display:block}
 @media(max-width:520px){.site-logo-heading{column-gap:.25em}.site-logo-heading>.site-header-home{height:1.45em}.site-logo-heading>.site-heading-title{flex:1}}
 
-#siteHomeLogo{position:fixed;top:12px;left:16px;z-index:1000;display:block;box-sizing:border-box;width:200px;padding:8px 10px;background:#102124f2;border:1px solid #49675c;border-radius:9px;line-height:0;box-shadow:0 4px 16px #0003}
+#siteHomeLogo{position:absolute;top:12px;left:16px;z-index:1000;display:block;box-sizing:border-box;width:200px;padding:8px 10px;background:#102124f2;border:1px solid #49675c;border-radius:9px;line-height:0;box-shadow:0 4px 16px #0003}
 #siteHomeLogo img{display:block;width:100%;height:auto;max-width:100%;border:0;border-radius:0}#siteHomeLogo:focus-visible{outline:2px solid #c9aa75;outline-offset:3px}
 #siteNavigation{box-sizing:border-box;min-height:70px;padding-left:210px}
 @media(max-width:750px){#siteHomeLogo{top:10px;left:12px;width:166px;padding:7px 9px}#siteNavigation{padding-left:0;padding-top:76px;min-height:0}}
