@@ -1,3 +1,4 @@
+import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
 function colorIdentityIcons(colors){
  const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
@@ -126,7 +127,7 @@ async function paintRecentCommander(tile,name){
   if(tile.isConnected&&url)tile.style.backgroundImage='url("'+url+'")';
  }catch(e){/* Keep text visible if Scryfall artwork is unavailable. */}
 }
-function renderRecentGames(rows,error){
+function renderRecentGames(rows,error,friendNames=new Map()){
  const container=$('recentGames');if(!container)return;
  container.replaceChildren();
  if(error){const p=document.createElement('p');p.className='recent-games-empty';p.textContent='Recent games could not be loaded.';container.append(p);return}
@@ -151,7 +152,7 @@ function renderRecentGames(rows,error){
     const tags=document.createElement('div');tags.className='recent-game-player-tags';
     if(i===game.winner_player){const badge=document.createElement('span');badge.textContent='🏆 Winner';tags.append(badge)}
     if(i===game.first_player){const badge=document.createElement('span');badge.textContent='Went first';tags.append(badge)}
-    const playerName=document.createElement('strong');playerName.textContent=player.name||'Player '+(i+1);
+    const playerName=document.createElement('strong');playerName.textContent=gamePlayerDisplayName(player,friendNames,'Player '+(i+1));
     const commander=document.createElement('span');commander.textContent=player.commander||'Unknown commander';
     info.append(tags,playerName,commander);tile.append(art,info);pod.append(tile);
     paintRecentCommander(art,player.commander);
@@ -190,6 +191,7 @@ function sortDecksForDisplay(list,stats,sort,direction){
 }
 async function refresh(){
 const {data:{user}}=await sb.auth.getUser();
+const friendNames=user?loadFriendDisplayNames(sb):Promise.resolve(new Map());
 let data,error;
 if(!user){data=demoDecks}else{
 ({data,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,created_at,archived_at,bracket_level,theme,notes').order('created_at',{ascending:false}));
@@ -203,7 +205,7 @@ if(!gameError)for(const game of gameRows||[]){
  const stats=winRates.get(game.deck_id)||{games:0,wins:0};
  stats.games++;if(game.won)stats.wins++;if(!stats.last||game.played_at>stats.last)stats.last=game.played_at;winRates.set(game.deck_id,stats);
 }
-renderRecentGames(gameRows,gameError);
+renderRecentGames(gameRows,gameError,await friendNames);
 const gallery=$('deckGallery'),archivedGallery=$('archivedDeckGallery'),archivedSection=$('archivedDeckSection');
 gallery.replaceChildren();archivedGallery.replaceChildren();gallery.hidden=false;$('deckProfile').hidden=true;
 const activeDecks=decks.filter(d=>!d.archived_at),archivedDecks=decks.filter(d=>!!d.archived_at);
