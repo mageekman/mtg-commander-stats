@@ -1,0 +1,5 @@
+.site-logo-heading{display:flex!important;align-items:center;gap:.3em;min-width:0}
+.site-logo-heading>.site-header-home{display:block;flex:none;width:auto;height:1.7em;line-height:0;border-radius:0;background:transparent;padding:0;margin:0}
+.site-logo-heading>.site-header-home>img{display:block!important;width:auto!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain;border:0;border-radius:0!important}
+.site-heading-title{min-width:0;overflow-wrap:anywhere}.site-header-home:focus-visible,.homepage-logo-heading>a:focus-visible{outline:2px solid #c9aa75;outline-offset:5px;border-radius:5px}.homepage-logo-heading>a{display:block}
+@media(max-width:520px){.site-logo-heading{column-gap:.25em}.site-logo-heading>.site-header-home{height:1.45em}.site-logo-heading>.site-heading-title{flex:1}}
