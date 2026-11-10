@@ -273,8 +273,8 @@ function renderExtraStats(visibleGames){
  const cardData=[
   ['Most played color','Calculating…','Across your played decks'],
   ['Highest color combo win rate','Calculating…','Based on your deck colors'],
-  ['Color combo you’ve lost to most',opponents.length?'Calculating…':'No recorded losses',''],
-  ['Player you’ve lost to most',topPlayer?.[0]||'No named opponents',topPlayer?topPlayer[1]+' losses':'']
+  ['Rival Color Combo',opponents.length?'Calculating…':'No recorded losses',''],
+  ['Rival Player',topPlayer?.[0]||'No named opponents',topPlayer?topPlayer[1]+' losses':'']
  ];
  const cards=cardData.map(([label,value,detail])=>{const card=el('div');card.className='insight-stat';card.append(el('span',label),el('strong',value));const small=el('small',detail);card.append(small);host.append(card);return card});
  if(topCommander){
