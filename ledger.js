@@ -475,6 +475,7 @@ $('gameForm').onsubmit=async e=>{
  if([...document.querySelectorAll('.player-row')].some(row=>row.friendLoading)){message('Wait for the friend deck choices to finish loading.');return}
  const players=[...document.querySelectorAll('.player-row')].map((row,i)=>({...gamePlayerSnapshot(row),...(i===0?{name:'You'}:{})}));
  if(!played_at||players.length<2||players.length>6||players.some(p=>!p.name||!p.commander)){message('Enter a date, player names, and commanders for everyone.');return}
+ const taggedIds=players.map(p=>p.friend_id).filter(Boolean);if(new Set(taggedIds).size!==taggedIds.length){message('Tag each friend only once in a game.');return}
  const opponentInputs=[...document.querySelectorAll('.player-row')].slice(1).map(r=>r.querySelector('.player-commander'));
  if(opponentInputs.some(input=>input.getSelectedCommander?.()!==input.value.trim())){message('Select each opponent commander from the Scryfall suggestions.');return}
  const first_player=Number($('firstPlayer').value),winner_player=Number($('winnerPlayer').value);

@@ -1,6 +1,7 @@
+import {mountGameInvitations} from './game-invitations.js?v=1';
 import {mountRecentFriendGames} from './recent-friend-games.js?v=2';
 import {renderFriendDashboard} from './friends-dashboard.js?v=2';
-import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=1';
+import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=2';
 import {createClient} from './vendor/supabase-js.mjs';
 import {mountFriendAction,mountRequestsPanel} from './friends.js?v=2';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
@@ -64,7 +65,7 @@ async function start(){
  try{const {data:{user},error}=await sb.auth.getUser();if(error)throw error;activeUser=user;setFriendNotificationUser(user);document.querySelector('.friends-page-tools').hidden=!user;
   if(!user){showFriendNotifications(document.getElementById('friendUpdates'));host.hidden=true;status.textContent='Sign in to see your friends and requests.';document.getElementById('friendsPageSignIn').hidden=false;return}
   document.getElementById('friendsPageSignIn').hidden=true;updateNotifications();
-  if(document.body.dataset.friendsPage==='requests'){host.replaceChildren();host.hidden=false;status.textContent='';mountRequestsPanel(host)}else await loadFriends();
+  if(document.body.dataset.friendsPage==='requests'){host.replaceChildren();host.hidden=false;status.textContent='';const games=node('section'),friends=node('section');host.append(games,friends);mountGameInvitations(games,{loadInvitations:()=>rpc('list_game_invitations'),loadDecks:async()=>{const {data,error}=await sb.from('decks').select('id,name,commander,archived_at').eq('owner_id',user.id).order('name');if(error)throw error;return data||[]},respond:(id,decision,deck)=>rpc('respond_game_invitation',{invitation_id:id,decision,selected_deck_id:deck})});mountRequestsPanel(friends)}else await loadFriends();
  }catch(error){status.textContent='Unable to load your connections: '+error.message}
 }
 document.addEventListener('friends-changed',()=>{if(activeUser&&document.body.dataset.friendsPage==='friends')loadFriends()});
