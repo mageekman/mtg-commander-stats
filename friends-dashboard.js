@@ -1,12 +1,12 @@
 const node=(tag,text)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=String(text);return el};
 const rate=value=>Number(value).toFixed(1)+'%';
 const delta=(value,unit)=>value===0?'Same as you':(value>0?'+':'−')+Math.abs(value).toLocaleString(undefined,{maximumFractionDigits:1})+' '+unit;
-export function renderFriendDashboard(host,data,{loadPassport,loadArtwork}={}){
+export function renderFriendDashboard(host,data,{loadPassport,loadArtwork,applyArtwork}={}){
  const passportJobs=[],identities=new Map();
  function hydrate(link,row){
   if(!loadPassport||!row.handle)return;
   if(!identities.has(row.handle))identities.set(row.handle,(async()=>{const profile=await loadPassport(row.handle);let artwork=null;try{if(profile?.favorite_commander&&loadArtwork)artwork=await loadArtwork(profile.favorite_commander)}catch{}return {profile,artwork}})());
-  identities.get(row.handle).then(({profile,artwork})=>{if(!link.isConnected)return;if(profile?.display_name)link.querySelector('.ranking-passport-name').textContent=profile.display_name;if(artwork){const image=node('img');image.src=artwork;image.alt='';image.loading='lazy';image.decoding='async';link.prepend(image)}}).catch(()=>{});
+  identities.get(row.handle).then(({profile,artwork})=>{if(!link.isConnected)return;if(profile?.display_name)link.querySelector('.ranking-passport-name').textContent=profile.display_name;if(artwork){const image=node('img');image.src=artwork;image.alt='';image.loading='lazy';image.decoding='async';link.prepend(image);applyArtwork?.(image,profile)}}).catch(()=>{});
  }
  host.replaceChildren();host.className='friend-dashboard';
  const self=data?.self||{games:0,wins:0,win_rate:null},rates=data?.win_rates||[],games=data?.games_logged||[];
