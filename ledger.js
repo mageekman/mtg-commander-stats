@@ -1,3 +1,4 @@
+import {isGenericOpponentName} from './opponent-names.js?v=1';
 import {renderWinrateTrendChart} from './ledger-chart.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
@@ -228,15 +229,6 @@ async function commanderIdentity(name){
 function mostCommon(values){
  const counts=new Map();for(const value of values){const key=String(value||'').trim();if(key)counts.set(key,(counts.get(key)||0)+1)}
  return [...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0]||null;
-}
-function isGenericOpponentName(value){
- const name=String(value||'').trim().toLowerCase().replace(/[._-]+/g,' ').replace(/\s+/g,' ');
- if(!name)return true;
- if(/^(?:unknown|unnamed|anonymous|anon|n\/?a|none|tbd|not specified|not provided|no name|you|yourself|self|me)$/i.test(name))return true;
- // Generic placeholders with optional numbers, letters, or seat labels.
- if(/^(?:(?:the|another|random|other)\s+)?(?:opponent|opp|player|enemy|rival|guest|stranger|person|participant|competitor|challenger|user|someone|somebody|human|bot|cpu|computer|ai)(?:\s*(?:#|no\.?|number|seat|slot)?\s*(?:\d+|[a-z]))?$/i.test(name))return true;
- if(/^(?:player|opponent|enemy|guest|rival|seat|slot)\s*(?:one|two|three|four|five|six|seven|eight|nine|ten)$/i.test(name))return true;
- return false;
 }
 function commanderParts(name){return String(name||'').split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean)}
 async function commanderColors(name){
