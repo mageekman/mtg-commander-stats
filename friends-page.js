@@ -21,16 +21,11 @@ async function fillPassport(link,friend,loadPassport){
   if(!link.isConnected)return;
   if(!profile)return;
   link.querySelector('h2').textContent=profile.display_name||profile.handle;
-  const copy=link.querySelector('.friend-passport-copy');
-  if(profile.pronouns)copy.append(node('p',profile.pronouns));
-  if(profile.bio)copy.append(node('p',profile.bio));
-  if(profile.created_at)copy.append(node('p','Member since '+new Date(profile.created_at).toLocaleDateString(undefined,{month:'long',year:'numeric'})));
   if(profile.favorite_commander){
-   const commander=node('span',profile.favorite_commander);commander.className='friend-passport-commander';copy.append(commander);
    const url=await window.commandLedgerCommanderArtwork(profile.favorite_commander);
    if(url&&link.isConnected){const image=node('img');image.src=url;image.alt='';image.loading='lazy';image.decoding='async';link.prepend(image)}
   }
- }catch{if(link.isConnected)link.querySelector('.friend-passport-copy').append(node('p','Open passport to view player details.'))}
+ }catch{/* Keep the compact name and handle when profile artwork is unavailable. */}
 }
 async function loadRankings(dashboard,loadPassport){
  dashboard.setAttribute('aria-busy','true');dashboard.textContent='Loading friend rankings…';
@@ -54,7 +49,7 @@ async function loadFriends(){
   const grid=node('div');grid.className='friends-passport-grid';host.append(grid);const jobs=[];
   for(const friend of friends){
    const card=node('article');card.className='friend-passport';const link=node('a');link.className='friend-passport-link';link.href='./player.html?user='+encodeURIComponent(friend.handle);link.setAttribute('aria-label','View '+(friend.display_name||friend.handle)+' player passport');
-   const shade=node('div');shade.className='friend-passport-shade';const copy=node('div');copy.className='friend-passport-copy';const label=node('span','PLAYER PASSPORT');label.className='friends-eyebrow';const handle=node('span','@'+friend.handle);handle.className='friend-passport-handle';copy.append(label,node('h2',friend.display_name||friend.handle),handle);link.append(shade,copy);const actions=node('div');card.append(link,actions);grid.append(card);mountFriendAction(actions,friend.handle,'friends');jobs.push(()=>fillPassport(link,friend,loadPassport));
+   const shade=node('div');shade.className='friend-passport-shade';const copy=node('div');copy.className='friend-passport-copy';const handle=node('span','@'+friend.handle);handle.className='friend-passport-handle';copy.append(node('h2',friend.display_name||friend.handle),handle);link.append(shade,copy);const actions=node('div');card.append(link,actions);grid.append(card);mountFriendAction(actions,friend.handle,'friends');jobs.push(()=>fillPassport(link,friend,loadPassport));
   }
   status.textContent='';host.hidden=false;
   let next=0;await Promise.all(Array.from({length:Math.min(4,jobs.length)},async()=>{while(next<jobs.length&&current===version)await jobs[next++]()}));
