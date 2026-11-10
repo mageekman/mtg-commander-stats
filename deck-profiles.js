@@ -106,17 +106,14 @@ function setDeckGalleryView(view){
 
 const recentArtCache=new Map();
 const recentArtPending=new Map();
-let recentArtQueue=Promise.resolve();
 function getRecentArtwork(name){
  const key=name.trim().toLowerCase();
  if(recentArtCache.has(key))return Promise.resolve(recentArtCache.get(key));
  if(recentArtPending.has(key))return recentArtPending.get(key);
- const job=recentArtQueue.then(async()=>{
-  await new Promise(resolve=>setTimeout(resolve,125));
+ const job=(async()=>{
   const url=await window.commandLedgerCommanderArtwork(name);
   if(url)recentArtCache.set(key,url);return url;
- });
- recentArtQueue=job.catch(()=>{});
+ })();
  recentArtPending.set(key,job);
  job.finally(()=>recentArtPending.delete(key)).catch(()=>{});
  return job;

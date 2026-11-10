@@ -8,17 +8,14 @@ const scryfallLink=name=>'https://scryfall.com/search?q='+encodeURIComponent('!"
 const suggestionCache=new Map();
 const artCache=new Map();
 const artPending=new Map();
-let artQueue=Promise.resolve();
 function getCommanderArtwork(name){
  const key=name.trim().toLowerCase();
  if(artCache.has(key))return Promise.resolve(artCache.get(key));
  if(artPending.has(key))return artPending.get(key);
- const job=artQueue.then(async()=>{
-  await new Promise(resolve=>setTimeout(resolve,125));
+ const job=(async()=>{
   const url=await window.commandLedgerCommanderArtwork(name);
   if(url)artCache.set(key,url);return url;
- });
- artQueue=job.catch(()=>{});
+ })();
  artPending.set(key,job);
  job.finally(()=>artPending.delete(key)).catch(()=>{});
  return job;
@@ -359,6 +356,18 @@ function renderWinrateTrend(visibleGames){
 function render(){
  const visibleGames=calendarFilteredGames();
  const historyVisibleGames=filteredGames().filter(g=>visibleGames.includes(g));
+ const sortedHistoryGames=[...historyVisibleGames].sort((a,b)=>$('historyDateSort').value==='oldest'?a.played_at.localeCompare(b.played_at)||String(a.id).localeCompare(String(b.id)):b.played_at.localeCompare(a.played_at)||String(b.id).localeCompare(String(a.id)));
+ const pageSize=Number($('historyPageSize').value)||10;
+ const pageCount=Math.max(1,Math.ceil(sortedHistoryGames.length/pageSize));
+ historyPage=Math.max(1,Math.min(historyPage,pageCount));
+ const historyGames=sortedHistoryGames.slice((historyPage-1)*pageSize,historyPage*pageSize);
+ // Visible history and statistics share batched card metadata; off-page players wait.
+ window.commandLedgerPrefetchCommanders([
+  ...historyGames.map(game=>decks.find(deck=>deck.id===game.deck_id)?.commander),
+  ...decks.map(deck=>deck.commander),
+  ...(historyView==='cards'?historyGames.flatMap(game=>Array.isArray(game.players)?game.players.map(player=>player.commander):game.opponents||[]):[]),
+  ...visibleGames.filter(game=>!game.won).map(game=>Array.isArray(game.players)&&Number.isInteger(game.winner_player)&&game.winner_player>0?game.players[game.winner_player]?.commander:null)
+ ]);
  renderWinrateTrend(visibleGames);
  renderBestDeck(visibleGames);
  renderExtraStats(visibleGames);
@@ -406,11 +415,7 @@ function render(){
  const pagination=$('historyPagination');pagination.replaceChildren();
  $('historyCount').textContent=historyVisibleGames.length+' of '+games.length+' games match your filters';
  if(!historyVisibleGames.length){history.append(el('p',games.length?'No games match these filters.':'No games recorded yet.'));return}
- const sortedHistoryGames=[...historyVisibleGames].sort((a,b)=>$('historyDateSort').value==='oldest'?a.played_at.localeCompare(b.played_at)||String(a.id).localeCompare(String(b.id)):b.played_at.localeCompare(a.played_at)||String(b.id).localeCompare(String(a.id)));
- const pageSize=Number($('historyPageSize').value)||10;
- const pageCount=Math.max(1,Math.ceil(sortedHistoryGames.length/pageSize));
- historyPage=Math.max(1,Math.min(historyPage,pageCount));
- const historyGames=sortedHistoryGames.slice((historyPage-1)*pageSize,historyPage*pageSize);
+
  const goToPage=page=>{historyPage=page;render();$('gameHistorySection').scrollIntoView({block:'start',behavior:'smooth'})};
  if(pageCount>1){
   const pageButton=(label,page,disabled=false,current=false)=>{const b=el('button',label);b.type='button';b.disabled=disabled;if(current)b.setAttribute('aria-current','page');b.onclick=()=>goToPage(page);pagination.append(b)};
