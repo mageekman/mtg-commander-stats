@@ -10,7 +10,7 @@ function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
 function isScryfall(input){try{const url=new URL(typeof input==='string'?input:input.url,location.href);return url.protocol==='https:'&&url.hostname==='api.scryfall.com'}catch{return false}}
 async function request(input,opts){const url=typeof input==='string'?input:input.url,method=(opts?.method||input?.method||'GET').toUpperCase(),key=keyFor(url,opts),signal=opts?.signal;
 const canCache=(method==='GET'||method==='POST'&&url.includes('/cards/collection'))&&!signal;
-if(canCache){const hit=cached(key);if(hit!==null)return response(hit);if(pending.has(key))return response(await pending.get(key))}
+if(canCache){const hit=cached(key);if(hit!==null)return response(hit);if(pending.has(key))return (await pending.get(key)).clone()}
 const task=queue.catch(()=>{}).then(async()=>{
 await wait(Math.max(0,nextAt-Date.now(),blockedUntil-Date.now()));
 if(signal?.aborted)throw new DOMException('Request aborted','AbortError');

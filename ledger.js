@@ -314,17 +314,8 @@ function renderExtraStats(visibleGames){
  Promise.all(opponents.map(p=>commanderColors(p.commander))).then(ids=>{
   if(stamp!==colorStatsStamp)return;
   const top=mostCommon(ids.filter(x=>x!==null)),strong=cards[2].querySelector('strong'),small=cards[2].querySelector('small');
-  const unresolved=opponents.filter((p,i)=>ids[i]===null);
-  const missingCount=unresolved.length;
-  const missingNames=[...new Set(unresolved.map(p=>String(p.commander||'').trim()||'Commander not recorded'))];
-  if(top){manaIdentity(strong,top[0]);small.textContent=top[1]+' losses'+(missingCount?' · '+missingCount+' games missing color data':'')}
-  else{strong.textContent=ids.length?'Color data unavailable':'No recorded losses';small.textContent=missingCount?missingCount+' games missing color data':''}
-  if(missingCount){
-   const info=el('span','Check opponent commanders: '+missingNames.join(', '));
-   info.className='missing-color-info';info.style.cssText='display:block;margin-top:6px;font-size:12px;line-height:1.45;color:#c9c8b5;overflow-wrap:anywhere';
-   info.title='These commander names could not be matched to Scryfall. Check the game records for missing names, spelling, or temporary lookup failures.';
-   cards[2].append(info);
-  }
+  if(top){manaIdentity(strong,top[0]);small.textContent=top[1]+' losses'}
+  else{strong.textContent=ids.length?'Color data unavailable':'No recorded losses';small.textContent=''}
  }).catch(()=>{if(stamp===colorStatsStamp)cards[2].querySelector('strong').textContent='Color data unavailable'});
 }
 let colorStatsStamp=0;
