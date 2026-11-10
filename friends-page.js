@@ -1,4 +1,4 @@
-import {mountFriendRivalries} from './friend-rivalries.js?v=versus-2';
+import {mountFriendRivalries} from './friend-rivalries.js?v=compact-3';
 import {rankingPeriods,rankingRange,dateString} from './friend-ranking-period.js?v=1';
 import {applyPassportArt} from './passport-art.js?v=1';
 import {mountGameInvitations} from './game-invitations.js?v=1';
