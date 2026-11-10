@@ -206,9 +206,8 @@ gallery.replaceChildren();archivedGallery.replaceChildren();gallery.hidden=false
 const activeDecks=decks.filter(d=>!d.archived_at),archivedDecks=decks.filter(d=>!!d.archived_at);
 archivedSection.hidden=!archivedDecks.length;
 $('archivedDeckCount').textContent='('+archivedDecks.length+')';
-const sort=$('homeDeckSort').value,direction=$('homeDeckDirection').value;
 const renderGroup=(list,host,term,archived)=>{
- const filtered=sortDecksForDisplay(list,winRates,sort,direction).filter(d=>(d.name+' '+d.commander).toLowerCase().includes(term.toLowerCase().trim()));
+ const filtered=sortDecksForDisplay(list,winRates,$('homeDeckSort').value,$('homeDeckDirection').value).filter(d=>(d.name+' '+d.commander).toLowerCase().includes(term.toLowerCase().trim()));
  if(!filtered.length){const p=document.createElement('p');p.textContent=term?'No matching decks.':archived?'No archived decks.':'No active decks. Create a deck or restore an archived one.';host.append(p);return}
  for(const deck of filtered){
   const wrapper=document.createElement('div');wrapper.className='deck-gallery-card';
