@@ -1,3 +1,4 @@
+import {demoDecks,demoGames} from './demo-data.js?v=1';
 function colorIdentityIcons(colors){
  const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
  const label=document.createElement('span');label.textContent='Color identity:';wrap.append(label);
@@ -188,14 +189,16 @@ function sortDecksForDisplay(list,stats,sort,direction){
  });
 }
 async function refresh(){
-const {data:{user}}=await sb.auth.getUser();if(!user){$('deckGallery').innerHTML='<p>Sign in to view your decks.</p>';const recent=$('recentGames');if(recent)recent.textContent='Sign in to see your recent games.';return}
-let {data,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,created_at,archived_at,bracket_level,theme,notes').order('created_at',{ascending:false});
+const {data:{user}}=await sb.auth.getUser();
+let data,error;
+if(!user){data=demoDecks}else{
+({data,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,created_at,archived_at,bracket_level,theme,notes').order('created_at',{ascending:false}));
 if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist,created_at,archived_at').order('created_at',{ascending:false});if(!fallback.error){data=fallback.data;error=null}}
-
+}
 if(error){$('deckGallery').textContent=error.message;return}
 decks=data||[];
 const winRates=new Map();
-const {data:gameRows,error:gameError}=await sb.from('personal_games').select('id,deck_id,played_at,won,players,first_player,winner_player').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false}).limit(1000);
+const {data:gameRows,error:gameError}=!user?{data:demoGames}:await sb.from('personal_games').select('id,deck_id,played_at,won,players,first_player,winner_player').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false}).limit(1000);
 if(!gameError)for(const game of gameRows||[]){
  const stats=winRates.get(game.deck_id)||{games:0,wins:0};
  stats.games++;if(game.won)stats.wins++;if(!stats.last||game.played_at>stats.last)stats.last=game.played_at;winRates.set(game.deck_id,stats);
@@ -211,7 +214,7 @@ const renderGroup=(list,host,term,archived)=>{
  if(!filtered.length){const p=document.createElement('p');p.textContent=term?'No matching decks.':archived?'No archived decks.':'No active decks. Create a deck or restore an archived one.';host.append(p);return}
  for(const deck of filtered){
   const wrapper=document.createElement('div');wrapper.className='deck-gallery-card';
-  const link=document.createElement('a');link.className='deck-entry';link.href='./deck.html?id='+encodeURIComponent(deck.id);
+  const link=document.createElement('a');link.className='deck-entry';link.href=user?'./deck.html?id='+encodeURIComponent(deck.id):'./sign-in.html';
   const image=document.createElement('div');image.className='deck-entry-art';
   const details=document.createElement('div');details.className='deck-entry-details';
   const title=document.createElement('strong');title.textContent=deck.name;
