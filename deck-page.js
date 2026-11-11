@@ -1,4 +1,4 @@
-import {mountDeckPerformance} from './deck-performance.js?v=reports-4';
+import {mountDeckPerformance} from './deck-performance.js?v=carousel-5';
 function colorIdentityIcons(colors){
  const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
  const label=document.createElement('span');label.textContent='Color identity:';wrap.append(label);
