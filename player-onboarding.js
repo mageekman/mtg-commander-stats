@@ -17,7 +17,6 @@ export function createPlayerOnboarding(client){
  function checklist(host,state){
   const list=node('ol');list.className='onboarding-steps';
   for(const [title,detail,href,done]of [
-   ['Set up your account and profile','Choose your handle, favorite commander, and profile details.','./edit-identity.html',state.profile],
    ['Add your first deck','Choose the deck and commander you play.','./import.html',state.deck],
    ['Record your first game','Pick a deck, add opponents and commanders, and record the result.',state.deck?'./ledger.html#gameForm':'./import.html',state.game]
   ]){const item=node('li');item.className=done?'complete':'';const copy=node('div'),link=node('a',title);link.href=href;copy.append(link,node('small',done?'Complete':detail));item.append(node('span',done?'✓':String(list.children.length+1)),copy);list.append(item)}
@@ -28,12 +27,12 @@ export function createPlayerOnboarding(client){
   if(document.querySelector('dialog[open]'))return; // Never interrupt another editor.
   const actor=current.id,d=node('dialog');dialog=d;d.className='onboarding-dialog';d.setAttribute('aria-labelledby','onboardingDialogTitle');
   const heading=node('h2',read(localStorage,key('welcomed',actor))?'Finish setting up your Ledger':'Welcome to Command Ledger');heading.id='onboardingDialogTitle';
-  d.append(heading,node('p','Make Command Ledger yours, then log your first Commander game.'));
+  d.append(heading,node('p','Add your first deck, then log your first Commander game.'));
   checklist(d,ready);
   const status=node('p');status.className='onboarding-status';status.setAttribute('role','status');
   const actions=node('div');actions.className='onboarding-actions';
-  const settings=node('button','Take me to account settings'),dismiss=node('button',"Thanks but don't remind me again");settings.type=dismiss.type='button';dismiss.className='onboarding-dismiss';
-  settings.onclick=()=>{internalNavigation=true;location.href='./edit-identity.html'};
+  const settings=node('button',ready.deck?'Record your first game':'Add your first deck'),dismiss=node('button',"Thanks but don't remind me again");settings.type=dismiss.type='button';dismiss.className='onboarding-dismiss';
+  settings.onclick=()=>{internalNavigation=true;location.href=ready.deck?'./ledger.html#gameForm':'./import.html'};
   dismiss.onclick=async()=>{
    if(busy)return;busy=true;settings.disabled=dismiss.disabled=true;status.textContent='Saving your preference…';
    try{const {error}=await client.auth.updateUser({data:{onboarding_dismissed:true}});if(error)throw error;if(current?.id!==actor)return;write(localStorage,key('dismissed',actor),'true');clean()}
@@ -54,7 +53,7 @@ export function createPlayerOnboarding(client){
    const [decks,games]=await Promise.all(['decks','personal_games'].map(table=>client.from(table).select('id').eq('owner_id',user.id).limit(1)));
    if(token!==epoch||decks.error||games.error)return;
    ready={profile:!!user.user_metadata.onboarding_profile_complete,deck:!!decks.data?.length,game:!!games.data?.length};
-   if(ready.profile&&ready.game){ready=null;return}
+   if(ready.deck&&ready.game){ready=null;return}
    if(!document.querySelector('link[data-onboarding-style]')){const css=node('link');css.rel='stylesheet';css.href=new URL('./player-onboarding.css?v=1',import.meta.url).href;css.dataset.onboardingStyle='';document.head.append(css)}
    banner=node('aside');banner.id='playerOnboarding';banner.setAttribute('aria-labelledby','onboardingChecklistTitle');
    const title=node('h2','Your first steps');title.id='onboardingChecklistTitle';banner.append(title);checklist(banner,ready);
