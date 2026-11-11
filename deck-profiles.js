@@ -1,3 +1,4 @@
+import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=participants-4';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
 function colorIdentityIcons(colors){
@@ -11,6 +12,7 @@ function colorIdentityIcons(colors){
 }
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
+const historyLinker=createGameHistoryLinker(sb);
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let decks=[],active=null,cardCache=new Map(),requestTime=0;
@@ -127,7 +129,7 @@ async function paintRecentCommander(tile,name){
   if(tile.isConnected&&url)tile.style.backgroundImage='url("'+url+'")';
  }catch(e){/* Keep text visible if Scryfall artwork is unavailable. */}
 }
-function renderRecentGames(rows,error,friendNames=new Map()){
+function renderRecentGames(rows,error,friendNames=new Map(),linked=false){
  const container=$('recentGames');if(!container)return;
  container.replaceChildren();
  if(error){const p=document.createElement('p');p.className='recent-games-empty';p.textContent='Recent games could not be loaded.';container.append(p);return}
@@ -141,7 +143,7 @@ function renderRecentGames(rows,error,friendNames=new Map()){
   const date=document.createElement('time');date.className='recent-game-date';date.dateTime=game.played_at;
   const [year,month,day]=game.played_at.split('-').map(Number);date.textContent=new Date(year,month-1,day).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
   top.append(result,date);
-  const name=document.createElement('div');name.className='recent-game-deck';name.textContent=deck?.name||'Deleted deck';
+  const name=document.createElement('div');name.className='recent-game-deck';name.append(historyDeckTitle(deck?.name||'Deleted deck',deck?.id,linked));
   card.append(top,name);
   if(Array.isArray(game.players)&&game.players.length){
    const pod=document.createElement('div');pod.className='recent-game-pod';
@@ -154,7 +156,7 @@ function renderRecentGames(rows,error,friendNames=new Map()){
     if(i===game.first_player){const badge=document.createElement('span');badge.textContent='Went first';tags.append(badge)}
     const playerName=document.createElement('strong');playerName.textContent=gamePlayerDisplayName(player,friendNames,'Player '+(i+1));
     const commander=document.createElement('span');commander.textContent=player.commander||'Unknown commander';
-    info.append(tags,playerName,commander);tile.append(art,info);pod.append(tile);
+    markHistoryPlayer(playerName,game,i);info.append(tags,playerName,commander);if(i)info.append(historyFriendDeckSlot(game,i));tile.append(art,info);pod.append(tile);
     paintRecentCommander(art,player.commander);
    });
    card.append(pod);
@@ -164,6 +166,7 @@ function renderRecentGames(rows,error,friendNames=new Map()){
   }
   container.append(card);
  }
+ if(linked)historyLinker.hydrate(container,recent);
 }
 function elWinRate(deckId,winRates){
  const badge=document.createElement('span');badge.className='deck-winrate';
@@ -190,6 +193,7 @@ function sortDecksForDisplay(list,stats,sort,direction){
  });
 }
 async function refresh(){
+ historyLinker.clear();
 const {data:{user}}=await sb.auth.getUser();
 const friendNames=user?loadFriendDisplayNames(sb):Promise.resolve(new Map());
 let data,error;
@@ -205,7 +209,7 @@ if(!gameError)for(const game of gameRows||[]){
  const stats=winRates.get(game.deck_id)||{games:0,wins:0};
  stats.games++;if(game.won)stats.wins++;if(!stats.last||game.played_at>stats.last)stats.last=game.played_at;winRates.set(game.deck_id,stats);
 }
-renderRecentGames(gameRows,gameError,await friendNames);
+renderRecentGames(gameRows,gameError,await friendNames,!!user);
 const gallery=$('deckGallery'),archivedGallery=$('archivedDeckGallery'),archivedSection=$('archivedDeckSection');
 gallery.replaceChildren();archivedGallery.replaceChildren();gallery.hidden=false;$('deckProfile').hidden=true;
 const activeDecks=decks.filter(d=>!d.archived_at),archivedDecks=decks.filter(d=>!!d.archived_at);
