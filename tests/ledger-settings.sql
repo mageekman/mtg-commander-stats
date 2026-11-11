@@ -29,6 +29,7 @@ begin
  select ledger_settings into value from public.profiles where id=current_setting('test.ledger_actor')::uuid;
  if public.get_shared_ledger_stats_v2((select handle from public.profiles where id=current_setting('test.ledger_actor')::uuid))->'best_deck'->>'name'<>'Qualified' then raise exception 'Public Best Deck ignored saved minimum';end if;
  if public.get_shared_ledger_stats_v2((select handle from public.profiles where id=current_setting('test.ledger_actor')::uuid),'2026-01-01','2026-01-03')->'best_deck' is not null then raise exception 'Minimum used all-time games instead of timeframe';end if;
+ if public.get_shared_ledger_stats_v2((select handle from public.profiles where id=current_setting('test.ledger_actor')::uuid))->'color_permissions'->>'minimum_games'<>'5' then raise exception 'Public color qualification minimum not returned';end if;
  if value->>'best_deck_min_games'<>'5' or value->>'share_lost_to_player'<>'false' then raise exception 'Preferences did not persist';end if;
  if exists(select 1 from public.profiles where id=current_setting('test.ledger_other')::uuid) then raise exception 'Other player settings exposed';end if;
  update public.profiles set ledger_settings='{"best_deck_min_games":99}' where id=current_setting('test.ledger_other')::uuid;

@@ -1,3 +1,4 @@
+import {selectStrongestColor} from './strongest-color.js?v=1';
 import {node,pct,ring,rateBar,artPanel,pagedCards} from './deck-visuals.js?v=reports-2';
 import {createLedgerReport} from './ledger-report-tabs.js?v=mockup-1';
 import {renderWinrateTrendChart} from './ledger-chart.js?v=1';
@@ -39,7 +40,7 @@ export async function mountSharedLedger(root,{client,handle}){
   const counts=new Map(),combos=new Map();let missing=0;
   for(const {deck,code}of results){if(code===null){missing+=deck.games;continue}for(const c of code)counts.set(c,(counts.get(c)||0)+deck.games);const row=combos.get(code)||{games:0,wins:0};row.games+=deck.games;row.wins+=deck.wins;combos.set(code,row)}
   if(data.color_permissions?.most_played){const top=[...counts].sort((a,b)=>b[1]-a[1]||'WUBRG'.indexOf(a[0])-'WUBRG'.indexOf(b[0]))[0],box=stat('Most played color',top?'':missing?'Color data unavailable':'No colored decks played',top?top[1]+' games'+(missing?' · '+missing+' unavailable':''):'');if(top)mana(box,top[0]);colors.append(box)}
-  if(data.color_permissions?.best_combo){const best=[...combos].sort((a,b)=>b[1].wins/b[1].games-a[1].wins/a[1].games||b[1].games-a[1].games||a[0].localeCompare(b[0]))[0],box=stat('Highest color combo win rate',best?'':missing?'Color data unavailable':'No games yet',best?pct(100*best[1].wins/best[1].games)+' win rate · '+best[1].wins+' wins in '+best[1].games+' games':'');if(best)mana(box,best[0]);colors.append(box)}
+  if(data.color_permissions?.best_combo){const best=selectStrongestColor(combos,data.color_permissions.minimum_games),box=stat('Strongest Color',best?'':missing?'Color data unavailable':'No qualifying color combo',best?pct(100*best[1].wins/best[1].games)+' win rate · '+best[1].wins+' wins in '+best[1].games+' games':'');if(best)mana(box,best[0]);colors.append(box)}
   if(data.lost_color_enabled){const counts=new Map();for(const code of lost)if(code!==null)counts.set(code,(counts.get(code)||0)+1);const top=[...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0],box=stat('Rival Color Combo',top?'':lost.length?'Color data unavailable':'No recorded losses',top?top[1]+' losses':'');if(top)mana(box,top[0]);rivalry.querySelector('[data-rival=color]').append(box)}
  }
  function drawTotals(data){

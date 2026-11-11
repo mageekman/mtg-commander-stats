@@ -1,4 +1,5 @@
-import {normalizeLedgerSettings,readLedgerSettings,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=1';
+import {selectStrongestColor} from './strongest-color.js?v=1';
+import {normalizeLedgerSettings,readLedgerSettings,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=strongest-2';
 import {selectBestDeck} from './best-deck.js?v=2';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {commanderColors} from './ledger-commander-colors.js?v=1';
@@ -297,7 +298,7 @@ function renderExtraStats(visibleGames){
  const topPlayer=mostCommon(opponents.map(p=>p.name).filter(n=>!isGenericOpponentName(n)));
  const cardData=[
   ['Most played color','Calculating…','Across your played decks'],
-  ['Highest color combo win rate','Calculating…','Based on your deck colors'],
+  ['Strongest Color','Calculating…','Based on your deck colors'],
   ['Rival Color Combo',opponents.length?'Calculating…':'No recorded losses',''],
   ['Rival Player',topPlayer?.[0]||'No named opponents',topPlayer?topPlayer[1]+' losses':'']
  ];
@@ -320,9 +321,9 @@ function renderExtraStats(visibleGames){
   const top=[...count].sort((a,b)=>b[1]-a[1]||'WUBRG'.indexOf(a[0])-'WUBRG'.indexOf(b[0]))[0];
   const colorStrong=cards[0].querySelector('strong'),colorSmall=cards[0].querySelector('small');
   if(top){manaIdentity(colorStrong,top[0]);colorSmall.textContent=top[1]+' games'+(missing?' · '+missing+' unavailable':'')}else{colorStrong.textContent=missing?'Color data unavailable':'No colored decks played';colorSmall.textContent=''}
-  const best=[...combo].sort((a,b)=>b[1].wins/b[1].games-a[1].wins/a[1].games||b[1].games-a[1].games||a[0].localeCompare(b[0]))[0];
+  const best=selectStrongestColor(combo,ledgerSettings.best_deck_min_games);
   const bestStrong=cards[1].querySelector('strong'),bestSmall=cards[1].querySelector('small');
-  if(best){manaIdentity(bestStrong,best[0]);bestSmall.textContent=(100*best[1].wins/best[1].games).toFixed(1)+'% win rate · '+best[1].wins+' wins in '+best[1].games+' games'}else{bestStrong.textContent=missing?'Color data unavailable':'No games yet';bestSmall.textContent=''}
+  if(best){manaIdentity(bestStrong,best[0]);bestSmall.textContent=(100*best[1].wins/best[1].games).toFixed(1)+'% win rate · '+best[1].wins+' wins in '+best[1].games+' games'}else{bestStrong.textContent=missing?'Color data unavailable':'No qualifying color combo';bestSmall.textContent='Minimum '+ledgerSettings.best_deck_min_games+' games in this timeframe'}
  }).catch(()=>{if(stamp===colorStatsStamp){cards[0].querySelector('strong').textContent='Color data unavailable';cards[1].querySelector('strong').textContent='Color data unavailable'}});
  Promise.all(opponents.map(p=>commanderColors(p.commander))).then(ids=>{
   if(stamp!==colorStatsStamp)return;
