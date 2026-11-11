@@ -1,0 +1,23 @@
+const {chromium}=require('playwright'),fs=require('fs'),assert=require('assert/strict');
+(async()=>{const browser=await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE||'/usr/bin/chromium',args:['--no-sandbox']});try{
+ const context=await browser.newContext();let payloads=[],outcome='confirm';
+ await context.route('**/*',route=>{const u=new URL(route.request().url()),file=decodeURIComponent(u.pathname).slice(1);
+  if(u.hostname==='api.scryfall.com')return route.fulfill({json:{data:['Minsc & Boo, Timeless Heroes','Captain America']}});
+  if(file==='signup-test'){payloads.push(JSON.parse(route.request().postData()));return route.fulfill({json:outcome==='duplicate'?{error:{message:'Database error saving new user'}}:{data:{session:outcome==='session'?{user:{id:'new'}}:null},error:null}})}
+  if(file==='site-session.js')return route.fulfill({contentType:'text/javascript',body:''});
+  if(file==='vendor/supabase-js.mjs')return route.fulfill({contentType:'text/javascript',body:`export function createClient(){return {auth:{getUser:async()=>({data:{user:null}}),signUp:async args=>(await fetch('./signup-test',{method:'POST',body:JSON.stringify(args)})).json(),signInWithPassword:async()=>({}),resetPasswordForEmail:async()=>({})}}}`});
+  if(file==='friends.html')return route.fulfill({contentType:'text/html',body:'<h1>Friends destination</h1>'});
+  if(fs.existsSync(file)&&fs.statSync(file).isFile())return route.fulfill({body:fs.readFileSync(file),contentType:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':file.endsWith('.png')?'image/png':'text/javascript'});
+  return route.fulfill({status:404,body:''});
+ });
+ const p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto('https://signup.test/sign-in.html?mode=signup&next=.%2Ffriends.html');await p.waitForSelector('#signup:not(.hidden)');
+ assert.equal(await p.locator('#signup [name=username]').getAttribute('required'),'');assert.equal(await p.locator('#signup [name=favorite_commander]').getAttribute('required'),'');
+ await p.fill('#signup [name=display]','New Player');await p.fill('#signup [name=username]','New_Player');await p.fill('#signup [name=email]','new@example.invalid');await p.fill('#signup [name=password]','example-password');
+ await p.click('#signup [type=submit]');assert.equal(payloads.length,0,'favorite commander required before signup');
+ await p.fill('#signup [name=favorite_commander]','Minsc');await p.waitForSelector('#signupCommanderMatches button');await p.locator('#signup [name=favorite_commander]').press('ArrowDown');await p.keyboard.press('Enter');assert.equal(await p.locator('#signup [name=favorite_commander]').inputValue(),'Minsc & Boo, Timeless Heroes');
+ for(const width of [1440,390,320]){await p.setViewportSize({width,height:850});assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'signup overflow '+width);assert.ok(await p.locator('#signup').evaluate(e=>e.getBoundingClientRect().left>=0),'signup left clipping '+width)}
+ outcome='duplicate';await p.click('#signup [type=submit]');await p.waitForFunction(()=>document.getElementById('status').textContent.includes('may already be taken'));assert.equal(await p.locator('#signup [name=favorite_commander]').inputValue(),'Minsc & Boo, Timeless Heroes');assert.equal(await p.locator('#signup [type=submit]').isEnabled(),true);
+ outcome='confirm';await p.click('#signup [type=submit]');await p.waitForFunction(()=>document.getElementById('status').textContent.includes('Check your email'));const data=payloads.at(-1);assert.equal(data.options.data.username,'new_player');assert.equal(data.options.data.favorite_commander,'Minsc & Boo, Timeless Heroes');assert.equal(data.options.data.display_name,'New Player');assert.equal(data.options.data.onboarding_profile_complete,true);assert.equal(data.options.emailRedirectTo,'https://signup.test/friends.html');
+ await p.click('#switch');assert.equal(await p.locator('#login').isVisible(),true);assert.equal(await p.locator('#signup').isVisible(),false);await p.click('#forgot');assert.equal(await p.locator('#recovery').isVisible(),true);await p.click('#switch');
+ outcome='session';await p.click('#signup [type=submit]');await p.waitForURL('**/friends.html');assert.deepEqual(errors,[]);console.log('PASS required signup identity, commander suggestions/keyboard, username normalization, metadata/confirmation redirect, duplicate failure/retry, login/recovery switches, immediate-session redirect and mobile bounds');
+}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});
