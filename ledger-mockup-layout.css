@@ -15,13 +15,13 @@
 #statInsights>.insight-stat>small{grid-column:1/-1}
 .ledger-rivalry{padding:16px;border:1px solid #4a6a5c;border-radius:13px;background:linear-gradient(145deg,#16342c,#102522);margin:14px 0 18px}
 .ledger-rivalry>h3{font:600 20px Georgia,serif;color:var(--cl-gold);margin:0 0 12px}
-.ledger-rivalry-grid{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr));align-items:stretch;gap:16px}
+.ledger-rivalry-grid{display:grid;grid-template-columns:minmax(0,2fr) repeat(2,minmax(0,1fr));align-items:stretch;gap:0}
 .ledger-rivalry-grid>*{min-width:0}
-#statisticsSection .ledger-rivalry .nemesis-section{margin:0}
-#statisticsSection .ledger-rivalry .best-deck-card{min-height:104px!important;height:100%;border:0!important;background:none!important;box-shadow:none!important;border-radius:0!important;display:grid;grid-template-columns:100px minmax(0,1fr);gap:12px;padding:0;overflow:visible}
-#statisticsSection .ledger-rivalry .best-deck-art{position:relative;inset:auto;min-height:100px;width:100%;border-radius:8px;overflow:hidden;opacity:1}
+#statisticsSection .ledger-rivalry .nemesis-section{margin:0;padding-right:16px;box-sizing:border-box}
+#statisticsSection .ledger-rivalry .best-deck-card{min-height:170px!important;height:100%;box-sizing:border-box;border:0!important;background:#102522!important;box-shadow:none!important;border-radius:9px!important;display:flex;align-items:center;padding:0;overflow:hidden}
+#statisticsSection .ledger-rivalry .best-deck-art{position:absolute;inset:0;min-height:0;width:100%;border-radius:inherit;overflow:hidden;opacity:1}
 #statisticsSection .ledger-rivalry .best-deck-art:after{display:none}
-#statisticsSection .ledger-rivalry .best-deck-content{padding:4px 0!important;gap:4px;min-width:0}
+#statisticsSection .ledger-rivalry .best-deck-content{padding:20px 40px 20px 18px!important;gap:7px;min-width:0;max-width:100%;box-sizing:border-box}
 #statisticsSection .ledger-rivalry .best-deck-label{font-size:10px}
 #statisticsSection .ledger-rivalry .best-deck-name{font:600 19px/1.2 Georgia,serif;overflow-wrap:anywhere}
 #statisticsSection .ledger-rivalry .best-deck-rate{font-size:20px!important;color:#b4e5c7!important}
@@ -84,8 +84,6 @@
 #statisticsSection .deck-stats-carousel .deck-stats-card{flex:0 0 calc((100% - 28px)/3);min-width:0;min-height:180px}
 @media(max-width:1050px){
  #statisticsSection .ledger-additional-stats{grid-template-columns:minmax(0,1fr)}
- .ledger-rivalry-grid{grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr));gap:8px}
- #statisticsSection .ledger-rivalry .best-deck-card{grid-template-columns:75px minmax(0,1fr)}
  #statisticsSection .ledger-rivalry .best-deck-name{font-size:17px}
 }
 @media(max-width:800px){
@@ -94,9 +92,10 @@
  #statisticsSection .ledger-chart-row>.winrate-trend{padding:18px 0 0!important;border-left:0!important;border-top:1px solid #416354!important;min-height:220px!important}
  .ledger-rivalry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  #nemesisCommander{grid-column:1/-1}
- #statisticsSection .ledger-rivalry .best-deck-card{grid-template-columns:100px minmax(0,1fr)}
+ #statisticsSection .ledger-rivalry .nemesis-section{padding:0 0 12px}
+ #statisticsSection .ledger-rivalry .best-deck-card{min-height:170px!important}
  #statisticsSection .ledger-rivalry .insight-stat{border-left:0!important;border-top:1px solid #416354!important;padding:12px 0 0!important}
- #statisticsSection .ledger-rivalry .best-deck-content{padding-right:26px!important}
+ #statisticsSection .ledger-rivalry .best-deck-content{padding-right:40px!important}
  #statisticsSection .deck-stats-carousel .deck-stats-card{flex-basis:calc((100% - 14px)/2)}
 }
 @media(max-width:480px){
