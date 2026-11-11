@@ -39,6 +39,9 @@ for(const width of [1440,1100,1024,800,700,390,320]){
  assert.ok(await p.locator('.ledger-report-tabs button').evaluateAll(es=>es.every(e=>e.scrollWidth<=e.clientWidth+1)),'tab clipping '+width);
  assert.ok(await p.locator('.ledger-report, .ledger-report-panel, .ledger-rivalry').evaluateAll(es=>es.every(e=>e.scrollWidth<=e.clientWidth+1 && e.scrollHeight<=e.clientHeight+1)),'clipped report '+width);
  assert.equal(await p.locator('.ledger-by-deck [role=tablist]').count(),0);
+ const rivalry=await p.locator('.ledger-rivalry-grid').evaluate(e=>({width:e.getBoundingClientRect().width,items:[...e.children].map(c=>({width:c.getBoundingClientRect().width,top:c.getBoundingClientRect().top}))}));
+ if(width>800){assert.ok(Math.abs(rivalry.items[0].width/rivalry.width-.5)<.005,'commander half width');assert.ok(rivalry.items.slice(1).every(r=>Math.abs(r.width/rivalry.width-.25)<.005),'quarter width metrics')}else{assert.ok(Math.abs(rivalry.items[0].width-rivalry.width)<1,'mobile commander width');assert.ok(rivalry.items[1].top>rivalry.items[0].top,'mobile metrics below art')}
+
  const bottom=await p.locator('.ledger-by-deck').evaluate(e=>e.getBoundingClientRect().top+scrollY);
  assert.ok((await pos()).every(r=>r.top+r.height<=bottom),'By Deck is last '+width);
 }
@@ -51,6 +54,9 @@ await p.locator('[data-ledger-view=rotation]').getByRole('button',{name:'Adjust 
 await p.locator('dialog [data-frame=y]').fill('60');await p.click('dialog [data-action=save]');
 await p.waitForFunction(()=>!document.querySelector('dialog'));
 assert.equal(await p.locator('[data-ledger-view=rotation] img[alt="Captain America"]').evaluate(e=>e.style.objectPosition),'50% 60%');
+await p.locator('#nemesisCommander').getByRole('button',{name:'Adjust artwork for Captain America',exact:true}).click();
+await p.locator('dialog [data-frame=y]').fill('42');await p.click('dialog [data-action=save]');await p.waitForFunction(()=>!document.querySelector('dialog'));
+assert.equal(await p.locator('#nemesisCommander .best-deck-art').evaluate(e=>e.style.backgroundPosition),'50% 42%');
 await p.selectOption('#statsDatePreset','month');
 assert.equal(await p.getByRole('tab',{name:'Rotation',exact:true}).getAttribute('aria-selected'),'true');
 assert.deepEqual(await p.locator('.ledger-friend-totals strong').allTextContents(),['4','2','2']);
