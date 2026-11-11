@@ -1,0 +1,10 @@
+Unmodified mana symbol SVGs downloaded from Scryfall's symbol service:
+https://svgs.scryfall.io/card-symbols/W.svg
+https://svgs.scryfall.io/card-symbols/U.svg
+https://svgs.scryfall.io/card-symbols/B.svg
+https://svgs.scryfall.io/card-symbols/R.svg
+https://svgs.scryfall.io/card-symbols/G.svg
+https://svgs.scryfall.io/card-symbols/C.svg
+
+Bundled locally so image exports do not depend on cross-origin SVG headers.
+Magic: The Gathering symbols are property of Wizards of the Coast.

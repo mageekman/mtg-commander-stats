@@ -1,4 +1,4 @@
-import {privacyGroups} from './profile-stat-privacy.js?v=1';
+import {privacyGroups} from './profile-stat-privacy.js?v=strongest-2';
 export const ledgerSettingGroups=privacyGroups;
 export const ledgerVisibilityKeys=ledgerSettingGroups.flatMap(([,fields])=>fields.map(([key])=>key));
 export function normalizeLedgerSettings(value){

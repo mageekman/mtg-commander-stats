@@ -2,7 +2,7 @@ export const privacyGroups=[
  ['Record and performance',[
   ['share_record','Games played'],['share_win_chart','Win rate, wins, and losses'],['share_win_trend','Win-rate trend'],
   ['share_best_deck','Best deck'],['share_most_played_deck','Most played deck'],
-  ['share_most_played_color','Most played color'],['share_best_color_combo','Highest color combo win rate']]],
+  ['share_most_played_color','Most played color'],['share_best_color_combo','Strongest Color']]],
  ['Rivalry Summary',[
   ['share_lost_to_commander','Rival Commander'],['share_lost_to_player','Rival Player'],['share_lost_to_color','Rival Color Combo']]],
  ['Play Patterns',[
