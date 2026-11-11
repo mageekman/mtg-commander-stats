@@ -1,3 +1,4 @@
+import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
 import {mountDeckPerformance} from './deck-performance.js?v=carousel-5';
 function colorIdentityIcons(colors){
  const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
@@ -55,8 +56,8 @@ function type(c){
 function element(tag,text){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e}
 async function run(){
  if(!id||!/^[0-9a-f-]{36}$/i.test(id)){$('status').textContent='Invalid deck link.';return}
- const {data:{user}}=await sb.auth.getUser();
- if(!user){$('status').textContent='Please sign in on the Command Ledger home page to view this deck.';return}
+ const {user,error:authError}=await readPageUser(sb);
+ if(!user){showAuthPrompt($('status'),{message:'Sign in to view this deck.',error:authError});return}
  let {data:deck,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,archived_at,owner_id,bracket_level,theme,notes').eq('id',id).single();
  if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist,archived_at,owner_id').eq('id',id).single();if(!fallback.error){deck=fallback.data;error=null}}
 

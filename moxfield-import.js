@@ -1,3 +1,4 @@
+import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
 import {setupDeckRemoval} from './deck-removal.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
@@ -18,8 +19,8 @@ if(isEditing){
 async function loadExisting(){
  if(!isEditing)return;
  if(!/^[0-9a-f-]{36}$/i.test(editId)){status.textContent='Invalid deck link.';return}
- const {data:{user}}=await sb.auth.getUser();
- if(!user){status.textContent='Sign in on the home page before editing your deck.';return}
+ const {user,error:authError}=await readPageUser(sb);
+ if(!user){showAuthPrompt(status,{message:'Sign in to edit this deck.',error:authError});return}
  let {data,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,bracket_level,theme,notes').eq('id',editId).eq('owner_id',user.id).single();
  if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist').eq('id',editId).eq('owner_id',user.id).single();if(!fallback.error){data=fallback.data;error=null}}
 
