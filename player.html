@@ -100,138 +100,16 @@ body.stats-only #sharedRivals .shared-stat strong{font-size:clamp(15px,2.5vw,21p
 #sharedDeckSection #sharedDecks.shared-decks{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;gap:14px!important;scroll-snap-type:x mandatory;scroll-behavior:smooth;overscroll-behavior-inline:contain;padding:5px 2px 15px;scrollbar-width:thin}
 #sharedDeckSection #sharedDecks .shared-deck{flex:0 0 clamp(210px,29%,280px)!important;min-width:0;scroll-snap-align:start;box-sizing:border-box}
 @media(max-width:720px){#sharedDeckSection #sharedDecks .shared-deck{flex-basis:min(75vw,270px)!important}#sharedDeckSection .shared-deck-toolbar{flex-wrap:wrap}#sharedDeckSection .shared-deck-toolbar input{flex-basis:100%}}
-</style><style>.profile-preview-notice:not([hidden]){display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border:1px solid #c9aa7570;border-radius:12px;padding:16px 20px;margin-bottom:20px;background:#142b29}.profile-preview-notice p{margin:5px 0 0;color:#bdcdc3;font-size:13px}.profile-preview-notice a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;border:1px solid #557369;border-radius:9px;background:#152d2b;color:#f1ebdb;text-decoration:none;font-size:13px;font-weight:650}</style><link rel="stylesheet" href="./ledger-statistics.css?v=1"><link rel="stylesheet" href="./shared-ledger-charts.css?v=1"><style>main{max-width:1180px}body{font-size:15px;padding:clamp(16px,3vw,36px)}#sharedLedger{line-height:normal}#sharedTotals{display:block}#sharedDeckSection{margin:0;padding:0;border:0}.stats-four:empty,.featured-decks:empty,.nemesis-section:empty{display:none}#sharedLedger .stats-donut-inner strong{font-family:inherit}#sharedLedger [hidden]{display:none!important}</style><link rel="stylesheet" href="./site-navigation.css?v=4"><link rel="stylesheet" href="./site-branding.css?v=3"><script src="./commander-art-position.js?v=manual-3" defer></script><link rel="stylesheet" href="./guest-preview.css?v=1"><link rel="stylesheet" href="./friend-notifications.css?v=1"><script type="module" src="./site-session.js?v=onboarding-6"></script><link rel="stylesheet" href="./site-footer.css?v=1"><script src="./site-footer.js?v=3" defer></script><link rel="stylesheet" href="./friends.css?v=1"></head><body><a id="siteHomeLogo" href="./index.html" aria-label="Command Ledger home"><img src="./cl-wordmark-final-transparent.png?v=final-1" alt="Command Ledger" width="1608" height="600" loading="eager" decoding="async"></a><nav id="siteNavigation" class="site-top-nav" aria-label="Main navigation"><a href="./index.html">My Decks</a><a href="./ledger.html">My Ledger</a><a href="./friends.html" hidden>Friends</a><a href="./sign-in.html" data-profile-link="true">Sign in/Create Account</a></nav><main><aside id="profilePreviewNotice" class="profile-preview-notice" hidden><div><strong>Viewing your public profile</strong><p>This is what other signed-in players can see, using your saved visibility settings.</p></div><a href="./profile.html">Back to visibility settings</a></aside><p id="status" class="passport-status" role="status">Loading player passport…</p>
+</style><style>.profile-preview-notice:not([hidden]){display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border:1px solid #c9aa7570;border-radius:12px;padding:16px 20px;margin-bottom:20px;background:#142b29}.profile-preview-notice p{margin:5px 0 0;color:#bdcdc3;font-size:13px}.profile-preview-notice a{display:inline-flex;align-items:center;min-height:42px;padding:0 14px;border:1px solid #557369;border-radius:9px;background:#152d2b;color:#f1ebdb;text-decoration:none;font-size:13px;font-weight:650}</style><link rel="stylesheet" href="./ledger-statistics.css?v=1"><link rel="stylesheet" href="./shared-ledger-charts.css?v=1"><style>main{max-width:1180px}body{font-size:15px;padding:clamp(16px,3vw,36px)}#sharedLedger{line-height:normal}#sharedTotals{display:block}#sharedDeckSection{margin:0;padding:0;border:0}.stats-four:empty,.featured-decks:empty,.nemesis-section:empty{display:none}#sharedLedger .stats-donut-inner strong{font-family:inherit}#sharedLedger [hidden]{display:none!important}</style><link rel="stylesheet" href="./site-navigation.css?v=4"><link rel="stylesheet" href="./site-branding.css?v=3"><script src="./commander-art-position.js?v=manual-3" defer></script><link rel="stylesheet" href="./guest-preview.css?v=1"><link rel="stylesheet" href="./friend-notifications.css?v=1"><script type="module" src="./site-session.js?v=onboarding-6"></script><link rel="stylesheet" href="./site-footer.css?v=1"><script src="./site-footer.js?v=3" defer></script><link rel="stylesheet" href="./friends.css?v=1"><link rel="stylesheet" href="./deck-stat-visuals.css?v=1"><link rel="stylesheet" href="./ledger-mockup-layout.css?v=2"><link rel="stylesheet" href="./public-ledger.css?v=1"></head><body><a id="siteHomeLogo" href="./index.html" aria-label="Command Ledger home"><img src="./cl-wordmark-final-transparent.png?v=final-1" alt="Command Ledger" width="1608" height="600" loading="eager" decoding="async"></a><nav id="siteNavigation" class="site-top-nav" aria-label="Main navigation"><a href="./index.html">My Decks</a><a href="./ledger.html">My Ledger</a><a href="./friends.html" hidden>Friends</a><a href="./sign-in.html" data-profile-link="true">Sign in/Create Account</a></nav><main><aside id="profilePreviewNotice" class="profile-preview-notice" hidden><div><strong>Viewing your public profile</strong><p>This is what other signed-in players can see, using your saved visibility settings.</p></div><a href="./profile.html">Back to visibility settings</a></aside><p id="status" class="passport-status" role="status">Loading player passport…</p>
 <section id="passport" class="panel profile-card" hidden><div class="profile-banner"><div id="commanderShowcase" hidden><svg class="favorite-heart" viewBox="0 0 24 24" aria-label="Favorite commander" role="img"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg><strong id="commanderTitle"></strong></div><img id="commanderArt" alt="Favorite commander artwork" hidden><div class="banner-shade"></div><div class="banner-content"><span class="eyebrow">PLAYER PASSPORT</span><h2 id="playerName"></h2><div class="profile-meta"><span id="playerHandle" class="handle"></span><span id="playerPronouns"></span></div><p id="playerBio" class="bio"></p><p id="memberSince" class="private"></p></div></div></section><section class="archive-section" id="sharedLedger" hidden><div class="archive-section-heading"><span class="archive-section-index">01 / THE RECORD</span><div class="statistics-title-row"><h2>Statistics</h2></div><p class="archive-section-description">Performance, rivalries, and most memorable commanders.</p></div><div id="sharedTotals"></div><div id="sharedFeatured" class="featured-decks"></div><div id="sharedRivals" class="extra-stats stats-four" aria-live="polite"></div><div id="sharedNemesis" class="best-deck nemesis-section"></div><div id="sharedDeckSection" hidden><details class="deck-collapse"><summary class="deck-collapse-title">Decks <span class="deck-collapse-chevron" aria-hidden="true">⌄</span></summary><div class="deck-collapse-content"><div id="sharedDecks" class="deck-stats-carousel" tabindex="0" aria-label="Shared deck statistics, horizontally scrollable"></div><p id="sharedDecksEmpty" class="muted" hidden>No decks match your search.</p></div></details></div></section></main>
 <script src="./loading-progress.js?v=1"></script><script src="./scryfall-client.js?v=20261110-batch-4"></script><script type="module">
-import {isGenericOpponentName} from './opponent-names.js?v=1';
-import {renderWinrateTrendChart} from './ledger-chart.js?v=1';
+import {mountSharedLedger} from './public-ledger.js?v=1';
 import {mountFriendAction} from './friends.js?v=3';
 import {applyPassportArt} from './passport-art.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
-async function loadSharedLedger(handle,options={}){
- const {data,error}=await sb.rpc('get_shared_ledger_stats',{target_handle:handle});if(error){console.error('Shared statistics could not load:',error);const notice=document.createElement('p');notice.className='passport-status';notice.textContent='Shared statistics could not load. Please try again later.';$('passport').after(notice);return}if(!data)return;const own=!!options.own,flags=options.flags||{},preview=!!options.preview;const allowed=key=>!!(flags.public_full_stats||flags[key]||(key==='share_record'&&flags.public_games)||(key==='share_win_chart'&&(flags.public_wins||flags.public_winrate)));if(own&&preview){if(!allowed('share_record'))delete data.record;if(!allowed('share_win_chart')){delete data.win_chart;delete data.winrate_history;}if(!allowed('share_best_deck'))delete data.best_deck;if(!allowed('share_most_played_deck'))delete data.most_played_deck;if(data.color_permissions){if(!allowed('share_most_played_color'))data.color_permissions.most_played=false;if(!allowed('share_best_color_combo'))data.color_permissions.best_combo=false;}if(!allowed('share_lost_to_color'))data.lost_color_enabled=false;if(!allowed('share_lost_to_player'))delete data.nemesis_player;if(!allowed('share_lost_to_commander')){data.nemesis_commander_enabled=false;delete data.nemesis_commander}if(!allowed('share_deck_stats'))data.decks_enabled=false;}const badge=(element,key)=>{if(!own||preview)return;const b=document.createElement('span');b.className='stat-privacy-badge';b.textContent=allowed(key)?'Public':'Private';b.classList.toggle('is-public',allowed(key));element.append(b)};
- window.commandLedgerPrefetchCommanders?.([data.best_deck?.commander,data.most_played_deck?.commander,data.nemesis_commander_enabled?data.nemesis_commander?.commander:null,...(data.decks_enabled?(data.decks||[]).map(deck=>deck.commander):[]),...(data.color_decks||[]).map(deck=>deck.commander),...(data.lost_color_enabled?data.lost_color_commanders||[]:[])]);
- const root=$('sharedLedger'),totals=$('sharedTotals'),featured=$('sharedFeatured'),deckHost=$('sharedDecks'),rivals=$('sharedRivals');
- const addStat=(host,label,value,detail='')=>{const box=document.createElement('div');box.className='insight-stat';const caption=document.createElement('span');caption.textContent=label;const strong=document.createElement('strong');strong.textContent=String(value);box.append(caption,strong);if(detail){const small=document.createElement('small');small.textContent=detail;box.append(small)}badge(box,({ 'Games played':'share_record',"Rival Player":'share_lost_to_player',"Rival Commander":'share_lost_to_commander'})[label]);host.append(box)};
- const feature=(label,deck,host=featured)=>{
-  if(!deck)return;
-  const card=document.createElement('div');card.className='best-deck-card';
-  const art=document.createElement('div');art.className='best-deck-art';art.setAttribute('aria-hidden','true');
-  const info=document.createElement('div');info.className='best-deck-content';
-  const games=Number(deck.games)||0,wins=Number(deck.wins)||0,rate=games?(100*wins/games).toFixed(1):'0.0';
-  const rival=label.includes('Rival'),most=label.includes('Most played');
-  const primary=rival?games+' losses':most?games+' games played':rate+'% win rate';
-  const detail=rival?'Against this commander':most?wins+' wins · '+(games-wins)+' losses · '+rate+'% win rate':wins+' wins in '+games+' games';
-  for(const [tag,text,cls] of [['span',label,'best-deck-label'],['strong',deck.name,'best-deck-name'],['span',deck.commander,'best-deck-commander'],['strong',primary,'best-deck-rate'],['span',detail,'best-deck-record']]){if(rival&&cls==='best-deck-commander')continue;const node=document.createElement(tag);node.className=cls;node.textContent=text;info.append(node)}
-  card.append(art,info);badge(card,rival?'share_lost_to_commander':most?'share_most_played_deck':'share_best_deck');host.append(card);setDeckArtwork(art,deck.commander);
- };
-
- if(data.win_chart||data.record){
-  const row=document.createElement('div');row.className='ledger-chart-row';
-  const card=document.createElement('div');card.className='stats-pie-card';
-  if(data.win_chart){
-   const g=Number(data.win_chart.games)||0,w=Number(data.win_chart.wins)||0,rate=g?100*w/g:0;
-   const donut=document.createElement('div');donut.className='stats-donut';donut.style.setProperty('--win-percent',rate+'%');
-   const inner=document.createElement('div');inner.className='stats-donut-inner';
-   const percentage=document.createElement('strong');percentage.textContent=rate.toFixed(1)+'%';
-   const caption=document.createElement('span');caption.textContent='Win rate';inner.append(percentage,caption);donut.append(inner);
-   const legend=document.createElement('div');legend.className='stats-pie-legend';
-   for(const [kind,label,value] of [['win','Wins',w],['loss','Losses',g-w]]){
-    const line=document.createElement('div'),dot=document.createElement('span'),text=document.createElement('span'),count=document.createElement('strong');
-    dot.className='stats-pie-dot '+kind;text.textContent=label;count.textContent=String(value);line.append(dot,text,count);legend.append(line);
-   }
-   const main=document.createElement('div');main.className='stats-pie-main';main.append(donut,legend);
-   const total=document.createElement('div');total.className='stats-games-total';
-   const totalNumber=document.createElement('strong');totalNumber.textContent=String(g);
-   const totalLabel=document.createElement('span');totalLabel.textContent='Total games played';total.append(totalNumber,totalLabel);
-   card.append(main,total);badge(card,'share_win_chart');
-  }else{
-   const total=document.createElement('div');total.className='stats-games-total';
-   const number=document.createElement('strong');number.textContent=String(data.record.games);
-   const label=document.createElement('span');label.textContent='Total games played';total.append(number,label);card.append(total);badge(card,'share_record');
-  }
-  const summary=document.createElement('div');summary.id='summary';summary.className='stats-overview';summary.append(card);row.append(summary);
-  if(data.win_chart&&Array.isArray(data.winrate_history)){
-   const trend=document.createElement('div');trend.className='winrate-trend';
-   const heading=document.createElement('div');heading.className='winrate-trend-heading';
-   const title=document.createElement('h3');title.textContent='Win rate over time';
-   const description=document.createElement('p');description.textContent='How your win rate has changed across recorded games';
-   const headingCopy=document.createElement('div');headingCopy.append(title,description);heading.append(headingCopy);
-   const chart=document.createElement('div');chart.className='winrate-trend-chart';
-   const empty=document.createElement('p');empty.className='muted';empty.textContent='Record games to see your win rate trend.';
-   trend.append(heading,chart,empty);badge(trend,'share_win_chart');row.append(trend);
-   renderWinrateTrendChart(chart,empty,data.winrate_history,{includeUndated:true});
-
-  }
-  totals.append(row);
- }
- feature('★ Best deck',data.best_deck);feature('★ Most played deck',data.most_played_deck);
- const colors=new Map(),combos=new Map();let unavailable=0;
- const identityCache=new Map();
- async function identity(name){
-  const full=String(name||'').trim();
-  if(!full)return null;
-  async function lookup(part){
-   const key=part.toLowerCase();
-   if(!identityCache.has(key))identityCache.set(key,(async()=>{
-    try{
-     const res=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/named?exact='+encodeURIComponent(part),{headers:{Accept:'application/json'}});
-     if(!res.ok)return null;
-     const card=await res.json();
-     return Array.isArray(card.color_identity)?card.color_identity:null;
-    }catch{return null}
-   })());
-   return identityCache.get(key);
-  }
-  // Check the full name first. Ampersands also occur in single-card names.
-  const exact=await lookup(full);
-  if(exact!==null)return [...new Set(exact)].filter(x=>'WUBRG'.includes(x)).sort((a,b)=>'WUBRG'.indexOf(a)-'WUBRG'.indexOf(b)).join('');
-  const parts=full.split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean);
-  if(parts.length<2)return null;
-  const ids=await Promise.all(parts.map(lookup));
-  if(ids.some(x=>x===null))return null;
-  return [...new Set(ids.flat())].filter(x=>'WUBRG'.includes(x)).sort((a,b)=>'WUBRG'.indexOf(a)-'WUBRG'.indexOf(b)).join('');
- }
- const colorPromises=(data.color_decks||[]).map(async d=>({d,color:await identity(d.commander)}));
- const [deckColors,lossColors]=await Promise.all([Promise.all(colorPromises),Promise.all((data.lost_color_commanders||[]).map(identity))]);
- for(const {d,color} of deckColors){if(color===null){unavailable++;continue}for(const c of color){if(c!=='C')colors.set(c,(colors.get(c)||0)+d.games)}const stat=combos.get(color)||{games:0,wins:0};stat.games+=d.games;stat.wins+=d.wins;combos.set(color,stat)}
- const manaSymbols=(code)=>{const holder=document.createDocumentFragment();const names={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};if(!code||code==='C'){const img=document.createElement('img');img.src='https://svgs.scryfall.io/card-symbols/C.svg';img.alt='Colorless mana';holder.append(img);return holder}for(const c of code){if(!names[c])continue;const img=document.createElement('img');img.src='https://svgs.scryfall.io/card-symbols/'+c+'.svg';img.alt=names[c]+' mana';img.title=names[c];img.width=26;img.height=26;img.style.cssText='width:26px;height:26px;vertical-align:middle;margin-right:5px';holder.append(img)}return holder};const colorStat=(label,code,detail)=>{const box=document.createElement('div');box.className='insight-stat';const caption=document.createElement('span');caption.textContent=label;const value=document.createElement('strong');if(code!==null){if(code)value.append(manaSymbols(code));else value.textContent='Colorless'}else value.textContent='No data';const small=document.createElement('small');small.textContent=detail||'';box.append(caption,value,small);badge(box,({'Most played color':'share_most_played_color','Highest color combo win rate':'share_best_color_combo',"Rival Color Combo":'share_lost_to_color'})[label]);rivals.append(box)};
- if(data.color_permissions?.most_played){const top=[...colors].sort((a,b)=>b[1]-a[1])[0];colorStat('Most played color',top?.[0],top?top[1]+' games':'')}
- if(data.color_permissions?.best_combo){const best=[...combos].sort((a,b)=>b[1].wins/b[1].games-a[1].wins/a[1].games||b[1].games-a[1].games)[0];colorStat('Highest color combo win rate',best?.[0],best?(100*best[1].wins/best[1].games).toFixed(1)+'% win rate · '+best[1].wins+' wins in '+best[1].games+' games':'')}
- if(data.lost_color_enabled){
-  const counts=new Map();
-  for(const c of lossColors)if(c!==null)counts.set(c,(counts.get(c)||0)+1);
-  const top=[...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0];
-  colorStat("Rival Color Combo",top?.[0]??null,top?top[1]+' losses':'No recorded losses');
- }
- if(data.nemesis_player&&!isGenericOpponentName(data.nemesis_player.player))addStat(rivals,"Rival Player",data.nemesis_player.player,data.nemesis_player.losses+' losses');
- if(data.nemesis_commander_enabled){if(data.nemesis_commander){const card={name:data.nemesis_commander.commander,commander:data.nemesis_commander.commander,games:data.nemesis_commander.losses,wins:0};feature("★ Rival Commander",card,$('sharedNemesis'))}else{const empty=document.createElement('div');empty.className='best-deck-empty';empty.textContent='No recorded losses to named commanders yet.';$('sharedNemesis').append(empty)}}
- if(data.decks_enabled){$('sharedDeckSection').hidden=false;badge($('sharedDeckSection'),'share_deck_stats');const toolbar=document.createElement('div');toolbar.className='deck-carousel-heading';const controls=document.createElement('div');controls.className='deck-carousel-controls';toolbar.append(controls);const search=document.createElement('input');search.placeholder='Search decks or commanders…';search.setAttribute('aria-label','Search decks');const sort=document.createElement('select');for(const [value,label] of [['games','Games played'],['winrate','Win rate'],['name','Name']]){const opt=document.createElement('option');opt.value=value;opt.textContent=label;sort.append(opt)}sort.value='winrate';const prev=document.createElement('button'),next=document.createElement('button');
- prev.type=next.type='button';prev.className='shared-deck-nav';next.className='shared-deck-nav';
- prev.textContent='‹';next.textContent='›';prev.setAttribute('aria-label','Previous decks');next.setAttribute('aria-label','Next decks');
- prev.onclick=()=>deckHost.scrollBy({left:-deckHost.clientWidth*.8,behavior:'smooth'});
- next.onclick=()=>deckHost.scrollBy({left:deckHost.clientWidth*.8,behavior:'smooth'});
- const sortLabel=document.createElement('label');sortLabel.className='deck-sort-label';sortLabel.textContent='Sort by ';sortLabel.append(sort);const orderLabel=document.createElement('label');orderLabel.className='deck-sort-label';orderLabel.textContent='Order ';const direction=document.createElement('select');for(const [value,label] of [['desc','Descending'],['asc','Ascending']]){const option=document.createElement('option');option.value=value;option.textContent=label;direction.append(option)}orderLabel.append(direction);controls.append(search,sortLabel,orderLabel,prev,next);$('sharedDeckSection').querySelector('.deck-collapse-content').prepend(toolbar);
- deckHost.setAttribute('tabindex','0');deckHost.setAttribute('aria-label','Deck carousel, scroll horizontally to see more decks');
- const updateNav=()=>{prev.disabled=deckHost.scrollLeft<=2;next.disabled=deckHost.scrollLeft+deckHost.clientWidth>=deckHost.scrollWidth-2};
- deckHost.addEventListener('scroll',updateNav,{passive:true});
- window.addEventListener('resize',updateNav);const decks=(data.decks||[]).filter(deck=>!deck.archived_at&&Number(deck.games)>0);const render=()=>{deckHost.replaceChildren();deckHost.scrollLeft=0;const filtered=decks.filter(d=>(d.name+' '+d.commander).toLowerCase().includes(search.value.toLowerCase()));filtered.sort((a,b)=>{const comparison=sort.value==='winrate'?((a.games?a.wins/a.games:0)-(b.games?b.wins/b.games:0)):sort.value==='name'?a.name.localeCompare(b.name):a.games-b.games;return (direction.value==='asc'?1:-1)*comparison});for(const d of filtered){
- const card=document.createElement('div');card.className='deck-stats-card';
- const art=document.createElement('div');art.className='deck-stats-art';art.setAttribute('aria-hidden','true');
- const content=document.createElement('div');content.className='deck-stats-content';
- const name=document.createElement('strong');name.className='deck-stats-name';name.textContent=d.name;
- const commander=document.createElement('span');commander.className='deck-stats-commander';commander.textContent=d.commander;
- const bottom=document.createElement('div');bottom.className='deck-stats-bottom';
- const rate=document.createElement('div');rate.className='deck-stats-rate';rate.textContent=(d.games?100*d.wins/d.games:0).toFixed(1)+'%';
- const rateLabel=document.createElement('small');rateLabel.textContent='Win rate';rate.append(rateLabel);
- const record=document.createElement('span');record.className='deck-stats-record';record.textContent=d.wins+' wins · '+(d.games-d.wins)+' losses';
- bottom.append(rate,record);content.append(name,commander,bottom);card.append(art,content);deckHost.append(card);setDeckArtwork(art,d.commander);
- }$('sharedDecksEmpty').hidden=!!filtered.length;requestAnimationFrame(updateNav)};search.oninput=render;sort.onchange=render;direction.onchange=render;render()}else{deckHost.hidden=true}
- root.hidden=!(totals.children.length||$('sharedNemesis').children.length||featured.children.length||rivals.children.length||data.decks_enabled);
-}
-async function setDeckArtwork(art,commander){try{const url=await window.commandLedgerCommanderArtwork(commander);if(url&&art.isConnected){window.commandLedgerArtPosition.apply(art,commander);art.style.backgroundImage='url("'+url+'")'}}catch{}}
+async function loadSharedLedger(handle){return mountSharedLedger($('sharedLedger'),{client:sb,handle})}
 async function run(){const statsOnly=new URLSearchParams(location.search).get('statsOnly')==='1';const previewPublic=new URLSearchParams(location.search).get('previewPublic')==='1';if(statsOnly){document.body.classList.add('stats-only');const resize=()=>parent.postMessage({type:'ledger-stats-height',height:document.documentElement.scrollHeight},location.origin);new ResizeObserver(resize).observe(document.body);window.addEventListener('load',resize);resize()}const handle=new URLSearchParams(location.search).get('user')||'';if(!/^[a-z0-9_]{3,20}$/.test(handle)){$('status').textContent='Invalid player username.';return}
 const {data:{user}}=await sb.auth.getUser();if(!user){$('status').textContent='Sign in to view player passports.';return}
 // An owner's profile is for identity and sharing preferences; stats live in My Ledger.
