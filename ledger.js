@@ -1,7 +1,8 @@
-import {selectBestDeck} from './best-deck.js?v=1';
+import {normalizeLedgerSettings,readLedgerSettings,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=1';
+import {selectBestDeck} from './best-deck.js?v=2';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {commanderColors} from './ledger-commander-colors.js?v=1';
-import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=participants-2';
+import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=settings-3';
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=history-2';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=participants-4';
 import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=history-links-3';
@@ -17,6 +18,8 @@ const historyLinker=createGameHistoryLinker(sb);
 const $=id=>document.getElementById(id);
 let friendDisplayNames=new Map();
 let user=null,decks=[],games=[],playerCount=4,editingGameId=null,savingGame=false;
+let ledgerSettings=normalizeLedgerSettings();
+const updateSettingsForm=mountLedgerSettings(sb,()=>user,value=>{ledgerSettings=value;render()});
 const ledgerArt=createLedgerArtController(sb,()=>user);
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
 const message=t=>{$('message').textContent=t;$('gameFormStatus').textContent=t};
@@ -120,6 +123,8 @@ $('date').value=new Date().toLocaleDateString('en-CA');
 async function load(){
  historyLinker.clear();
  const auth=await sb.auth.getUser();user=auth.data.user;await ledgerArt.load(user);friendService.clear();friendDisplayNames=new Map();
+ $('openLedgerSettings').hidden=!user;
+ if(user){try{ledgerSettings=await readLedgerSettings(sb,user);updateSettingsForm(ledgerSettings);$('statisticsSection').hidden=false;$('shareLedgerLink').hidden=false}catch(error){$('statisticsSection').hidden=true;message('Unable to load Ledger settings. Reload to try again.');return}}else{ledgerSettings=normalizeLedgerSettings();$('statisticsSection').hidden=false}
  if(!user){decks=demoDecks;games=demoGames;$('save').disabled=true;const filter=$('historyDeckFilter');filter.replaceChildren(el('option','All decks'));filter.firstChild.value='';for(const deck of decks){const option=el('option',deck.name);option.value=deck.id;filter.append(option)}message('');render();return}
  $('save').disabled=false;
  const d=await sb.from('decks').select('id,name,commander,created_at,archived_at').eq('owner_id',user.id).order('name');
@@ -241,8 +246,8 @@ function filteredGames(){
 function stat(label,value){const box=el('div');box.className='stat';box.append(el('strong',String(value)),el('span',label));return box}
 function renderBestDeck(displayGames){
  const host=$('bestDeck');host.replaceChildren();
- const best=selectBestDeck(decks,displayGames);
- if(!best){const empty=el('div','Record a game to see your best-performing deck.');empty.className='best-deck-empty';host.append(empty);return}
+ const best=selectBestDeck(decks,displayGames,ledgerSettings.best_deck_min_games);
+ if(!best){const empty=el('div','Play at least '+ledgerSettings.best_deck_min_games+' games with an active deck in this timeframe to qualify for Best Deck.');empty.className='best-deck-empty';host.append(empty);return}
  const rate=(100*best.wins/best.games).toFixed(1)+'%';
  const card=el('div');card.className='best-deck-card';
  const artwork=el('div');artwork.className='best-deck-art';artwork.setAttribute('aria-hidden','true');
@@ -383,6 +388,7 @@ function render(){
  const pieMain=el('div');pieMain.className='stats-pie-main';pieMain.append(donut,legend);
  const total=el('div');total.className='stats-games-total';total.append(el('strong',String(visibleGames.length)),el('span','Total games played'));
  legend.prepend(total);pieCard.append(pieMain);summary.append(pieCard);
+ applyLedgerVisibility($('statisticsSection'),ledgerSettings);
  const byDeck=$('deckStats');byDeck.replaceChildren();byDeck.className='deck-stats-carousel';
  const search=($('deckStatsSearch')?.value||'').trim().toLowerCase();
  const deckStats=new Map();
