@@ -1,12 +1,12 @@
-import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=1';
-import {createLedgerArtController} from './ledger-art-adjustment.js?v=history-2';
+import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=reports-2';
+import {createLedgerArtController} from './ledger-art-adjustment.js?v=reports-4';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=2';
 import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=1';
 import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
 import {gameMatchesSearch} from './game-history-search.js?v=2';
 import {isGenericOpponentName} from './opponent-names.js?v=1';
-import {renderWinrateTrendChart} from './ledger-chart.js?v=1';
+import {renderTrend} from './deck-visuals.js?v=reports-2';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const friendService=createGameFriendService(sb);
@@ -362,7 +362,7 @@ function sortDecksForDisplay(list,stats,sort,direction){
  });
 }
 
-function renderWinrateTrend(visibleGames){renderWinrateTrendChart($('winrateTrendChart'),$('winrateTrendEmpty'),visibleGames)}
+let stopLedgerTrend=null;function renderWinrateTrend(visibleGames){stopLedgerTrend?.();stopLedgerTrend=renderTrend($('winrateTrendChart'),visibleGames);$('winrateTrendEmpty').hidden=true}
 
 function render(){
  const visibleGames=calendarFilteredGames();
@@ -382,12 +382,12 @@ function render(){
  renderWinrateTrend(visibleGames);
  renderBestDeck(visibleGames);
  renderExtraStats(visibleGames);
- renderAdditionalLedgerStats($('ledgerAdditionalStats'),{games:visibleGames,allGames:games,decks,names:friendDisplayNames});
+ renderAdditionalLedgerStats($('ledgerAdditionalStats'),{games:visibleGames,allGames:games,decks,names:friendDisplayNames,onArtwork:(image,box,url,{slot,commander})=>ledgerArt.attach(box,image,{slot,commander,url,title:commander,defaultFrame:{x:50,y:30,zoom:1},note:'Saved artwork framing for this commander in this Ledger report.'})});
  const wins=visibleGames.filter(g=>g.won).length;
  const summary=$('summary');summary.replaceChildren();
  const rate=visibleGames.length?(wins/visibleGames.length*100).toFixed(1):'0.0';
  const pieCard=el('div');pieCard.className='stats-pie-card';
- const donut=el('div');donut.className='stats-donut';donut.style.setProperty('--win-percent',rate+'%');
+ const donut=el('div');donut.className='stats-donut';donut.style.setProperty('--win-percent',rate+'%');if(!visibleGames.length)donut.style.setProperty('background','#29463b','important');
  donut.setAttribute('role','img');donut.setAttribute('aria-label',wins+' wins and '+(visibleGames.length-wins)+' losses');
  const inner=el('div');inner.className='stats-donut-inner';inner.append(el('strong',rate+'%'),el('span','Win rate'));donut.append(inner);
  const legend=el('div');legend.className='stats-pie-legend';
