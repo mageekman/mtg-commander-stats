@@ -20,4 +20,3 @@ export function friendMatchup(games,friendId){
 export function gamesTogether(games,names){
  return [...names].map(([id,name])=>({id,name,...friendMatchup(games,id)})).filter(row=>row.games).sort((a,b)=>b.games-a.games||a.name.localeCompare(b.name));
 }
-export function gamesWithCurrentFriends(games,names){return games.filter(game=>Array.isArray(game.players)&&game.players.some((player,index)=>index>0&&player?.friend_id&&names.has(player.friend_id)))}
