@@ -1,0 +1,40 @@
+/* Search, filter disclosure, and sort direction share one compact toolbar. */
+#profiles .home-deck-controls.search-filter-row,#gameHistorySection>.search-filter-row,#statisticsSection .ledger-by-deck .deck-carousel-controls.search-filter-row{display:flex;align-items:flex-end;flex-wrap:nowrap;gap:9px;width:100%;margin:12px 0}
+#profiles .home-deck-controls.search-filter-row>.deck-sort-label,#gameHistorySection>.search-filter-row>.history-search{flex:1;min-width:0;margin:0;display:flex;flex-direction:column;align-items:stretch;gap:6px;font-size:12px}
+#profiles .home-deck-controls.search-filter-row input,#gameHistorySection>.search-filter-row input,#statisticsSection .ledger-by-deck .search-filter-row>input{width:100%;min-width:0;height:42px;margin:0;padding:10px 12px;box-sizing:border-box}
+#statisticsSection .ledger-by-deck .deck-carousel-controls.search-filter-row>input{flex:1}
+.search-filter-menu{flex:none;position:relative}
+#profiles .search-filter-button,#gameHistorySection .search-filter-button,#statisticsSection .search-filter-button,#profiles .search-order-button,#gameHistorySection .search-order-button,#statisticsSection .search-order-button{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;height:42px;min-height:42px;padding:0 12px;margin:0;border:1px solid #688775;border-radius:8px;background:#17382d;color:#f1ebdb;font:600 12px/1 system-ui;cursor:pointer}
+#profiles .search-order-button,#gameHistorySection .search-order-button,#statisticsSection .search-order-button{width:42px;min-width:42px;padding:0}
+.search-order-button[data-direction=asc]>svg{transform:rotate(180deg)}
+.search-filter-count{display:grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border-radius:9px;background:#8ec4a5;color:#102820;font-size:10px}
+.search-filter-count[hidden]{display:none}
+.search-filter-panel{box-sizing:border-box;position:fixed;inset:auto;margin:0;width:min(310px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:18px;border:1px solid #6c8b76;border-radius:12px;background:#122e25;color:#f1ebdb;box-shadow:0 14px 40px #0008;z-index:1000}
+.search-filter-panel:popover-open{display:grid;gap:12px}
+.search-filter-panel:not([popover]):not([hidden]){display:grid;gap:12px}
+.search-filter-panel[hidden]{display:none!important}
+.search-filter-panel::backdrop{background:transparent}
+.search-filter-panel .search-filter-title{font:600 19px Georgia,serif;color:#e1c58f}
+.search-filter-panel>label,.search-filter-panel>.deck-sort-label{display:grid!important;gap:7px;margin:0!important;min-width:0;white-space:normal;font:500 12px/1.4 system-ui;color:#cfdfd1!important}
+.search-filter-panel select{box-sizing:border-box;display:block;width:100%;max-width:100%;height:42px;padding:8px 10px;margin:0!important;border:1px solid #55765f;border-radius:7px;background:#0c221a;color:#f1ebdb;font:14px system-ui}
+.search-filter-panel .search-filter-reset{margin:0;padding:9px 12px;border:1px solid #688775;border-radius:7px;background:#214a38;color:#f1ebdb;font:600 12px system-ui;cursor:pointer}
+.search-filter-reset:disabled{opacity:.45;cursor:default}
+.search-filter-button:focus-visible,.search-order-button:focus-visible,.search-filter-panel button:focus-visible,.search-filter-panel select:focus-visible{outline:2px solid #c9aa75;outline-offset:3px}
+.search-filter-row>[hidden]{display:none!important}
+#profiles .search-filter-row .home-deck-view-toggle{flex:none;align-self:flex-end}
+@media(max-width:650px){
+ #profiles .home-deck-controls.search-filter-row{display:grid;grid-template-columns:minmax(0,1fr) auto 42px}
+ #profiles .search-filter-row>.home-deck-view-toggle{grid-column:1/-1;justify-self:end}
+}
+@media(max-width:480px){
+ #profiles .search-filter-caption,#gameHistorySection .search-filter-caption,#statisticsSection .search-filter-caption{display:none}
+ #profiles .search-filter-button,#gameHistorySection .search-filter-button,#statisticsSection .search-filter-button{padding:0 10px;min-width:38px}
+ #profiles .search-order-button,#gameHistorySection .search-order-button,#statisticsSection .search-order-button{width:38px;min-width:38px}
+ #profiles .home-deck-controls.search-filter-row{grid-template-columns:minmax(0,1fr) auto 38px;gap:7px}
+ #statisticsSection .ledger-by-deck .deck-carousel-controls.search-filter-row{display:grid;grid-template-columns:minmax(0,1fr) auto 38px;gap:7px}
+ #statisticsSection .ledger-by-deck .deck-carousel-controls.search-filter-row>input{grid-column:1;min-width:0}
+ #statisticsSection .ledger-by-deck .search-filter-row>#deckCarouselPrev{grid-column:2}
+ #statisticsSection .ledger-by-deck .search-filter-row>#deckCarouselNext{grid-column:3}
+ #gameHistorySection>.search-filter-row{gap:7px}
+ .search-filter-panel select{font-size:16px}
+}

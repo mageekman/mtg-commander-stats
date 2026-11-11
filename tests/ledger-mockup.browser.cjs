@@ -49,7 +49,7 @@ await p.getByRole('tab',{name:'Going First',exact:true}).focus();await p.keyboar
 assert.equal(await p.getByRole('tab',{name:'Rotation',exact:true}).getAttribute('aria-selected'),'true');
 await p.fill('#deckStatsSearch','Other');assert.equal(await p.locator('#deckStats .deck-stats-card').count(),1);
 await p.fill('#deckStatsSearch','');assert.equal(await p.locator('#deckStats .deck-stats-card').count(),2);
-await p.selectOption('#ledgerDeckDirection','asc');await p.selectOption('#ledgerDeckSort','added');
+await p.click('#ledgerDeckOrder');await p.click('#ledgerDeckFilters');await p.selectOption('#ledgerDeckSort','added');await p.click('#ledgerDeckFilters');
 await p.locator('[data-ledger-view=rotation]').getByRole('button',{name:'Adjust artwork for My Active Deck',exact:true}).click();
 await p.locator('dialog [data-frame=y]').fill('60');await p.click('dialog [data-action=save]');
 await p.waitForFunction(()=>!document.querySelector('dialog[open]'));
