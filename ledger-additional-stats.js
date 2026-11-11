@@ -1,5 +1,5 @@
-import {firstPlayerStats,deckRotation,gamesTogether} from './player-game-stats.js?v=1';
-import {mostFacedFriendCommander} from './deck-performance-stats.js?v=visual-2';
+import {firstPlayerStats,deckRotation,gamesTogether} from './player-game-stats.js?v=participants-2';
+import {mostFacedFriendCommander} from './deck-performance-stats.js?v=participants-3';
 import {node,pct,ring,rateBar,artPanel,pagedCards} from './deck-visuals.js?v=reports-2';
 import {createLedgerReport} from './ledger-report-tabs.js?v=mockup-1';
 
@@ -50,7 +50,7 @@ function mount(host){
   },{size:2,className:'ledger-friend-list',label:'friends played with'});
 
   // A multi-friend game contributes once to the user's aggregate record.
-  const shared=data.games.filter(game=>Array.isArray(game.players)&&game.players.some((player,index)=>index>0&&player?.friend_id&&data.names.has(player.friend_id)));
+  const shared=data.games.filter(game=>Array.isArray(game.players)&&game.players.some((player,index)=>index>0&&data.names.has(player?.friend_id||player?.participant_id)));
   const wins=shared.filter(game=>game.won).length,results=friends.get('results'),totals=node('div');totals.className='ledger-friend-totals';
   for(const [value,label]of [[shared.length,'Games'],[wins,'Wins'],[shared.length-wins,'Losses']]){const metric=node('div');metric.append(node('strong',value),node('small',label));totals.append(metric)}
   results.replaceChildren(ring(shared.length?100*wins/shared.length:null,'Your win rate with friends'),totals,node('small','Based on your Ledger. Each tagged game counts once, even with multiple friends.'));

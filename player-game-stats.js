@@ -10,10 +10,10 @@ export function deckRotation(decks,games,allGames=games){
 }
 export function friendMatchup(games,friendId){
  const result={games:0,your_wins:0,friend_wins:0,other_wins:0,unknown:0,last:null};
- for(const game of games){const players=Array.isArray(game.players)?game.players:[];if(!players.some((p,index)=>index>0&&p.friend_id===friendId))continue;result.games++;if(game.played_at&&(!result.last||game.played_at>result.last))result.last=game.played_at;
+ for(const game of games){const players=Array.isArray(game.players)?game.players:[];if(!players.some((p,index)=>index>0&&(p.friend_id||p.participant_id)===friendId))continue;result.games++;if(game.played_at&&(!result.last||game.played_at>result.last))result.last=game.played_at;
   if(game.won){result.your_wins++;continue}
   const winner=Number.isInteger(game.winner_player)&&game.winner_player>0?players[game.winner_player]:null;
-  if(!winner)result.unknown++;else if(winner.friend_id===friendId)result.friend_wins++;else result.other_wins++;
+  if(!winner)result.unknown++;else if((winner.friend_id||winner.participant_id)===friendId)result.friend_wins++;else result.other_wins++;
  }
  return {...result,your_rate:result.games?100*result.your_wins/result.games:null,friend_rate:result.games&&!result.unknown?100*result.friend_wins/result.games:null};
 }

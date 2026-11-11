@@ -1,9 +1,10 @@
+import {mountPlayedWith} from './played-with.js?v=1';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
-import {mountFriendRivalries} from './friend-rivalries.js?v=compact-3';
+import {mountFriendRivalries} from './friend-rivalries.js?v=participants-4';
 import {rankingPeriods,rankingRange,dateString} from './friend-ranking-period.js?v=1';
 import {applyPassportArt} from './passport-art.js?v=1';
 import {mountGameInvitations} from './game-invitations.js?v=2';
-import {mountRecentFriendGames} from './recent-friend-games.js?v=3';
+import {mountRecentFriendGames} from './recent-friend-games.js?v=participants-4';
 import {renderFriendDashboard} from './friends-dashboard.js?v=ranking-tabs-5';
 import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=invite-3';
 import {createClient} from './vendor/supabase-js.mjs';
@@ -83,7 +84,7 @@ async function start(){
  try{const {user,error}=await readPageUser(sb);activeUser=user;setFriendNotificationUser(user);document.querySelector('.friends-page-tools').hidden=!user;
   if(!user){showFriendNotifications(document.getElementById('friendUpdates'));host.hidden=true;status.textContent='';showAuthPrompt(document.getElementById('friendsPageSignIn'),{message:'Sign in to see your friends and requests.',error});return}
   document.getElementById('friendsPageSignIn').hidden=true;updateNotifications();
-  if(document.body.dataset.friendsPage==='requests'){host.replaceChildren();host.hidden=false;status.textContent='';const games=node('section'),friends=node('section');host.append(games,friends);mountGameInvitations(games,{loadInvitations:()=>rpc('list_game_invitations'),loadDecks:async()=>{const {data,error}=await sb.from('decks').select('id,name,commander,archived_at').eq('owner_id',user.id).order('name');if(error)throw error;return data||[]},respond:(id,decision,deck)=>rpc('respond_game_invitation',{invitation_id:id,decision,selected_deck_id:deck})});mountRequestsPanel(friends)}else await loadFriends();
+  if(document.body.dataset.friendsPage==='requests'){host.replaceChildren();host.hidden=false;status.textContent='';const games=node('section'),friends=node('section'),played=node('section');host.append(games,friends,played);mountPlayedWith(played,sb);mountGameInvitations(games,{loadInvitations:()=>rpc('list_game_invitations'),loadDecks:async()=>{const {data,error}=await sb.from('decks').select('id,name,commander,archived_at').eq('owner_id',user.id).order('name');if(error)throw error;return data||[]},respond:(id,decision,deck)=>rpc('respond_game_invitation',{invitation_id:id,decision,selected_deck_id:deck})});mountRequestsPanel(friends)}else await loadFriends();
  }catch(error){console.error('Connections unavailable',error);status.textContent='Your connections could not be loaded. Please try again.'}
 }
 document.addEventListener('friends-changed',()=>{if(activeUser&&document.body.dataset.friendsPage==='friends')loadFriends()});

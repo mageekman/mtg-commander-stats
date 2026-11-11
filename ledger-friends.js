@@ -14,9 +14,10 @@ export function createGameFriendService(sb){
   decks(id){return request('get_friend_game_decks',{target_id:id})}
  };
 }
-export function gamePlayerSnapshot(row){return {name:row.querySelector('.player-name').value.trim(),commander:row.querySelector('.player-commander').value.trim(),...(row.friendSelection||{})}}
+export function gamePlayerSnapshot(row){return {name:row.querySelector('.player-name').value.trim(),commander:row.querySelector('.player-commander').value.trim(),...(row.recordedParticipantId?{participant_id:row.recordedParticipantId}:{}),...(row.friendSelection||{})}}
 let nextMenuId=0;
 export function attachGameFriend({row,name,commander,snapshot,service,onCommander}){
+ row.recordedParticipantId=snapshot?.participant_id||snapshot?.friend_id||null;
  const label=name.parentElement,wrap=commander.closest('.commander-search');
  const menu=document.createElement('div');menu.className='game-friend-menu';menu.id='game-friend-menu-'+(++nextMenuId);menu.role='listbox';menu.hidden=true;label.append(menu);
  const status=document.createElement('span');status.className='game-friend-status';status.setAttribute('role','status');label.append(status);
@@ -26,7 +27,7 @@ export function attachGameFriend({row,name,commander,snapshot,service,onCommande
  const close=()=>{menu.hidden=true;menu.replaceChildren();name.setAttribute('aria-expanded','false')};
  function manual(){picker?.remove();picker=null;if(wrap)wrap.hidden=false;commander.required=true;commander.disabled=false;row.friendSelection=null;row.friendLoading=false}
  async function choose(friend,restoring=false){
-  const current=++sequence;close();manual();if(!restoring)name.value='@'+friend.handle;
+  const current=++sequence;close();manual();if(!restoring)row.recordedParticipantId=null;if(!restoring)name.value='@'+friend.handle;
   row.friendSelection={friend_id:friend.id};row.friendLoading=true;commander.disabled=true;status.textContent='Loading shared decks…';
   try{
    const decks=await service.decks(friend.id);if(!row.isConnected||current!==sequence)return;
@@ -46,7 +47,7 @@ export function attachGameFriend({row,name,commander,snapshot,service,onCommande
   finally{if(current===sequence){row.friendLoading=false;commander.disabled=false}}
  }
  name.addEventListener('input',async()=>{
-  const current=++sequence;close();if(row.friendSelection||row.friendLoading){manual();setCommander(commander.value)}status.textContent='';
+  const current=++sequence;row.recordedParticipantId=null;close();if(row.friendSelection||row.friendLoading){manual();setCommander(commander.value)}status.textContent='';
   const value=name.value.trim();if(!value.startsWith('@'))return;
   try{const friends=await service.friends();if(current!==sequence||!row.isConnected)return;const matches=matchGameFriends(friends,value);for(const friend of matches){const option=document.createElement('button');option.type='button';option.role='option';option.tabIndex=-1;option.textContent=(friend.display_name||friend.handle)+' · @'+friend.handle;option.onmousedown=event=>event.preventDefault();option.onclick=()=>choose(friend).then(()=>{(picker||commander).focus()});menu.append(option)}if(!matches.length){status.textContent='No matching friends. You can still enter a player manually.';return}menu.hidden=false;name.setAttribute('aria-expanded','true')}
   catch{if(current===sequence)status.textContent='Friends could not load. Enter a name and commander manually.'}
@@ -54,5 +55,6 @@ export function attachGameFriend({row,name,commander,snapshot,service,onCommande
  name.addEventListener('keydown',event=>{if(event.key==='Escape')close();if(event.key==='ArrowDown'&&!menu.hidden){event.preventDefault();menu.querySelector('button')?.focus()}});
  menu.addEventListener('keydown',event=>{const options=[...menu.querySelectorAll('button')],index=options.indexOf(document.activeElement);if(event.key==='Escape'){close();name.focus()}if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();options[(index+(event.key==='ArrowDown'?1:-1)+options.length)%options.length]?.focus()}});
  label.addEventListener('focusout',()=>setTimeout(()=>{if(!label.contains(document.activeElement))close()},100));
- if(snapshot?.friend_id){row.friendSelection={friend_id:snapshot.friend_id,...(snapshot.friend_deck_id?{friend_deck_id:snapshot.friend_deck_id}:{})};row.friendLoading=true;service.friends().then(friends=>{if(!row.isConnected||sequence)return;const friend=friends.find(f=>f.id===snapshot.friend_id);if(friend)return choose(friend,true);manual()}).catch(()=>{if(!sequence&&row.isConnected)manual()})}
+ const recordedId=snapshot?.friend_id||snapshot?.participant_id;
+ if(recordedId){row.friendSelection={friend_id:recordedId,...(snapshot.friend_deck_id?{friend_deck_id:snapshot.friend_deck_id}:{})};row.friendLoading=true;service.friends().then(friends=>{if(!row.isConnected||sequence)return;const friend=friends.find(f=>f.id===recordedId);if(friend)return choose(friend,true);manual();status.textContent='Recorded player. Not currently on your friends list.'}).catch(()=>{if(!sequence&&row.isConnected)manual()})}
 }

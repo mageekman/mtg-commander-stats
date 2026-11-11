@@ -1,8 +1,8 @@
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=reports-3';
 import {groupDeckStats} from './deck-stat-tabs.js?v=1';
-import {record,commanderMatchups,tableSizeStats,recentForm,deckActivity,mostFacedFriendCommander} from './deck-performance-stats.js?v=visual-2';
-import {firstPlayerStats,gamesTogether} from './player-game-stats.js?v=1';
-import {loadFriendDisplayNames} from './friend-display-names.js?v=2';
+import {record,commanderMatchups,tableSizeStats,recentForm,deckActivity,mostFacedFriendCommander} from './deck-performance-stats.js?v=participants-3';
+import {firstPlayerStats,gamesTogether} from './player-game-stats.js?v=participants-2';
+import {loadFriendDisplayNames} from './friend-display-names.js?v=participants-4';
 import {rankingPeriods,rankingRange,dateString} from './friend-ranking-period.js?v=1';
 import {node,pct,tiles,ring,rateBar,artPanel,prefetchArtwork,pagedCards,renderTrend} from './deck-visuals.js?v=reports-2';
 function commanderCarousel(host,rows,renderCard){
