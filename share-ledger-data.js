@@ -9,9 +9,10 @@ export async function loadShareLedger(client,user,range,signal){
  const [decks,games,profile,art]=await Promise.all([
   pages(client,'decks','id,name,commander,archived_at',user.id,range,signal),
   pages(client,'personal_games','id,deck_id,played_at,won,players,winner_player',user.id,range,signal),
-  client.from('profiles').select('display_name,handle,favorite_commander,passport_art').eq('id',user.id).maybeSingle(),
+  client.from('profiles').select('display_name,handle,favorite_commander,passport_art,ledger_settings').eq('id',user.id).maybeSingle(),
   client.from('ledger_art_adjustments').select('slot,commander,x,y,zoom').eq('owner_id',user.id)
  ]);
  if(profile.error)throw profile.error;
+ if(!profile.data)throw Error('Your Ledger settings could not be loaded.');
  return {decks,games,profile:profile.data||{},art:art.error?[]:art.data||[]};
 }
