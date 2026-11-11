@@ -509,7 +509,7 @@ $('gameForm').onsubmit=async e=>{
  try{
   const r=editingGameId?await sb.from('personal_games').update(payload).eq('id',editingGameId).eq('owner_id',user.id):await sb.from('personal_games').insert({...payload,owner_id:user.id});
   if(r.error){message('Save failed: '+r.error.message+(r.error.message.includes('column')?' — Please contact the app administrator.':''));return}
-  savingGame=false;resetEditor();await refresh();
+  savingGame=false;resetEditor();await refresh();document.dispatchEvent(new Event('onboarding-progress'));
  }catch(error){message('Save failed: '+error.message)}finally{button.disabled=false;savingGame=false}
 
 };
