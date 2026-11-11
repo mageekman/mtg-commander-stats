@@ -4,7 +4,7 @@ import {rankingPeriods,rankingRange,dateString} from './friend-ranking-period.js
 import {applyPassportArt} from './passport-art.js?v=1';
 import {mountGameInvitations} from './game-invitations.js?v=2';
 import {mountRecentFriendGames} from './recent-friend-games.js?v=3';
-import {renderFriendDashboard} from './friends-dashboard.js?v=period-4';
+import {renderFriendDashboard} from './friends-dashboard.js?v=ranking-tabs-5';
 import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=2';
 import {createClient} from './vendor/supabase-js.mjs';
 import {mountRequestsPanel} from './friends.js?v=3';
@@ -31,8 +31,8 @@ async function fillPassport(link,friend,loadPassport){
   }
  }catch{/* Keep the compact name and handle when profile artwork is unavailable. */}
 }
-const rankingPeriod={mode:'all',start:'',end:''};let selectedRivalFriend='';
-function mountRankings(section,loadPassport,onPeriodChange=()=>{}){
+const rankingPeriod={mode:'all',start:'',end:''};let selectedRivalFriend='',selectedRanking='rate';
+function mountRankings(section,loadPassport,onPeriodChange=()=>{},rankingsHost=null){
  const top=node('div');top.className='friend-ranking-heading';top.append(node('h2','Friend Rankings'));
  const label=node('label','View '),select=node('select');select.id='friendStatsDatePreset';select.setAttribute('aria-label','Friend statistics time period');
  for(const [value,text]of rankingPeriods){const option=node('option',text);option.value=value;select.append(option)}select.value=rankingPeriod.mode;label.append(select);top.append(label);
@@ -42,10 +42,10 @@ function mountRankings(section,loadPassport,onPeriodChange=()=>{}){
  const dashboard=node('div');dashboard.setAttribute('aria-live','polite');section.append(top,dates,dashboard);let request=0;
  async function load(){
   const current=++request;let range;
-  try{range=rankingRange(rankingPeriod.mode,rankingPeriod.start,rankingPeriod.end)}catch(error){onPeriodChange(null);dashboard.removeAttribute('aria-busy');dashboard.className='dashboard-error';dashboard.textContent=error.message;return}
-  onPeriodChange(range);dashboard.setAttribute('aria-busy','true');dashboard.className='';dashboard.textContent='Loading friend rankings…';
-  try{const data=await rpc('get_friend_rankings',{range_start:range.range_start,range_end:range.range_end});if(current!==request||!section.isConnected)return;renderFriendDashboard(dashboard,data,{periodLabel:range.label,showTitle:false,loadPassport,applyArtwork:(image,profile)=>applyPassportArt(sb,image,profile.handle,profile.favorite_commander),loadArtwork:name=>window.commandLedgerCommanderArtwork(name)})}
-  catch(error){if(current!==request||!section.isConnected)return;dashboard.replaceChildren();dashboard.className='dashboard-error';const text=node('p','Rankings could not load: '+error.message),retry=node('button','Try again');retry.type='button';retry.className='friends-page-button';retry.onclick=load;dashboard.append(text,retry)}
+  try{range=rankingRange(rankingPeriod.mode,rankingPeriod.start,rankingPeriod.end)}catch(error){onPeriodChange(null);dashboard.removeAttribute('aria-busy');dashboard.className='dashboard-error';dashboard.textContent=error.message;rankingsHost?.replaceChildren(node('p','Choose a valid time period to view rankings.'));return}
+  onPeriodChange(range);dashboard.setAttribute('aria-busy','true');dashboard.className='';dashboard.textContent='Loading friend rankings…';rankingsHost?.replaceChildren(node('p','Loading rankings…'));
+  try{const data=await rpc('get_friend_rankings',{range_start:range.range_start,range_end:range.range_end});if(current!==request||!section.isConnected)return;renderFriendDashboard(dashboard,data,{periodLabel:range.label,showTitle:false,rankingsHost,selectedRanking,onRankingChange:kind=>selectedRanking=kind,loadPassport,applyArtwork:(image,profile)=>applyPassportArt(sb,image,profile.handle,profile.favorite_commander),loadArtwork:name=>window.commandLedgerCommanderArtwork(name)})}
+  catch(error){if(current!==request||!section.isConnected)return;dashboard.replaceChildren();dashboard.className='dashboard-error';const text=node('p','Rankings could not load: '+error.message),retry=node('button','Try again');retry.type='button';retry.className='friends-page-button';retry.onclick=load;dashboard.append(text,retry);rankingsHost?.replaceChildren()}
   finally{if(current===request)dashboard.removeAttribute('aria-busy')}
  }
  select.onchange=()=>{rankingPeriod.mode=select.value;dates.hidden=select.value!=='custom';load()};
@@ -65,7 +65,7 @@ async function loadFriends(){
   const heading=node('div');heading.className='friends-list-heading';heading.append(node('p',friends.length+' friend'+(friends.length===1?'':'s')));
   const refresh=node('button','Refresh');refresh.type='button';refresh.className='friends-page-button';refresh.onclick=loadFriends;heading.append(refresh);host.append(heading);
   const loadPassport=createPassportLoader();
-  const dashboard=node('section');dashboard.setAttribute('aria-label','Friend rankings dashboard');const rivalry=node('section');rivalry.setAttribute('aria-label','Friend rivalries');host.append(dashboard,rivalry);const rivalryView=mountFriendRivalries(rivalry,{loadSelf:async()=>{const {data,error}=await sb.from('profiles').select('display_name,handle,favorite_commander').eq('id',activeUser.id).maybeSingle();if(error)throw error;return data},loadPassport,loadArtwork:name=>window.commandLedgerCommanderArtwork(name),applyArtwork:(image,profile)=>applyPassportArt(sb,image,profile.handle,profile.favorite_commander),initialFriendId:selectedRivalFriend,onSelect:id=>selectedRivalFriend=id,loadGames:loadRivalryGames,loadFriends:()=>rpc('list_game_friends')});mountRankings(dashboard,loadPassport,range=>rivalryView.setRange(range));
+  const dashboard=node('section');dashboard.setAttribute('aria-label','Friend rankings dashboard');const rivalry=node('section');rivalry.setAttribute('aria-label','Friend rivalries');const row=node('div');row.className='friends-dashboard-main-row';const rankings=node('div');rankings.className='friends-ranking-column';row.append(rankings,rivalry);host.append(dashboard,row);const rivalryView=mountFriendRivalries(rivalry,{loadSelf:async()=>{const {data,error}=await sb.from('profiles').select('display_name,handle,favorite_commander').eq('id',activeUser.id).maybeSingle();if(error)throw error;return data},loadPassport,loadArtwork:name=>window.commandLedgerCommanderArtwork(name),applyArtwork:(image,profile)=>applyPassportArt(sb,image,profile.handle,profile.favorite_commander),initialFriendId:selectedRivalFriend,onSelect:id=>selectedRivalFriend=id,loadGames:loadRivalryGames,loadFriends:()=>rpc('list_game_friends')});mountRankings(dashboard,loadPassport,range=>rivalryView.setRange(range),rankings);
   const recentGames=node('section');recentGames.setAttribute('aria-label','Recent games with friends');host.append(recentGames);mountRecentFriendGames(recentGames,{loadGames:()=>rpc('get_recent_friend_games'),loadFriendNames:()=>rpc('list_game_friends'),loadArtwork:name=>window.commandLedgerCommanderArtwork(name)});
   host.append(node('h2',"Friends’ Player Passports"));
   if(!friends.length){const empty=node('div');empty.className='friends-list-empty';empty.append(node('h2','Build your circle'),node('p','Find players and send a request. Once a request is accepted, their passport appears here.'));const find=node('a','Find Players');find.href='./find-players.html';find.className='friends-page-button';empty.append(find);host.append(empty)}
