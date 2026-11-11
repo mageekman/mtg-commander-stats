@@ -5,7 +5,7 @@ import {applyPassportArt} from './passport-art.js?v=1';
 import {mountGameInvitations} from './game-invitations.js?v=2';
 import {mountRecentFriendGames} from './recent-friend-games.js?v=3';
 import {renderFriendDashboard} from './friends-dashboard.js?v=ranking-tabs-5';
-import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=2';
+import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=invite-3';
 import {createClient} from './vendor/supabase-js.mjs';
 import {mountRequestsPanel} from './friends.js?v=3';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
