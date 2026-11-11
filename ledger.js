@@ -1,4 +1,4 @@
-import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=1';
+import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=mockup-1';
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=history-2';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=2';
 import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=1';
@@ -314,6 +314,7 @@ function renderExtraStats(visibleGames){
   ['Rival Player',topPlayer?.[0]||'No named opponents',topPlayer?topPlayer[1]+' losses':'']
  ];
  const cards=cardData.map(([label,value,detail])=>{const card=el('div');card.className='insight-stat';card.append(el('span',label),el('strong',value));const small=el('small',detail);card.append(small);host.append(card);return card});
+ $('rivalPlayerSlot').replaceChildren(cards[3]);$('rivalColorSlot').replaceChildren(cards[2]);
  if(topCommander){
   const card=el('div');card.className='best-deck-card';
   const art=el('div');art.className='best-deck-art';art.setAttribute('aria-hidden','true');
@@ -382,7 +383,7 @@ function render(){
  renderWinrateTrend(visibleGames);
  renderBestDeck(visibleGames);
  renderExtraStats(visibleGames);
- renderAdditionalLedgerStats($('ledgerAdditionalStats'),{games:visibleGames,allGames:games,decks,names:friendDisplayNames});
+ renderAdditionalLedgerStats($('ledgerAdditionalStats'),{games:visibleGames,allGames:games,decks,names:friendDisplayNames,onArtwork:(image,box,url,deck)=>ledgerArt.attach(box,image,{slot:'deck:'+deck.id,commander:deck.commander,url,title:deck.name,defaultFrame:{x:50,y:30,zoom:1}})});
  const wins=visibleGames.filter(g=>g.won).length;
  const summary=$('summary');summary.replaceChildren();
  const rate=visibleGames.length?(wins/visibleGames.length*100).toFixed(1):'0.0';
@@ -397,7 +398,7 @@ function render(){
  }
  const pieMain=el('div');pieMain.className='stats-pie-main';pieMain.append(donut,legend);
  const total=el('div');total.className='stats-games-total';total.append(el('strong',String(visibleGames.length)),el('span','Total games played'));
- pieCard.append(pieMain,total);summary.append(pieCard);
+ legend.prepend(total);pieCard.append(pieMain);summary.append(pieCard);
  const byDeck=$('deckStats');byDeck.replaceChildren();byDeck.className='deck-stats-carousel';
  const search=($('deckStatsSearch')?.value||'').trim().toLowerCase();
  const deckStats=new Map();
