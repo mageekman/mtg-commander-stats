@@ -1,0 +1,30 @@
+/* Reuse the Ledger's actual report styling without changing the passport header. */
+#sharedLedger{padding:0!important;border:0;background:none;margin:22px 0}
+#sharedLedger>.public-ledger-statistics{box-sizing:border-box;border:1px solid #416153;border-radius:16px;padding:24px;background:linear-gradient(145deg,#17292a,#122124)}
+#sharedLedger .archive-section-heading>p{color:#b7cbbb;font-size:13px}
+#sharedLedger .statistics-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#sharedLedger .statistics-title-row h2{font:600 32px Georgia,serif;margin:8px 0;color:#f1ebdb}
+#sharedLedger .statistics-title-row label{display:flex;align-items:center;gap:10px;font-size:12px}
+#sharedLedger select,#sharedLedger input{box-sizing:border-box;min-width:0;max-width:100%;padding:9px;border:1px solid #557369;border-radius:8px;background:#112923;color:#f1ebdb;font:inherit}
+#sharedLedger .ledger-custom-dates{display:flex;flex-wrap:wrap;gap:16px}
+#sharedLedger .ledger-custom-dates label{display:grid;gap:5px}
+#sharedLedger #statisticsSection .ledger-report-panel[hidden]{display:block!important;visibility:hidden}
+#sharedLedger #statisticsSection .ledger-chart-row.public-single-chart{grid-template-columns:minmax(0,1fr)!important}
+#sharedLedger #statisticsSection .public-single-chart>.winrate-trend{border-left:0!important;padding-left:0!important}
+#sharedLedger .ledger-rivalry-grid.partial{display:flex;flex-wrap:wrap;gap:12px}
+#sharedLedger .ledger-rivalry-grid.partial>*{flex:1 1 130px}
+#sharedLedger .ledger-rivalry-grid.partial>#nemesisCommander{flex:2 1 260px}
+#sharedLedger .insight-stat strong>img{display:inline-block;vertical-align:middle;margin-right:5px}
+#sharedLedger .ledger-report-tabs button{width:auto}
+#sharedLedger .deck-stat-art>img{max-width:none}
+#sharedLedger .deck-carousel-controls button{padding:8px 12px;background:#245f4c;color:#f1ebdb;border:1px solid #72917b;border-radius:7px;cursor:pointer}
+#sharedLedger .ledger-rotation-card strong{font:600 16px/1.3 Georgia,serif;color:#f1ebdb;overflow-wrap:anywhere}
+#sharedLedger .ledger-by-deck .deck-stats-content{width:100%;box-sizing:border-box}
+#sharedLedger #statisticsSection .ledger-by-deck .deck-carousel-controls{display:flex;flex-wrap:wrap}
+#sharedLedger #statisticsSection .ledger-by-deck .deck-carousel-controls input{flex:1;min-width:160px}
+#sharedLedger .ledger-report-heading{display:block}
+#sharedLedger .deck-stat-pagination button{background:#245f4c;color:#f1ebdb;border:1px solid #72917b;border-radius:7px;cursor:pointer}
+#sharedLedger [aria-busy=true]{opacity:.8}
+@media(max-width:650px){#sharedLedger>.public-ledger-statistics{padding:16px}#sharedLedger .statistics-title-row h2{font-size:28px}#sharedLedger .statistics-title-row label{font-size:11px}}
+@media(max-width:480px){#sharedLedger #statisticsSection .ledger-by-deck .deck-carousel-controls{display:grid}#sharedLedger #statisticsSection .ledger-by-deck .deck-carousel-controls input{min-width:0}}
+#sharedLedger #statisticsSection .ledger-additional-stats:has(>.ledger-report:only-child){grid-template-columns:minmax(0,1fr)}
