@@ -6,3 +6,23 @@
 @media(pointer:coarse){.deck-stat-art button.ledger-adjust-art{width:28px;height:28px}}
 .deck-hero-performance{min-height:270px}
 .deck-visual-grid>.deck-stat-group{box-sizing:border-box}.deck-stat-group .deck-insight-body{scrollbar-gutter:stable}
+/* Commander matchups use a horizontal strip inside the existing fixed report. */
+.deck-stat-group [data-insight=matchups] .deck-insight-card-heading{display:none}
+.deck-stat-group [data-insight=matchups] .deck-insight-body{display:flex;flex-direction:column;gap:10px;overflow:visible;scrollbar-gutter:auto;padding-top:2px}
+.deck-commander-carousel{display:flex;gap:10px;flex:1;min-height:0;min-width:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;scroll-padding-inline:1px;padding:1px;outline-offset:-2px}
+.deck-commander-carousel::-webkit-scrollbar{display:none}
+.deck-commander-carousel>.deck-commander-matchup{box-sizing:border-box;flex:0 0 calc((100% - 10px)/2);min-width:0;scroll-snap-align:start;display:flex;flex-direction:column}
+.deck-commander-carousel .deck-stat-art{flex:none}
+.deck-stat-group .deck-commander-carousel .deck-matchup-copy{display:flex;flex-direction:column;min-height:0;flex:1}
+.deck-stat-group .deck-commander-carousel .deck-matchup-copy h4{font-size:14px;line-height:1.25;min-height:3.75em;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.deck-stat-group .deck-commander-carousel .deck-rate-row{margin:8px 0 0}
+.deck-stat-group .deck-commander-carousel .deck-rate-row>div:first-child{font-size:10px}
+.deck-stat-group .deck-commander-carousel .deck-rate-row strong{font-size:16px}
+.deck-stat-group .deck-commander-carousel .deck-rate-row small{font-size:10px}
+.deck-commander-carousel-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:none}
+.deck-commander-carousel-controls[hidden]{display:none}
+.deck-commander-carousel-controls>span{font-size:11px;color:#b3ccbc}
+.deck-insights .deck-commander-carousel-controls button{padding:3px 12px;min-height:30px;background:#214d3b;border:1px solid #628c70;border-radius:7px;color:#f1ebdb;font:600 20px/1 system-ui;cursor:pointer}
+.deck-commander-carousel-controls button:disabled{opacity:.4;cursor:default}
+.deck-commander-carousel:focus-visible,.deck-commander-carousel-controls button:focus-visible{outline:2px solid #c9aa75;outline-offset:2px}
+@media(max-width:700px){.deck-commander-carousel>.deck-commander-matchup{flex-basis:82%}.deck-stat-group .deck-commander-carousel .deck-matchup-copy h4{font-size:15px;min-height:2.5em;-webkit-line-clamp:2}}
