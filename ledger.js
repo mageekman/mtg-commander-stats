@@ -1,3 +1,4 @@
+import {selectBestDeck} from './best-deck.js?v=1';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {commanderColors} from './ledger-commander-colors.js?v=1';
 import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=participants-2';
@@ -240,12 +241,9 @@ function filteredGames(){
 function stat(label,value){const box=el('div');box.className='stat';box.append(el('strong',String(value)),el('span',label));return box}
 function renderBestDeck(displayGames){
  const host=$('bestDeck');host.replaceChildren();
- const ranked=decks.filter(deck=>!deck.archived_at).map(deck=>{
-  const played=displayGames.filter(g=>g.deck_id===deck.id);
-  return {deck,games:played.length,wins:played.filter(g=>g.won).length};
- }).filter(d=>d.games>0).sort((a,b)=>(b.wins/b.games)-(a.wins/a.games)||b.games-a.games||b.wins-a.wins);
- if(!ranked.length){const empty=el('div','Record a game to see your best-performing deck.');empty.className='best-deck-empty';host.append(empty);return}
- const best=ranked[0],rate=(100*best.wins/best.games).toFixed(1)+'%';
+ const best=selectBestDeck(decks,displayGames);
+ if(!best){const empty=el('div','Record a game to see your best-performing deck.');empty.className='best-deck-empty';host.append(empty);return}
+ const rate=(100*best.wins/best.games).toFixed(1)+'%';
  const card=el('div');card.className='best-deck-card';
  const artwork=el('div');artwork.className='best-deck-art';artwork.setAttribute('aria-hidden','true');
  const content=el('div');content.className='best-deck-content';
