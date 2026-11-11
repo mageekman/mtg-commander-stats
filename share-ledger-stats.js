@@ -1,4 +1,4 @@
-import {selectStrongestColor} from './strongest-color.js?v=1';
+import {selectStrongestColor,selectMostPlayedColor} from './strongest-color.js?v=combo-2';
 import {normalizeLedgerSettings} from './ledger-settings.js?v=strongest-2';
 import {selectBestDeck} from './best-deck.js?v=2';
 import {isGenericOpponentName} from './opponent-names.js?v=1';
@@ -26,9 +26,9 @@ export function periodHeading(range,stats){
 }
 
 export function resolveOwnColors(decks,games,metadata,settings){
- const byId=new Map(decks.map(d=>[d.id,d])),count=new Map(),combos=new Map();let missing=0;
- for(const game of games){const code=metadata.get(commanderKey(byId.get(game.deck_id)?.commander))?.colors;if(code===null||code===undefined){missing++;continue}for(const c of code)count.set(c,(count.get(c)||0)+1);const row=combos.get(code)||{games:0,wins:0};row.games++;if(game.won)row.wins++;combos.set(code,row)}
- const color=[...count].sort((a,b)=>b[1]-a[1]||'WUBRG'.indexOf(a[0])-'WUBRG'.indexOf(b[0]))[0],best=selectStrongestColor(combos,normalizeLedgerSettings(settings).best_deck_min_games);
- return {most:color?{code:color[0],games:color[1]}:null,best:best?{code:best[0],...best[1],rate:100*best[1].wins/best[1].games}:null,missing};
+ const byId=new Map(decks.map(d=>[d.id,d])),combos=new Map();let missing=0;
+ for(const game of games){const code=metadata.get(commanderKey(byId.get(game.deck_id)?.commander))?.colors;if(code===null||code===undefined){missing++;continue}const row=combos.get(code)||{games:0,wins:0};row.games++;if(game.won)row.wins++;combos.set(code,row)}
+ const color=selectMostPlayedColor(combos),best=selectStrongestColor(combos,normalizeLedgerSettings(settings).best_deck_min_games);
+ return {most:color?{code:color[0],games:color[1].games}:null,best:best?{code:best[0],...best[1],rate:100*best[1].wins/best[1].games}:null,missing};
 }
 export function availableShareCards(settings){const s=normalizeLedgerSettings(settings);return ['ledger',...((s.share_lost_to_commander||s.share_lost_to_player||s.share_lost_to_color)?['rivalries']:[]),...(((s.share_deck_stats&&s.share_best_deck)||s.share_most_played_deck||s.share_most_played_color||s.share_best_color_combo)?['decks']:[])];}

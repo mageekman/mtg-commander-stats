@@ -1,4 +1,4 @@
-import {selectStrongestColor} from './strongest-color.js?v=1';
+import {selectStrongestColor,selectMostPlayedColor} from './strongest-color.js?v=combo-2';
 import {normalizeLedgerSettings,readLedgerSettings,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=strongest-2';
 import {selectBestDeck} from './best-deck.js?v=2';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
@@ -316,11 +316,11 @@ function renderExtraStats(visibleGames){
  const gameDecks=visibleGames.map(g=>decks.find(d=>d.id===g.deck_id));
  Promise.all(gameDecks.map(d=>d?commanderColors(d.commander):Promise.resolve(null))).then(ids=>{
   if(stamp!==colorStatsStamp)return;
-  const count=new Map(),combo=new Map();let missing=0;
-  ids.forEach((code,i)=>{if(code===null){missing++;return}for(const c of code)count.set(c,(count.get(c)||0)+1);const data=combo.get(code)||{games:0,wins:0};data.games++;if(visibleGames[i].won)data.wins++;combo.set(code,data)});
-  const top=[...count].sort((a,b)=>b[1]-a[1]||'WUBRG'.indexOf(a[0])-'WUBRG'.indexOf(b[0]))[0];
+  const combo=new Map();let missing=0;
+  ids.forEach((code,i)=>{if(code===null){missing++;return}const data=combo.get(code)||{games:0,wins:0};data.games++;if(visibleGames[i].won)data.wins++;combo.set(code,data)});
+  const top=selectMostPlayedColor(combo);
   const colorStrong=cards[0].querySelector('strong'),colorSmall=cards[0].querySelector('small');
-  if(top){manaIdentity(colorStrong,top[0]);colorSmall.textContent=top[1]+' games'+(missing?' · '+missing+' unavailable':'')}else{colorStrong.textContent=missing?'Color data unavailable':'No colored decks played';colorSmall.textContent=''}
+  if(top){manaIdentity(colorStrong,top[0]);colorSmall.textContent=top[1].games+' games'+(missing?' · '+missing+' unavailable':'')}else{colorStrong.textContent=missing?'Color data unavailable':'No games yet';colorSmall.textContent=''}
   const best=selectStrongestColor(combo,ledgerSettings.best_deck_min_games);
   const bestStrong=cards[1].querySelector('strong'),bestSmall=cards[1].querySelector('small');
   if(best){manaIdentity(bestStrong,best[0]);bestSmall.textContent=(100*best[1].wins/best[1].games).toFixed(1)+'% win rate · '+best[1].wins+' wins in '+best[1].games+' games'}else{bestStrong.textContent=missing?'Color data unavailable':'No qualifying color combo';bestSmall.textContent='Minimum '+ledgerSettings.best_deck_min_games+' games in this timeframe'}
