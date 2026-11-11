@@ -1,4 +1,4 @@
-import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=1';
+import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=3';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
 function colorIdentityIcons(colors){
  const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';

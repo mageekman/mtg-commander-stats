@@ -52,10 +52,10 @@ await p.fill('#deckStatsSearch','');assert.equal(await p.locator('#deckStats .de
 await p.selectOption('#ledgerDeckDirection','asc');await p.selectOption('#ledgerDeckSort','added');
 await p.locator('[data-ledger-view=rotation]').getByRole('button',{name:'Adjust artwork for My Active Deck',exact:true}).click();
 await p.locator('dialog [data-frame=y]').fill('60');await p.click('dialog [data-action=save]');
-await p.waitForFunction(()=>!document.querySelector('dialog'));
+await p.waitForFunction(()=>!document.querySelector('dialog[open]'));
 assert.equal(await p.locator('[data-ledger-view=rotation] img[alt="Captain America"]').evaluate(e=>e.style.objectPosition),'50% 60%');
 await p.locator('#nemesisCommander').getByRole('button',{name:'Adjust artwork for Captain America',exact:true}).click();
-await p.locator('dialog [data-frame=y]').fill('42');await p.click('dialog [data-action=save]');await p.waitForFunction(()=>!document.querySelector('dialog'));
+await p.locator('dialog [data-frame=y]').fill('42');await p.click('dialog [data-action=save]');await p.waitForFunction(()=>!document.querySelector('dialog[open]'));
 assert.equal(await p.locator('#nemesisCommander .best-deck-art').evaluate(e=>e.style.backgroundPosition),'50% 42%');
 await p.selectOption('#statsDatePreset','month');
 assert.equal(await p.getByRole('tab',{name:'Rotation',exact:true}).getAttribute('aria-selected'),'true');
@@ -67,7 +67,7 @@ for(const width of [1440,390]){await p.setViewportSize({width,height:1000});awai
 await p.locator('#history .compact-game').first().getByRole('button',{name:/^Edit game from/}).click();
 assert.ok((await p.locator('#formTitle').textContent()).includes('Edit'));await p.click('#cancelEdit');
 await p.locator('#history .compact-game').first().getByRole('button',{name:/^Delete game from/}).click();
-assert.ok((await p.locator('dialog').textContent()).includes('permanent'));await p.getByRole('button',{name:'Cancel',exact:true}).click();
+assert.ok((await p.locator('.game-delete-dialog').textContent()).includes('permanent'));await p.getByRole('button',{name:'Cancel',exact:true}).click();
 await p.selectOption('#statsDatePreset','custom');await p.fill('#statsDateStart','2099-01-01');await p.locator('#statsDateStart').dispatchEvent('change');await p.fill('#statsDateEnd','2099-01-31');await p.locator('#statsDateEnd').dispatchEvent('change');
 assert.equal(await p.locator('#summary .stats-games-total strong').textContent(),'0');assert.equal(await p.locator('.ledger-report').count(),2);
 assert.deepEqual(errors,[]);

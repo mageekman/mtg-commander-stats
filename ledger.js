@@ -1,6 +1,6 @@
 import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=mockup-1';
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=history-2';
-import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=2';
+import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=3';
 import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=1';
 import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
@@ -12,10 +12,10 @@ const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable
 const friendService=createGameFriendService(sb);
 const $=id=>document.getElementById(id);
 let friendDisplayNames=new Map();
-let user=null,decks=[],games=[],playerCount=4,editingGameId=null;
+let user=null,decks=[],games=[],playerCount=4,editingGameId=null,savingGame=false;
 const ledgerArt=createLedgerArtController(sb,()=>user);
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
-const message=t=>$('message').textContent=t;
+const message=t=>{$('message').textContent=t;$('gameFormStatus').textContent=t};
 const scryfallLink=name=>'https://scryfall.com/search?q='+encodeURIComponent('!"'+name.replace(/"/g,'')+'"');
 const suggestionCache=new Map();
 const artCache=new Map();
@@ -81,13 +81,14 @@ async function showHistoryArt(element,name){
  }catch(e){/* Keep the card readable without artwork. */}
 }
 
+const ownDeckPicker=$('deck');
 function drawPlayers(prefill=null){
  const container=$('playerRows');const old=prefill||[...container.querySelectorAll('.player-row')].map(gamePlayerSnapshot);container.replaceChildren();
  for(let i=0;i<playerCount;i++){
   const row=el('div');row.className='player-row';const art=el('div');art.className='commander-art';art.setAttribute('aria-hidden','true');row.append(art,el('h4',i===0?'Player 1 · You':'Player '+(i+1)));
   const fields=el('div');fields.className='player-fields';
-  const nameLabel=el('label','Player name');const name=el('input');name.className='player-name';name.placeholder=i===0?'You':'Player '+(i+1);name.required=i!==0;name.maxLength=80;name.value=old[i]?.name||'';if(i===0){name.value='You';name.readOnly=true}nameLabel.append(name);
-  const commanderLabel=el('label',i===0?'Your commander (from selected deck)':'Commander');const commander=el('input');commander.className='player-commander';commander.required=true;commander.maxLength=200;commander.placeholder='Commander name';commander.value=old[i]?.commander||'';if(i===0)commander.readOnly=true;commanderLabel.append(commander);if(i!==0)attachCommanderSearch(commander);
+  const nameLabel=el('label',i===0?'Player name':'Player name (optional)');const name=el('input');name.className='player-name';name.placeholder=i===0?'You':'Player '+(i+1);name.required=false;name.maxLength=80;name.value=old[i]?.name||'';if(i===0){name.value='You';name.readOnly=true}nameLabel.append(name);
+  const commanderLabel=el('label',i===0?'Your deck':'Commander');const commander=el('input');commander.className='player-commander';commander.required=true;commander.maxLength=200;commander.placeholder='Commander name';commander.value=old[i]?.commander||'';if(i===0){commander.readOnly=true;commander.type='hidden';commander.required=false;commanderLabel.append(ownDeckPicker)}commanderLabel.append(commander);if(i!==0)attachCommanderSearch(commander);
   fields.append(nameLabel,commanderLabel);row.append(fields);container.append(row);if(i!==0)attachGameFriend({row,name,commander,snapshot:old[i],service:friendService,onCommander:value=>showCommanderArt(row,value)});if(i!==0&&old[i]?.commander)showCommanderArt(row,old[i].commander);
  }
  const table=el('div');table.className='pod-table';table.setAttribute('aria-hidden','true');table.append(el('strong','COMMANDER'),el('span','The Pod'));container.append(table);
@@ -139,16 +140,21 @@ async function refresh(){
  games=r.data||[];message('');render();
 }
 function setEditorOpen(open){
- $('gameEditor').hidden=!open;
+ const dialog=$('gameEditor');
+ if(open&&!dialog.open){dialog.showModal();requestAnimationFrame(()=>$('deck').focus())}
+ else if(!open&&dialog.open)dialog.close();
+ document.body.classList.toggle('game-editor-open',open);
  $('openGameForm').setAttribute('aria-expanded',String(open));
- $('openGameForm').textContent=open?'Close game form':'+ Add a game';
 }
 $('openGameForm').onclick=()=>{
- if(!$('gameEditor').hidden){resetEditor();return}
- resetEditor();setEditorOpen(true);$('formTitle').scrollIntoView({behavior:'smooth',block:'start'});
+ if(!user){location.href='./sign-in.html';return}
+ resetEditor();message('');setEditorOpen(true);
 };
+$('closeGameEditor').onclick=()=>{if(!savingGame)resetEditor()};
+$('gameEditor').addEventListener('cancel',event=>{event.preventDefault();if(!savingGame)resetEditor()});
+$('gameEditor').addEventListener('close',()=>{if(!$('gameEditor').open){document.body.classList.remove('game-editor-open');$('openGameForm').setAttribute('aria-expanded','false')}});
 function resetEditor(){
- editingGameId=null;$('formTitle').textContent='Record a game';$('save').textContent='Save game';$('cancelEdit').hidden=true;
+ editingGameId=null;$('formTitle').textContent='Record a game';$('save').textContent='Save game';$('cancelEdit').hidden=false;
  $('deck').value='';$('notes').value='';$('date').value=new Date().toLocaleDateString('en-CA');
  playerCount=4;drawPlayers([]);$('firstPlayer').value='0';$('winnerPlayer').value='0';setEditorOpen(false);
 }
@@ -175,10 +181,10 @@ function editGame(game){
  playerCount=Math.max(2,Math.min(6,existing.length||4));drawPlayers(existing);
  $('firstPlayer').value=String(Number.isInteger(game.first_player)?game.first_player:0);
  $('winnerPlayer').value=String(Number.isInteger(game.winner_player)?game.winner_player:(game.won?0:Math.min(1,playerCount-1)));
- $('formTitle').scrollIntoView({behavior:'smooth',block:'start'});
+ $('deck').focus();
  message('Editing saved game. Save changes when finished.');
 }
-$('cancelEdit').onclick=()=>{resetEditor();message('Editing cancelled.')};
+$('cancelEdit').onclick=()=>{if(!savingGame){resetEditor();message('')}};
 
 let historyPage=1;
 for(const id of ['historyDeckFilter','historyPeriodFilter','historyResultFilter','historyDateSort','historyPageSize'])$(id).addEventListener('change',()=>{historyPage=1;render()});
@@ -487,28 +493,31 @@ function render(){
  }
 }
 $('gameForm').onsubmit=async e=>{
- e.preventDefault();if(!user)return;
+ e.preventDefault();if(!user||savingGame)return;
  const deck_id=$('deck').value;if(!decks.some(d=>d.id===deck_id)){message('Select one of your decks.');return}
  const played_at=$('date').value;
  if([...document.querySelectorAll('.player-row')].some(row=>row.friendLoading)){message('Wait for the friend deck choices to finish loading.');return}
  const players=[...document.querySelectorAll('.player-row')].map((row,i)=>({...gamePlayerSnapshot(row),...(i===0?{name:'You'}:{})}));
- if(!played_at||players.length<2||players.length>6||players.some(p=>!p.name||!p.commander)){message('Enter a date, player names, and commanders for everyone.');return}
+ if(!played_at||players.length<2||players.length>6||players.some(p=>!p.commander)){message('Enter a date and select a commander for everyone. Player names are optional.');return}
  const taggedIds=players.map(p=>p.friend_id).filter(Boolean);if(new Set(taggedIds).size!==taggedIds.length){message('Tag each friend only once in a game.');return}
  const opponentInputs=[...document.querySelectorAll('.player-row')].slice(1).map(r=>r.querySelector('.player-commander'));
  if(opponentInputs.some(input=>input.getSelectedCommander?.()!==input.value.trim())){message('Select each opponent commander from the Scryfall suggestions.');return}
  const first_player=Number($('firstPlayer').value),winner_player=Number($('winnerPlayer').value);
  if(!Number.isInteger(first_player)||!Number.isInteger(winner_player)||first_player<0||winner_player<0||first_player>=players.length||winner_player>=players.length){message('Select who went first and who won.');return}
- const button=$('save');button.disabled=true;message('Saving game…');
+ const button=$('save');button.disabled=true;savingGame=true;message('Saving game…');
  const payload={deck_id,played_at,won:winner_player===0,opponents:players.slice(1).map(p=>p.commander),players,first_player,winner_player,notes:$('notes').value.trim()};
- const r=editingGameId?await sb.from('personal_games').update(payload).eq('id',editingGameId).eq('owner_id',user.id):await sb.from('personal_games').insert({...payload,owner_id:user.id});
- button.disabled=false;if(r.error){message('Save failed: '+r.error.message+(r.error.message.includes('column')?' — Please contact the app administrator.':''));return}
- resetEditor();await refresh();
+ try{
+  const r=editingGameId?await sb.from('personal_games').update(payload).eq('id',editingGameId).eq('owner_id',user.id):await sb.from('personal_games').insert({...payload,owner_id:user.id});
+  if(r.error){message('Save failed: '+r.error.message+(r.error.message.includes('column')?' — Please contact the app administrator.':''));return}
+  savingGame=false;resetEditor();await refresh();
+ }catch(error){message('Save failed: '+error.message)}finally{button.disabled=false;savingGame=false}
+
 };
 
 window.commandLedgerLoading.track(load(),'Loading your Ledger…').catch(e=>message('Unable to load Ledger: '+e.message));
 if(location.hash==='#gameForm'||location.hash==='#gameEditor'){
  setEditorOpen(true);
- requestAnimationFrame(()=>$('formTitle').scrollIntoView({block:'start'}));
+ requestAnimationFrame(()=>$('deck').focus());
 }
 window.addEventListener('hashchange',()=>{
  if(location.hash==='#gameForm'||location.hash==='#gameEditor')setEditorOpen(true);
