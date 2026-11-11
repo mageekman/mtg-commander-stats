@@ -1,5 +1,5 @@
 import './personal-invites.js?v=1';
-import {createPlayerOnboarding} from './player-onboarding.js?v=confirmation-3';
+import {createPlayerOnboarding} from './player-onboarding.js?v=share-4';
 import {setFriendNotificationUser} from './friend-notifications.js?v=invite-3';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
