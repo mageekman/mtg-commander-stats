@@ -116,7 +116,7 @@ drawPlayers();
 $('date').value=new Date().toLocaleDateString('en-CA');
 async function load(){
  const auth=await sb.auth.getUser();user=auth.data.user;await ledgerArt.load(user);friendService.clear();friendDisplayNames=new Map();
- if(!user){decks=demoDecks;games=demoGames;$('save').disabled=true;const filter=$('historyDeckFilter');filter.replaceChildren(el('option','All decks'));filter.firstChild.value='';for(const deck of decks){const option=el('option',deck.name);option.value=deck.id;filter.append(option)}message('Example Ledger — sign in to record your own games.');render();return}
+ if(!user){decks=demoDecks;games=demoGames;$('save').disabled=true;const filter=$('historyDeckFilter');filter.replaceChildren(el('option','All decks'));filter.firstChild.value='';for(const deck of decks){const option=el('option',deck.name);option.value=deck.id;filter.append(option)}message('');render();return}
  $('save').disabled=false;
  const d=await sb.from('decks').select('id,name,commander,created_at,archived_at').eq('owner_id',user.id).order('name');
  if(d.error){message('Unable to load decks: '+d.error.message);return}

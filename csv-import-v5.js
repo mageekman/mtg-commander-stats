@@ -1,3 +1,4 @@
+import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
@@ -5,8 +6,8 @@ const el=(tag,text)=>{const node=document.createElement(tag);if(text!==undefined
 let user=null,decks=[],games=[];
 async function loadImport(){
  const status=$('csvImportStatus');
- const auth=await Promise.race([sb.auth.getUser(),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Account check timed out. Refresh the page and sign in again.')),12000))]);if(auth.error)throw auth.error;user=auth.data.user;
- if(!user){status.textContent='Please sign in on the home page before importing games.';return}
+ const auth=await Promise.race([readPageUser(sb),new Promise(resolve=>setTimeout(()=>resolve({user:null,error:Error('Account check timed out')}),12000))]);user=auth.user;
+ if(!user){showAuthPrompt(status,{message:'Sign in to import games into your Ledger.',error:auth.error,onRetry:runCsvValidation});return}
  status.textContent='Signed in. Loading your decks and existing games…';
  const [deckResult,gameResult]=await Promise.race([Promise.all([
   sb.from('decks').select('id,name,commander').eq('owner_id',user.id),

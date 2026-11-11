@@ -4,3 +4,34 @@
 #guestIntroduction p{max-width:85ch}#guestIntroduction[hidden]{display:none}
 .guest-label{font:700 11px/1.5 system-ui,sans-serif;letter-spacing:.12em;color:#dfbc7f}
 .guest-signup{display:inline-block;padding:10px 16px;border:1px solid #89af92;border-radius:9px;background:#24624f;color:#f1ebdb;text-decoration:none}
+
+/* Guest visitors see the product before the longer introduction. */
+body.guest-preview #mainHeader{min-height:0!important;padding:22px 26px!important;margin-bottom:16px!important}
+body.guest-preview #mainHeader .homepage-brand-logo{width:min(360px,100%)!important;max-width:100%!important;height:auto!important}
+body.guest-preview #mainHeader h1{margin:0!important}
+body.guest-preview #mainHeader p{font-size:16px!important;line-height:1.4!important;margin:8px 0 0!important}
+body.guest-preview #quickRecordGame{display:none!important}
+body.guest-preview .archive-header{min-height:0!important;padding:22px!important;margin-bottom:16px!important}
+body.guest-preview .archive-header h1{font-size:42px!important;line-height:1.15!important;margin:0 0 8px!important}
+body.guest-preview .archive-header .archive-brand-logo{height:1.2em!important;width:auto!important}
+body.guest-preview .archive-header .archive-intro{font-size:15px!important;margin:0!important}
+body.guest-preview #guestIntroduction{padding:18px 22px;margin:16px 0;line-height:1.5}
+body.guest-preview #guestIntroduction h2{font-size:25px;margin:0 0 7px}
+body.guest-preview #guestIntroduction>p{font-size:14px;margin:0 0 12px}
+.guest-intro-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px 16px}
+.guest-intro-actions .guest-signup{padding:9px 13px;font-size:13px;min-height:38px;box-sizing:border-box}
+.guest-explore{color:#d7bd86;font-size:13px;text-underline-offset:3px}
+.guest-how-to{margin:12px 0 0;border:0;background:none}
+.guest-how-to summary{padding:0;color:#c5d7c7;font-size:12px;cursor:pointer}
+#guestIntroduction .guest-how-to p{font-size:13px;line-height:1.5;margin:10px 0 0}
+@media(max-width:650px){body.guest-preview #mainHeader{padding:16px 18px!important}body.guest-preview #mainHeader .homepage-brand-logo{width:260px!important}body.guest-preview #mainHeader p{font-size:14px!important}body.guest-preview #guestIntroduction{padding:16px 18px}body.guest-preview #guestIntroduction h2{font-size:23px}body.guest-preview .archive-header h1{font-size:34px!important}}
+body.guest-preview #message:empty{display:none}
+body.guest-preview #statisticsSection>.archive-section-heading .archive-section-description{display:none}
+body.guest-preview #statisticsSection>.archive-section-heading{margin-bottom:12px}
+@media(max-width:650px){
+ body.guest-preview #mainHeader .homepage-brand-logo{width:220px!important}
+ body.guest-preview #profiles .home-deck-controls.search-filter-row{grid-template-columns:minmax(0,1fr) auto 38px 42px}
+ body.guest-preview #profiles .search-filter-row>.home-deck-view-toggle{grid-column:auto}
+ body.guest-preview #homeDeckViewToggle{width:42px;padding:0 8px}
+ body.guest-preview #homeDeckViewLabel{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+}
