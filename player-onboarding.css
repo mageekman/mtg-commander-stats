@@ -1,0 +1,20 @@
+#playerOnboarding{box-sizing:border-box;max-width:1200px;margin:20px auto;padding:20px;border:1px solid #587763;border-radius:14px;background:linear-gradient(130deg,#1c3b30,#102522);color:#f1ebdb}
+#playerOnboarding h2,.onboarding-dialog h2{font:600 26px/1.2 Georgia,serif;margin:0 0 14px;color:#f1ebdb}
+.onboarding-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:0;margin:0;list-style:none}
+.onboarding-steps li{display:flex;align-items:flex-start;gap:10px;min-width:0}
+.onboarding-steps li>span{display:grid;place-items:center;flex:none;width:25px;height:25px;border:1px solid #738e6d;border-radius:50%;color:#dfc68f;font:600 12px system-ui}
+.onboarding-steps li.complete>span{background:#2a5d46;color:#c6efd4}
+.onboarding-steps a{font:600 14px/1.4 system-ui;color:#f2e5c8;text-decoration:underline;text-underline-offset:3px}
+.onboarding-steps small{display:block;margin-top:5px;font:12px/1.5 system-ui;color:#b9cebf}
+.onboarding-dialog{box-sizing:border-box;width:min(560px,calc(100vw - 28px));max-height:calc(100dvh - 32px);overflow:auto;padding:26px;border:1px solid #789376;border-radius:16px;background:#122c25;color:#f1ebdb;box-shadow:0 22px 80px #0008}
+.onboarding-dialog::backdrop{background:#030e10c9;backdrop-filter:blur(3px)}
+.onboarding-dialog>p{font:14px/1.6 system-ui;color:#c0d0c2;margin:0 0 20px}
+.onboarding-dialog .onboarding-steps{grid-template-columns:minmax(0,1fr);gap:18px}
+.onboarding-actions{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+.onboarding-actions button{width:100%;padding:12px 14px;border:1px solid #86a68c;border-radius:9px;background:#245f4b;color:#f1ebdb;font:600 14px/1.4 system-ui;cursor:pointer}
+.onboarding-actions .onboarding-dismiss{background:#18362d;border-color:#526c5b;color:#d5dfd2}
+.onboarding-actions button:disabled{opacity:.6;cursor:wait}
+.onboarding-actions button:focus-visible,.onboarding-steps a:focus-visible{outline:2px solid #d8b675;outline-offset:3px}
+.onboarding-dialog>.onboarding-status{color:#e4c693;font-size:12px;margin:15px 0 0}
+.onboarding-status:empty{display:none}
+@media(max-width:700px){.onboarding-steps{grid-template-columns:minmax(0,1fr)}#playerOnboarding{padding:17px}.onboarding-dialog{padding:20px}}
