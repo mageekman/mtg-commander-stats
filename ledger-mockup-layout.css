@@ -1,0 +1,136 @@
+/* Ledger-only presentation. Shared charts and profile layouts are unchanged. */
+#statisticsSection .ledger-chart-row{gap:0!important;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)!important;border:1px solid #4a6a5c;border-radius:14px;background:linear-gradient(145deg,#19352f,#102522);padding:18px!important;margin:18px 0!important}
+#statisticsSection .ledger-chart-row>#summary,#statisticsSection .ledger-chart-row>.winrate-trend,#statisticsSection .ledger-chart-row #summary>.stats-pie-card{height:auto!important;min-height:230px!important;max-height:none!important;border:0!important;box-shadow:none!important;border-radius:0!important;background:none!important}
+#statisticsSection .ledger-chart-row #summary>.stats-pie-card{padding:12px 24px 12px 4px!important;gap:12px!important}
+#statisticsSection .ledger-chart-row>.winrate-trend{padding:8px 0 8px 24px!important;border-left:1px solid #416354!important}
+#statisticsSection .ledger-chart-row .stats-donut{width:150px!important;min-width:150px!important;background:conic-gradient(#91cdb0 0 var(--win-percent),#3c5a50 var(--win-percent) 100%)!important}
+#statisticsSection .stats-donut-inner{background:#132d26!important}
+#statisticsSection .ledger-chart-row .stats-pie-main{gap:24px!important}
+#statisticsSection .ledger-chart-row .stats-games-total{padding-top:10px!important}
+#statisticsSection .ledger-chart-row .winrate-trend-heading p{font-size:11px;margin:0}
+#statisticsSection .ledger-chart-row .winrate-trend-chart{min-height:150px!important}
+#statisticsSection .featured-decks{margin:18px 0 12px;gap:16px}
+#statisticsSection #statInsights{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px;margin:12px 0}
+#statisticsSection #statInsights>.insight-stat{min-height:0;padding:12px 16px!important;display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 12px}
+#statInsights>.insight-stat>small{grid-column:1/-1}
+.ledger-rivalry{padding:16px;border:1px solid #4a6a5c;border-radius:13px;background:linear-gradient(145deg,#16342c,#102522);margin:14px 0 18px}
+.ledger-rivalry>h3{font:600 20px Georgia,serif;color:var(--cl-gold);margin:0 0 12px}
+.ledger-rivalry-grid{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr));align-items:stretch;gap:16px}
+.ledger-rivalry-grid>*{min-width:0}
+#statisticsSection .ledger-rivalry .nemesis-section{margin:0}
+#statisticsSection .ledger-rivalry .best-deck-card{min-height:104px!important;height:100%;border:0!important;background:none!important;box-shadow:none!important;border-radius:0!important;display:grid;grid-template-columns:100px minmax(0,1fr);gap:12px;padding:0;overflow:visible}
+#statisticsSection .ledger-rivalry .best-deck-art{position:relative;inset:auto;min-height:100px;width:100%;border-radius:8px;overflow:hidden;opacity:1}
+#statisticsSection .ledger-rivalry .best-deck-art:after{display:none}
+#statisticsSection .ledger-rivalry .best-deck-content{padding:4px 0!important;gap:4px;min-width:0}
+#statisticsSection .ledger-rivalry .best-deck-label{font-size:10px}
+#statisticsSection .ledger-rivalry .best-deck-name{font:600 19px/1.2 Georgia,serif;overflow-wrap:anywhere}
+#statisticsSection .ledger-rivalry .best-deck-rate{font-size:20px!important;color:#b4e5c7!important}
+#statisticsSection .ledger-rivalry .best-deck-record{font-size:10px}
+#statisticsSection .ledger-rivalry .best-deck-empty{padding:12px;min-height:80px;font-size:13px}
+#statisticsSection .ledger-rivalry .insight-stat{height:100%;box-sizing:border-box;box-shadow:none!important;background:none!important;border:0!important;border-left:1px solid #416354!important;border-radius:0!important;padding:8px 12px!important;display:flex;flex-direction:column;justify-content:center;gap:7px}
+#statisticsSection .ledger-rivalry .insight-stat>span{color:var(--cl-gold);font-size:11px;font-weight:650}
+#statisticsSection .ledger-rivalry .insight-stat>strong{font:600 22px/1.2 Georgia,serif;overflow-wrap:anywhere}
+#statisticsSection .ledger-rivalry .insight-stat>small{font-size:12px}
+#statisticsSection .ledger-additional-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}
+.ledger-report{min-width:0;box-sizing:border-box;border:1px solid #4a6a5c;border-radius:13px;background:linear-gradient(145deg,#19352f,#102522);padding:17px}
+.ledger-report-heading h3{margin:0 0 12px;font:600 23px Georgia,serif;color:var(--cl-ink)}
+.ledger-report-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:3px;gap:4px;border:1px solid #3d6050;border-radius:8px;background:#0c211b;margin-bottom:15px}
+.ledger-report-tabs button{min-width:0;padding:9px 5px;font:600 12px/1.3 system-ui;background:none;border:1px solid transparent;border-radius:5px;color:#c9dfd0;white-space:normal;cursor:pointer}
+.ledger-report-tabs button[aria-selected=true]{background:#2c5946;border-color:#689879;color:#fff2d6}
+.ledger-report-tabs button:focus-visible,.ledger-report-panel:focus-visible{outline:2px solid var(--cl-gold);outline-offset:3px}
+/* Panels share a grid cell. Hidden panels reserve space, preventing tab jumps.
+   Visibility, aria-hidden and inert keep inactive controls inaccessible. */
+.ledger-report-panels{display:grid}
+.ledger-report-panel{grid-area:1/1;min-width:0;min-height:260px;align-self:start}
+.ledger-report-panel[hidden]{display:block!important;visibility:hidden;pointer-events:none}
+.ledger-report-panel>p{font-size:12px;color:#b8cdbf;margin:0 0 14px;line-height:1.5}
+.ledger-report-panel small{font-size:11px;color:#b8cdbf;line-height:1.5;overflow-wrap:anywhere}
+.ledger-report-select{display:flex;align-items:center;gap:10px;font-size:12px;margin:0 0 8px}
+.ledger-report-select select{flex:1;min-width:0;max-width:100%;font:inherit;padding:7px;background:#10251f;border:1px solid #476957;border-radius:6px;color:#e5e9dc}
+.ledger-report-panel .deck-rate-ring{width:100px}
+.ledger-report-panel .deck-ring-pair{gap:10px}
+.ledger-report-panel .deck-change-badge{font-size:12px;margin:10px 0}
+.ledger-rotation-list,.ledger-friend-list{display:grid;gap:10px}
+.ledger-rotation-card{display:grid;grid-template-columns:76px minmax(0,1fr);gap:12px;border:1px solid #3e6250;border-radius:8px;overflow:hidden;background:#102920}
+.ledger-rotation-card>.deck-stat-art{height:100%;min-height:98px}
+.ledger-rotation-card>div:last-child{padding:10px 12px 10px 0;min-width:0}
+.ledger-rotation-card a{font:600 16px/1.3 Georgia,serif;color:#f1ebdb;overflow-wrap:anywhere;text-decoration:none}
+.ledger-rotation-card a:hover{text-decoration:underline}
+.ledger-rotation-card .deck-rate-row{margin:7px 0 0}
+.ledger-rotation-card .deck-rate-row>div:first-child{font-size:11px}
+.ledger-rotation-card .deck-rate-row strong{font-size:14px}
+.ledger-friend-passport{display:grid;grid-template-columns:64px minmax(0,1fr) minmax(54px,.6fr) minmax(56px,.6fr);align-items:center;gap:10px;border:1px solid #416754;border-radius:8px;background:#102920;overflow:hidden;min-height:85px}
+.ledger-friend-art{width:64px;height:100%;min-height:85px}
+.ledger-friend-name{font:600 16px/1.3 Georgia,serif;overflow-wrap:anywhere;min-width:0}
+.ledger-friend-metric{text-align:center;padding:8px 5px;border-left:1px solid #416354;min-width:0}
+.ledger-friend-metric strong{display:block;font:600 21px Georgia,serif;color:#b3e7c7}
+.ledger-friend-metric small{display:block;font-size:9px}
+.ledger-friend-totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:18px 0}
+.ledger-friend-totals>div{padding:10px;text-align:center;border:1px solid #406150;border-radius:8px;background:#10271f}
+.ledger-friend-totals strong,.ledger-friend-totals small{display:block}
+.ledger-friend-totals strong{font:600 25px Georgia,serif;color:#b3e7c7}
+.ledger-report .deck-stat-pagination{margin:12px 0}
+.ledger-report .deck-stat-art{position:relative}
+.ledger-report .ledger-adjust-art{z-index:3;width:24px;height:24px;min-height:0;min-width:0;right:3px;top:3px;padding:3px}
+.ledger-by-deck{margin-top:26px;padding-top:18px;border-top:1px solid #927c4b}
+.ledger-by-deck>h3{font:600 28px Georgia,serif;margin:0 0 12px;color:var(--cl-ink)}
+#statisticsSection .ledger-by-deck .deck-collapse-content{padding:0}
+#statisticsSection .ledger-by-deck .deck-carousel-heading{border:0;padding:0;margin:8px 0 12px}
+#statisticsSection .ledger-by-deck .deck-carousel-controls{width:100%}
+#statisticsSection .ledger-by-deck .deck-carousel-controls input{flex:1;min-width:160px;width:auto}
+#statisticsSection .ledger-by-deck .deck-carousel-controls label{margin:0}
+#statisticsSection .deck-stats-carousel{scrollbar-width:none;padding-bottom:4px}
+#statisticsSection .deck-stats-carousel::-webkit-scrollbar{display:none}
+#statisticsSection .deck-stats-carousel .deck-stats-card{flex:0 0 calc((100% - 28px)/3);min-width:0;min-height:180px}
+@media(max-width:1050px){
+ #statisticsSection .ledger-additional-stats{grid-template-columns:minmax(0,1fr)}
+ .ledger-rivalry-grid{grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr));gap:8px}
+ #statisticsSection .ledger-rivalry .best-deck-card{grid-template-columns:75px minmax(0,1fr)}
+ #statisticsSection .ledger-rivalry .best-deck-name{font-size:17px}
+}
+@media(max-width:800px){
+ #statisticsSection .ledger-chart-row{grid-template-columns:minmax(0,1fr)!important;padding:14px!important}
+ #statisticsSection .ledger-chart-row #summary>.stats-pie-card{padding:8px 0 16px!important;min-height:210px!important}
+ #statisticsSection .ledger-chart-row>.winrate-trend{padding:18px 0 0!important;border-left:0!important;border-top:1px solid #416354!important;min-height:220px!important}
+ .ledger-rivalry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #nemesisCommander{grid-column:1/-1}
+ #statisticsSection .ledger-rivalry .best-deck-card{grid-template-columns:100px minmax(0,1fr)}
+ #statisticsSection .ledger-rivalry .insight-stat{border-left:0!important;border-top:1px solid #416354!important;padding:12px 0 0!important}
+ #statisticsSection .ledger-rivalry .best-deck-content{padding-right:26px!important}
+ #statisticsSection .deck-stats-carousel .deck-stats-card{flex-basis:calc((100% - 14px)/2)}
+}
+@media(max-width:480px){
+ #statisticsSection #statInsights>.insight-stat{display:flex;flex-direction:column;align-items:flex-start;padding:12px!important}
+ #statisticsSection .ledger-chart-row .stats-donut{width:130px!important;min-width:130px!important}
+ #statisticsSection .ledger-chart-row .stats-pie-main{flex-wrap:nowrap!important;gap:18px!important}
+ .ledger-report{padding:13px}
+ .ledger-friend-passport{grid-template-columns:52px minmax(0,1fr) 64px;gap:7px}
+ .ledger-friend-art{width:52px;grid-row:1/3;min-height:104px}
+ .ledger-friend-name{grid-column:2;grid-row:1/3;font-size:15px}
+ .ledger-friend-metric{grid-column:3;padding:5px;align-self:stretch}
+ .ledger-friend-metric strong{font-size:18px}
+ .ledger-friend-metric small{font-size:8px}
+ .ledger-report-panel .deck-rate-ring{width:90px}
+ .ledger-report-panel .deck-rate-ring strong{font-size:21px}
+ #statisticsSection .ledger-by-deck .deck-carousel-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ #statisticsSection .ledger-by-deck .deck-carousel-controls input{grid-column:1/-1;width:100%;min-width:0}
+ .ledger-by-deck .deck-sort-label{font-size:11px;min-width:0}
+ .ledger-by-deck .deck-sort-label select{max-width:100%;font-size:11px;padding:6px}
+ #statisticsSection .deck-stats-carousel .deck-stats-card{flex-basis:90%;min-height:175px}
+}
+@media(prefers-reduced-motion:reduce){#statisticsSection .deck-stats-carousel{scroll-behavior:auto}}
+/* Neutralize page-wide section styling for the nested report structure. */
+#statisticsSection .ledger-report{margin:0!important;padding:17px!important}
+#statisticsSection .ledger-report-panel{margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;min-height:260px}
+#statisticsSection .ledger-by-deck{margin:26px 0 0!important;padding:18px 0 0!important;border:0;border-top:1px solid #927c4b;border-radius:0!important;background:none!important}
+#statisticsSection .ledger-chart-row .stats-games-total{display:flex;align-items:baseline;gap:9px;text-align:left;width:auto;padding:0!important;border:0}
+#statisticsSection .ledger-chart-row .stats-games-total strong{font-size:28px!important;color:#b4e5c7!important}
+#statisticsSection .ledger-chart-row .stats-games-total span{font-size:12px;margin:0}
+#statisticsSection .ledger-chart-row .stats-pie-legend{gap:14px;min-width:98px}
+#statisticsSection .ledger-chart-row .stats-pie-legend>div{display:flex;gap:9px;align-items:baseline;font-size:12px}
+#statisticsSection .ledger-chart-row .stats-pie-legend>div>strong{order:-1;font:600 28px Georgia,serif;color:#b4e5c7}
+#statisticsSection .ledger-chart-row .stats-pie-dot{display:none}
+@media(max-width:480px){#statisticsSection .ledger-report{padding:13px!important}}
+#statisticsSection .ledger-additional-stats{align-items:stretch}
+#statisticsSection .ledger-report{align-self:stretch;height:auto!important}
+#statisticsSection .ledger-rivalry{padding:16px!important;margin:14px 0 18px!important}
