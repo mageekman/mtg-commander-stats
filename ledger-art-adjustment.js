@@ -19,7 +19,7 @@ export function adjustLedgerArtwork({url,title,frame,aspect,onSave,note,defaultF
 }
 export const historyCommanderKey=name=>String(name||'').trim().replace(/\s+/g,' ').toLowerCase();
 export function createLedgerArtController(sb,getUser){
- let owner=null,settings=new Map(),targets=new Set();const normalized=(slot,name)=>slot==='compact-history'||slot.startsWith('deck-report:')?historyCommanderKey(name):name,key=(slot,name)=>JSON.stringify([slot,normalized(slot,name)]);
+ let owner=null,settings=new Map(),targets=new Set();const normalized=(slot,name)=>slot==='compact-history'||slot.startsWith('deck-report:')||slot.startsWith('ledger-report:')?historyCommanderKey(name):name,key=(slot,name)=>JSON.stringify([slot,normalized(slot,name)]);
  async function edit({slot,commander,url,title,aspect,note,defaultFrame}){
   const actor=getUser()?.id;if(!actor||actor!==owner||!url)return;
   const id=key(slot,commander),storedCommander=normalized(slot,commander);
