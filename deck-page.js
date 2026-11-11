@@ -1,4 +1,4 @@
-import {mountDeckPerformance} from './deck-performance.js?v=tabs-3';
+import {mountDeckPerformance} from './deck-performance.js?v=reports-4';
 function colorIdentityIcons(colors){
  const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
  const label=document.createElement('span');label.textContent='Color identity:';wrap.append(label);
@@ -90,8 +90,8 @@ async function run(){
  const colors=[...new Set(commanderNames.flatMap(n=>cards.get(n.toLowerCase())?.color_identity||[]))];
  meta.append(colorIdentityIcons(colors));
  meta.append(element('p',items.length?items.reduce((n,i)=>n+i.qty,0)+' cards listed':'No card list uploaded'));if(deck.decklist_url){const a=element('a','View external decklist');a.href=deck.decklist_url;a.target='_blank';a.rel='noopener noreferrer';meta.append(a)}if(deck.bracket_level)meta.append(element('p','Bracket: '+deck.bracket_level));if(deck.theme)meta.append(element('p','Theme: '+deck.theme));if(deck.notes){const note=element('p',deck.notes);note.style.whiteSpace='pre-wrap';meta.append(element('h3','Deck notes'),note)}
- hero.append(meta);root.append(hero);
- await mountDeckPerformance(root,deck,user,sb);
+ const summary=element('aside');summary.className='deck-hero-performance';summary.setAttribute('aria-label','Deck record');summary.setAttribute('aria-live','polite');summary.append(element('p','Loading deck record…'));hero.classList.add('deck-hero-with-record');hero.append(meta,summary);root.append(hero);
+ await mountDeckPerformance(root,deck,user,sb,summary);
  const buckets=new Map();
  for(const item of items){
  const category=item.commander||commanderNames.some(n=>n.toLowerCase()===item.name.toLowerCase())?'Commander':type(cards.get(item.name.toLowerCase()));
