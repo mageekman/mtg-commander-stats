@@ -12,7 +12,7 @@ export function createPlayerOnboarding(client){
  let current=null,signature='',epoch=0,banner=null,dialog=null,busy=false,ready=null,internalNavigation=false;
  const key=(kind,id)=>'command-ledger:onboarding:'+kind+':'+id;
  const page=()=>location.pathname.split('/').pop();
- const excluded=()=>['sign-in.html','account-created.html','reset-password.html','account-settings.html'].includes(page());
+ const excluded=()=>['sign-in.html','share-my-ledger.html','account-created.html','reset-password.html','account-settings.html'].includes(page());
  const clean=()=>{banner?.remove();banner=null;if(dialog?.open)dialog.close();dialog?.remove();dialog=null};
  function checklist(host,state){
   const list=node('ol');list.className='onboarding-steps';

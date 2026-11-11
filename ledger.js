@@ -349,6 +349,7 @@ function sortDecksForDisplay(list,stats,sort,direction){
 function renderWinrateTrend(visibleGames){renderWinrateTrendChart($('winrateTrendChart'),$('winrateTrendEmpty'),visibleGames)}
 
 function render(){
+ const shareLink=$('shareLedgerLink');if(shareLink){const shareParams=new URLSearchParams({period:$('statsDatePreset').value});if($('statsDatePreset').value==='custom'){shareParams.set('start',$('statsDateStart').value);shareParams.set('end',$('statsDateEnd').value)}shareLink.href='./share-my-ledger.html?'+shareParams;}
  const visibleGames=calendarFilteredGames();
  const historyVisibleGames=filteredGames().filter(g=>visibleGames.includes(g));
  const sortedHistoryGames=[...historyVisibleGames].sort((a,b)=>$('historyDateSort').value==='oldest'?a.played_at.localeCompare(b.played_at)||String(a.id).localeCompare(String(b.id)):b.played_at.localeCompare(a.played_at)||String(b.id).localeCompare(String(a.id)));
