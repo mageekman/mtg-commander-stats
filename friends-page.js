@@ -1,15 +1,17 @@
+import {createGameHistoryLinker} from './game-history-links.js?v=1';
 import {mountPlayedWith} from './played-with.js?v=1';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
 import {mountFriendRivalries} from './friend-rivalries.js?v=participants-4';
 import {rankingPeriods,rankingRange,dateString} from './friend-ranking-period.js?v=1';
 import {applyPassportArt} from './passport-art.js?v=1';
 import {mountGameInvitations} from './game-invitations.js?v=2';
-import {mountRecentFriendGames} from './recent-friend-games.js?v=participants-4';
+import {mountRecentFriendGames} from './recent-friend-games.js?v=history-links-5';
 import {renderFriendDashboard} from './friends-dashboard.js?v=ranking-tabs-5';
 import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=invite-3';
 import {createClient} from './vendor/supabase-js.mjs';
 import {mountRequestsPanel} from './friends.js?v=3';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
+const historyLinker=createGameHistoryLinker(sb);
 const node=(tag,text)=>{const el=document.createElement(tag);if(text)el.textContent=text;return el};
 const status=document.getElementById('friendsPageStatus'),host=document.getElementById('friendsPageContent');
 async function rpc(name,args){const {data,error}=await sb.rpc(name,args);if(error)throw error;return data}
@@ -59,6 +61,7 @@ async function loadRivalryGames(){
 }
 let version=0;
 async function loadFriends(){
+ historyLinker.clear();
  const current=++version;status.textContent='Loading friends…';
  try{
   const connections=await rpc('list_friend_connections');if(current!==version)return;
@@ -67,7 +70,7 @@ async function loadFriends(){
   const refresh=node('button','Refresh');refresh.type='button';refresh.className='friends-page-button';refresh.onclick=loadFriends;heading.append(refresh);host.append(heading);
   const loadPassport=createPassportLoader();
   const dashboard=node('section');dashboard.setAttribute('aria-label','Friend rankings dashboard');const rivalry=node('section');rivalry.setAttribute('aria-label','Friend rivalries');const row=node('div');row.className='friends-dashboard-main-row';const rankings=node('div');rankings.className='friends-ranking-column';row.append(rankings,rivalry);host.append(dashboard,row);const rivalryView=mountFriendRivalries(rivalry,{loadSelf:async()=>{const {data,error}=await sb.from('profiles').select('display_name,handle,favorite_commander').eq('id',activeUser.id).maybeSingle();if(error)throw error;return data},loadPassport,loadArtwork:name=>window.commandLedgerCommanderArtwork(name),applyArtwork:(image,profile)=>applyPassportArt(sb,image,profile.handle,profile.favorite_commander),initialFriendId:selectedRivalFriend,onSelect:id=>selectedRivalFriend=id,loadGames:loadRivalryGames,loadFriends:()=>rpc('list_game_friends')});mountRankings(dashboard,loadPassport,range=>rivalryView.setRange(range),rankings);
-  const recentGames=node('section');recentGames.setAttribute('aria-label','Recent games with friends');host.append(recentGames);mountRecentFriendGames(recentGames,{loadGames:()=>rpc('get_recent_friend_games'),loadFriendNames:()=>rpc('list_game_friends'),loadArtwork:name=>window.commandLedgerCommanderArtwork(name)});
+  const recentGames=node('section');recentGames.setAttribute('aria-label','Recent games with friends');host.append(recentGames);mountRecentFriendGames(recentGames,{loadGames:()=>rpc('get_recent_friend_games'),loadFriendNames:()=>rpc('list_game_friends'),linkHistory:(root,games)=>historyLinker.hydrate(root,games),loadArtwork:name=>window.commandLedgerCommanderArtwork(name)});
   host.append(node('h2',"Friends’ Player Passports"));
   if(!friends.length){const empty=node('div');empty.className='friends-list-empty';empty.append(node('h2','Build your circle'),node('p','Find players and send a request. Once a request is accepted, their passport appears here.'));const find=node('a','Find Players');find.href='./find-players.html';find.className='friends-page-button';empty.append(find);host.append(empty)}
   const grid=node('div');grid.className='friends-passport-grid';host.append(grid);const jobs=[];

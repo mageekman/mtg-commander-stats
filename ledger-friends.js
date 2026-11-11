@@ -14,10 +14,11 @@ export function createGameFriendService(sb){
   decks(id){return request('get_friend_game_decks',{target_id:id})}
  };
 }
-export function gamePlayerSnapshot(row){return {name:row.querySelector('.player-name').value.trim(),commander:row.querySelector('.player-commander').value.trim(),...(row.recordedParticipantId?{participant_id:row.recordedParticipantId}:{}),...(row.friendSelection||{})}}
+export function gamePlayerSnapshot(row){return {name:row.querySelector('.player-name').value.trim(),commander:row.querySelector('.player-commander').value.trim(),...(row.recordedParticipantId?{participant_id:row.recordedParticipantId,...(row.recordedDeckId?{participant_deck_id:row.recordedDeckId}:{})}:{}),...(row.friendSelection||{})}}
 let nextMenuId=0;
 export function attachGameFriend({row,name,commander,snapshot,service,onCommander}){
- row.recordedParticipantId=snapshot?.participant_id||snapshot?.friend_id||null;
+ row.recordedParticipantId=snapshot?.participant_id||snapshot?.friend_id||null;row.recordedDeckId=snapshot?.participant_deck_id||snapshot?.friend_deck_id||null;
+ commander.addEventListener('input',()=>{row.recordedDeckId=null});
  const label=name.parentElement,wrap=commander.closest('.commander-search');
  const menu=document.createElement('div');menu.className='game-friend-menu';menu.id='game-friend-menu-'+(++nextMenuId);menu.role='listbox';menu.hidden=true;label.append(menu);
  const status=document.createElement('span');status.className='game-friend-status';status.setAttribute('role','status');label.append(status);
@@ -27,7 +28,7 @@ export function attachGameFriend({row,name,commander,snapshot,service,onCommande
  const close=()=>{menu.hidden=true;menu.replaceChildren();name.setAttribute('aria-expanded','false')};
  function manual(){picker?.remove();picker=null;if(wrap)wrap.hidden=false;commander.required=true;commander.disabled=false;row.friendSelection=null;row.friendLoading=false}
  async function choose(friend,restoring=false){
-  const current=++sequence;close();manual();if(!restoring)row.recordedParticipantId=null;if(!restoring)name.value='@'+friend.handle;
+  const current=++sequence;close();manual();if(!restoring){row.recordedParticipantId=null;row.recordedDeckId=null;}if(!restoring)name.value='@'+friend.handle;
   row.friendSelection={friend_id:friend.id};row.friendLoading=true;commander.disabled=true;status.textContent='Loading shared decks…';
   try{
    const decks=await service.decks(friend.id);if(!row.isConnected||current!==sequence)return;
@@ -47,7 +48,7 @@ export function attachGameFriend({row,name,commander,snapshot,service,onCommande
   finally{if(current===sequence){row.friendLoading=false;commander.disabled=false}}
  }
  name.addEventListener('input',async()=>{
-  const current=++sequence;row.recordedParticipantId=null;close();if(row.friendSelection||row.friendLoading){manual();setCommander(commander.value)}status.textContent='';
+  const current=++sequence;row.recordedParticipantId=null;row.recordedDeckId=null;close();if(row.friendSelection||row.friendLoading){manual();setCommander(commander.value)}status.textContent='';
   const value=name.value.trim();if(!value.startsWith('@'))return;
   try{const friends=await service.friends();if(current!==sequence||!row.isConnected)return;const matches=matchGameFriends(friends,value);for(const friend of matches){const option=document.createElement('button');option.type='button';option.role='option';option.tabIndex=-1;option.textContent=(friend.display_name||friend.handle)+' · @'+friend.handle;option.onmousedown=event=>event.preventDefault();option.onclick=()=>choose(friend).then(()=>{(picker||commander).focus()});menu.append(option)}if(!matches.length){status.textContent='No matching friends. You can still enter a player manually.';return}menu.hidden=false;name.setAttribute('aria-expanded','true')}
   catch{if(current===sequence)status.textContent='Friends could not load. Enter a name and commander manually.'}

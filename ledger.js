@@ -1,8 +1,9 @@
+import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {commanderColors} from './ledger-commander-colors.js?v=1';
 import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=participants-2';
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=history-2';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=participants-4';
-import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=participants-2';
+import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=history-links-3';
 import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
 import {gameMatchesSearch} from './game-history-search.js?v=participants-3';
@@ -11,6 +12,7 @@ import {renderWinrateTrendChart} from './ledger-chart.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const friendService=createGameFriendService(sb);
+const historyLinker=createGameHistoryLinker(sb);
 const $=id=>document.getElementById(id);
 let friendDisplayNames=new Map();
 let user=null,decks=[],games=[],playerCount=4,editingGameId=null,savingGame=false;
@@ -115,6 +117,7 @@ $('deck').addEventListener('change',syncOwnCommander);
 drawPlayers();
 $('date').value=new Date().toLocaleDateString('en-CA');
 async function load(){
+ historyLinker.clear();
  const auth=await sb.auth.getUser();user=auth.data.user;await ledgerArt.load(user);friendService.clear();friendDisplayNames=new Map();
  if(!user){decks=demoDecks;games=demoGames;$('save').disabled=true;const filter=$('historyDeckFilter');filter.replaceChildren(el('option','All decks'));filter.firstChild.value='';for(const deck of decks){const option=el('option',deck.name);option.value=deck.id;filter.append(option)}message('');render();return}
  $('save').disabled=false;
@@ -427,18 +430,18 @@ function render(){
    const date=el('span',g.played_at);date.className='compact-game-date';
    const deckArt=el('div');deckArt.className='compact-game-art';deckArt.setAttribute('aria-hidden','true');row.append(deckArt);
    if(deck?.commander){const artName=deck.commander.trim(),image=el('div');image.className='compact-game-art-image';deckArt.append(image);ledgerArt.watch(image,{slot:'compact-history',commander:artName});if(artName)getCommanderArtwork(artName).then(url=>{if(image.isConnected&&url)image.style.backgroundImage='url("'+url+'")'}).catch(()=>{})}
-   const deckName=el('strong',deck?.name||'Deleted deck');deckName.className='compact-game-deck-title';
+   const deckName=el('strong');deckName.append(historyDeckTitle(deck?.name||'Deleted deck',deck?.id,!!user));deckName.className='compact-game-deck-title';
    const players=el('span');players.className='compact-game-players';
    const playerNames=Array.isArray(g.players)&&g.players.length
     ?g.players.map((p,i)=>gamePlayerDisplayName(p,friendDisplayNames,'Player '+(i+1)))
     :['You',...(Array.isArray(g.opponents)?g.opponents:[])];
-   players.textContent=playerNames.join(' · ');
+   playerNames.forEach((name,index)=>{if(index)players.append(document.createTextNode(' · '));players.append(markHistoryPlayer(el('span',name),g,index));if(index)players.append(historyFriendDeckSlot(g,index,true))});
    players.title=playerNames.join(', ');
    const info=el('div');info.className='compact-game-info';const outcome=el('span',g.won?'Win':'Loss');outcome.className='compact-game-outcome';info.append(date,deckName,players);const edit=el('button',user?'Edit':'Sign in to edit');edit.type='button';edit.className='compact-game-edit';edit.setAttribute('aria-label','Edit game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));edit.onclick=()=>editGame(g);const actions=el('div');actions.className='compact-game-actions';edit.textContent='Edit';actions.append(edit);if(user){const remove=el('button','Delete');remove.type='button';remove.className='compact-game-delete';remove.setAttribute('aria-label','Delete game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));remove.onclick=()=>deleteGame(g,remove);actions.append(remove)}row.append(info,outcome,actions);item.append(row);history.append(item);continue;
   }
   const record=el('article');record.className='game-record';
   const header=el('div');header.className='game-record-header';
-  const heading=el('div');heading.append(el('strong',(g.won?'Win':'Loss')+' · '+(deck?.name||'Deleted deck')),el('div',g.played_at));
+  const heading=el('div'),deckHeading=el('strong');deckHeading.append(document.createTextNode((g.won?'Win':'Loss')+' · '),historyDeckTitle(deck?.name||'Deleted deck',deck?.id,!!user));heading.append(deckHeading,el('div',g.played_at));
   const edit=el('button',user?'Edit':'Sign in to edit');edit.type='button';edit.onclick=()=>editGame(g);
   const remove=el('button','Delete');remove.type='button';remove.hidden=!user;
   remove.onclick=()=>deleteGame(g,remove);
@@ -453,8 +456,8 @@ function render(){
     const tags=el('div');tags.className='history-player-tags';
     if(i===g.winner_player)tags.append(el('span','🏆 Winner'));
     if(i===g.first_player)tags.append(el('span','Went first'));
-    info.append(tags,el('strong',gamePlayerDisplayName(p,friendDisplayNames,'Player '+(i+1))));
-    const commander=el('a',p.commander||'Unknown commander');commander.href=scryfallLink(p.commander||'');commander.target='_blank';commander.rel='noopener noreferrer';info.append(commander);
+    info.append(tags,markHistoryPlayer(el('strong',gamePlayerDisplayName(p,friendDisplayNames,'Player '+(i+1))),g,i));
+    const commander=el('a',p.commander||'Unknown commander');commander.href=scryfallLink(p.commander||'');commander.target='_blank';commander.rel='noopener noreferrer';info.append(commander);if(i)info.append(historyFriendDeckSlot(g,i));
     tile.append(info);pod.append(tile);
     showHistoryArt(art,p.commander);
    });
@@ -467,6 +470,7 @@ function render(){
   if(g.notes){const note=el('p',g.notes);note.className='history-note';record.append(note)}
   history.append(record);
  }
+ if(user)historyLinker.hydrate(history,historyGames);
 }
 $('gameForm').onsubmit=async e=>{
  e.preventDefault();if(!user||savingGame)return;

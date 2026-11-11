@@ -1,0 +1,12 @@
+const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e};
+export async function renderSharedDeck(root,deck,{fetchCards,colorIdentityIcons}){
+ const hero=node('div');hero.className='hero deck-hero-with-record shared-deck-hero';
+ const artwork=node('div');artwork.className='deck-hero-art';const details=node('div');details.className='deck-hero-details';details.append(node('p','Shared deck'),node('h2',deck.commander));
+ const owner=node(deck.owner_handle?'a':'span',deck.owner_name||'Player');if(deck.owner_handle)owner.href='./player.html?user='+encodeURIComponent(deck.owner_handle);const by=node('p','Played by ');by.append(owner);details.append(by);
+ const colors=node('div');details.append(colors);
+ const summary=node('aside');summary.className='deck-hero-performance';summary.setAttribute('aria-label','Shared deck record');
+ const games=Number(deck.record?.games)||0,wins=Number(deck.record?.wins)||0,rate=games?100*wins/games:0;
+ const overview=node('div');overview.className='deck-compact-overview';const ring=node('div');ring.className='deck-donut';ring.style.setProperty('--win-percent',rate+'%');ring.setAttribute('role','img');ring.setAttribute('aria-label',rate.toFixed(1)+'% win rate');const center=node('div');center.className='deck-donut-inner';center.append(node('strong',rate.toFixed(1)+'%'),node('span','Win rate'));ring.append(center);overview.append(ring);
+ for(const[label,count]of [['Games',games],['Wins',wins],['Losses',games-wins]]){const metric=node('div');metric.className='deck-compact-metric '+label.toLowerCase();metric.append(node('strong',String(count)),node('span',label));overview.append(metric)}const period=node('small','All time');period.className='deck-record-period';overview.append(period);summary.append(overview);hero.append(artwork,details,summary);root.append(hero);
+ const jobs=[Promise.resolve(window.commandLedgerCommanderArtwork(deck.commander)).then(url=>{if(url&&artwork.isConnected){const image=node('img');image.src=url;image.alt=deck.commander;artwork.append(image)}}).catch(()=>{}),(async()=>{try{let names=[deck.commander],cards=await fetchCards(names);if(!cards.has(deck.commander.toLowerCase())){names=deck.commander.split(/\s+\/\s+|\s+&\s+/).map(s=>s.trim());cards=await fetchCards(names)}if(colors.isConnected)colors.append(colorIdentityIcons([...new Set(names.flatMap(name=>cards.get(name.toLowerCase())?.color_identity||[]))]))}catch{}})()];await Promise.all(jobs);
+}

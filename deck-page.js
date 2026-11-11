@@ -1,3 +1,4 @@
+import {renderSharedDeck} from './shared-deck.js?v=1';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
 import {mountDeckPerformance} from './deck-performance.js?v=participants-6';
 function colorIdentityIcons(colors){
@@ -54,14 +55,22 @@ function type(c){
  return 'Other';
 }
 function element(tag,text){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e}
+async function loadSharedDeck(sourceGame=null){
+ const {data,error}=await sb.rpc('get_connected_friend_deck',{target_deck:id,source_game:sourceGame});
+ if(error||!data){$('status').textContent='Deck not found or you do not have permission to view it.';return}
+ document.title=data.name+' · Command Ledger';$('deckTitle').querySelector('.site-heading-title').textContent=data.name;$('status').textContent='';
+ await renderSharedDeck($('deckContent'),data,{fetchCards,colorIdentityIcons});
+}
 async function run(){
  if(!id||!/^[0-9a-f-]{36}$/i.test(id)){$('status').textContent='Invalid deck link.';return}
  const {user,error:authError}=await readPageUser(sb);
  if(!user){showAuthPrompt($('status'),{message:'Sign in to view this deck.',error:authError});return}
+ const sourceGame=new URLSearchParams(location.search).get('game');
+ if(sourceGame){if(!/^[0-9a-f-]{36}$/i.test(sourceGame)){$('status').textContent='Invalid game link.';return}await loadSharedDeck(sourceGame);return}
  let {data:deck,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,archived_at,owner_id,bracket_level,theme,notes').eq('id',id).single();
  if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist,archived_at,owner_id').eq('id',id).single();if(!fallback.error){deck=fallback.data;error=null}}
 
- if(error||!deck){$('status').textContent='Deck not found or you do not have permission to view it.';return}
+ if(error||!deck){await loadSharedDeck();return}
  document.title=deck.name+' · Command Ledger';$('deckTitle').querySelector('.site-heading-title').textContent=deck.name;
  const actions=element('div');actions.className='deck-page-actions';
  const edit=element('a','Edit deck');edit.href='./import.html?id='+encodeURIComponent(deck.id);edit.className='edit-deck-link';edit.setAttribute('aria-label','Edit '+deck.name);actions.append(edit);

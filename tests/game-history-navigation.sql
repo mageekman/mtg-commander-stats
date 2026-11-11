@@ -1,0 +1,52 @@
+-- Generated fixtures only; all writes and temporary accounts roll back.
+begin;
+create temp table navigation_users(code text,id uuid,handle text,deck uuid);
+insert into navigation_users select code,gen_random_uuid(),'nav_'||code||'_'||substr(md5(random()::text),1,8),gen_random_uuid() from(values('a'),('b'),('c'),('x'))v(code);
+insert into auth.users(id,email,raw_user_meta_data) select id,id::text||'@example.invalid',jsonb_build_object('username',handle,'display_name',code) from navigation_users;
+update public.profiles set share_deck_stats=true where id in(select id from navigation_users);
+insert into public.decks(id,owner_id,name,commander,decklist) select deck,id,code||' deck',code||' commander','PRIVATE CARD LIST' from navigation_users;
+insert into public.personal_games(owner_id,deck_id,won,notes) select id,deck,true,'PRIVATE GAME NOTES' from navigation_users;
+insert into public.friend_connections(requester_id,recipient_id,status,accepted_at) select a.id,b.id,'accepted',now() from navigation_users a cross join navigation_users b where a.code='a' and b.code in('b','c');
+do $$
+declare a uuid;b uuid;c uuid;x uuid;ad uuid;bd uuid;cd uuid;ah text;bh text;ch text;source uuid;copy uuid;invite uuid;unlinked uuid:=gen_random_uuid();spoof uuid;shared jsonb;player_payload jsonb;
+begin
+ select id,deck,handle into a,ad,ah from navigation_users where code='a';select id,deck,handle into b,bd,bh from navigation_users where code='b';select id,deck,handle into c,cd,ch from navigation_users where code='c';select id into x from navigation_users where code='x';
+ insert into public.decks(id,owner_id,name,commander)values(unlinked,b,'Unconnected deck','b commander');insert into public.personal_games(owner_id,deck_id,won)values(b,unlinked,true);
+ perform set_config('request.jwt.claim.sub',a::text,true);
+ player_payload:=jsonb_build_array(jsonb_build_object('name','You','commander','a commander'),jsonb_build_object('name','b','commander','b commander','friend_id',b::text,'friend_deck_id',bd::text),jsonb_build_object('name','c','commander','c commander','friend_id',c::text,'friend_deck_id',cd::text));
+ insert into public.personal_games(owner_id,deck_id,won,players,first_player,winner_player)values(a,ad,true,player_payload,0,0)returning id into source;
+ execute 'set local role authenticated';
+ if exists(select 1 from public.decks where id=bd) then raise exception 'Direct deck RLS was broadened';end if;
+ if not exists(select 1 from public.get_game_history_links(array[source]) where player_index=1 and handle=bh and deck_id=bd and is_friend) then raise exception 'Connected active friend deck link missing';end if;
+ shared:=public.get_connected_friend_deck(bd,source);
+ if shared is null or shared->>'name'<>'b deck' or shared ? 'decklist' or shared ? 'notes' or shared ? 'players' or shared::text like '%PRIVATE%' then raise exception 'Shared deck response missing or leaked private details';end if;
+ if public.get_connected_friend_deck(unlinked,source) is not null or public.get_connected_friend_deck(bd,gen_random_uuid()) is not null then raise exception 'Unconnected deck or forged game granted access';end if;
+ execute 'reset role';
+ select id into invite from public.game_invitations where source_game_id=source and recipient_id=b;
+ perform set_config('request.jwt.claim.sub',b::text,true);copy:=(public.respond_game_invitation(invite,'accept',bd)->>'game_id')::uuid;
+ if (select players->1->>'participant_deck_id' from public.personal_games where id=copy) is distinct from ad::text or (select players->2->>'participant_deck_id' from public.personal_games where id=copy) is distinct from cd::text then raise exception 'Shared copy lost connected sender/co-player decks';end if;
+ if not exists(select 1 from public.get_game_history_links(array[copy]) where player_index=2 and handle=ch and deck_id is null and not is_friend) then raise exception 'Nonfriend profile should link without deck access';end if;
+ if public.get_connected_friend_deck(cd,copy) is not null then raise exception 'Nonfriend deck readable';end if;
+ if public.get_connected_friend_deck(ad,source) is not null then raise exception 'Another user game used as access proof';end if;
+ perform public.friend_action(ch,'send');perform set_config('request.jwt.claim.sub',c::text,true);perform public.friend_action(bh,'accept');perform set_config('request.jwt.claim.sub',b::text,true);
+ if public.get_connected_friend_deck(cd,copy) is null then raise exception 'Recorded deck missing after becoming friends';end if;
+ update public.decks set archived_at=now() where id=cd;
+ if public.get_connected_friend_deck(cd,copy) is not null or exists(select 1 from public.get_game_history_links(array[copy]) where deck_id=cd) then raise exception 'Archived friend deck readable';end if;
+ update public.decks set archived_at=null where id=cd;update public.profiles set share_deck_stats=false,public_full_stats=false where id=c;
+ if public.get_connected_friend_deck(cd,copy) is not null or exists(select 1 from public.get_game_history_links(array[copy]) where deck_id=cd) then raise exception 'Private friend deck readable';end if;
+ update public.profiles set public_full_stats=true where id=c;if public.get_connected_friend_deck(cd,copy) is null then raise exception 'Full public stats override broken';end if;
+ -- A supplied history-only deck ID cannot invent a connection to another deck.
+ insert into public.personal_games(owner_id,deck_id,won,players)values(b,bd,true,jsonb_build_array(jsonb_build_object('name','You'),jsonb_build_object('name','c','commander','c commander','participant_id',c::text,'participant_deck_id',unlinked::text)))returning id into spoof;
+ if (select players->1 ? 'participant_deck_id' from public.personal_games where id=spoof) then raise exception 'Forged historical deck ID retained';end if;
+ perform set_config('request.jwt.claim.sub',a::text,true);perform public.friend_action(bh,'remove');
+ if public.get_connected_friend_deck(bd,source) is not null or not exists(select 1 from public.get_game_history_links(array[source]) where handle=bh and deck_id is null and not is_friend) then raise exception 'Unfriend did not revoke deck while retaining profile';end if;
+ perform set_config('request.jwt.claim.sub',b::text,true);if public.get_connected_friend_deck(ad,copy) is not null then raise exception 'Copied sender deck survived unfriend';end if;
+ delete from public.decks where id=cd;
+ if public.get_connected_friend_deck(cd,copy) is not null or exists(select 1 from public.get_game_history_links(array[copy]) where deck_id=cd) or not exists(select 1 from public.personal_games where id=copy) then raise exception 'Deck deletion access/copy independence broken';end if;
+ perform set_config('request.jwt.claim.sub',x::text,true);execute 'set local role authenticated';
+ if exists(select 1 from public.get_game_history_links(array[source,copy])) or public.get_connected_friend_deck(bd,source) is not null then raise exception 'Other users game links leaked';end if;execute 'reset role';
+ if has_function_privilege('anon','public.get_game_history_links(uuid[])','EXECUTE') or has_function_privilege('anon','public.get_connected_friend_deck(uuid,uuid)','EXECUTE') then raise exception 'Anonymous deck/history access';end if;
+ begin perform public.get_game_history_links(array_fill(gen_random_uuid(),array[101]));raise exception 'Unbounded history links';exception when invalid_parameter_value then null;end;
+ raise notice 'PASS own-history scope, profile links, connected active/private/shared friend gates, read-only projection, copied deck references, later friendship, forged URLs/IDs, archive/unfriend/deletion and bounds';
+end $$;
+rollback;
