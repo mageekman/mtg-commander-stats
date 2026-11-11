@@ -1,4 +1,4 @@
-import {friendMatchup} from './player-game-stats.js?v=1';
+import {friendMatchup} from './player-game-stats.js?v=participants-2';
 const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=String(text);return e};
 export function mountFriendRivalries(host,{loadGames,loadFriends,initialFriendId='',onSelect=()=>{},loadSelf,loadPassport,loadArtwork,applyArtwork}){
  host.className='friend-rivalries';const heading=node('div');heading.className='friend-rivalries-heading';heading.append(node('h2','Friend Rivalries'));const label=node('label','Matchup '),select=node('select');select.setAttribute('aria-label','Choose a friend rivalry');select.disabled=true;label.append(select);heading.append(label);const description=node('p','Your logged games with tagged friends. Results describe multiplayer games, so another player may have won.');const body=node('div');body.setAttribute('aria-live','polite');host.append(heading,body);

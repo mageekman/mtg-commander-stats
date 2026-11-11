@@ -1,4 +1,4 @@
-import {dailyWinrate} from './deck-performance-stats.js?v=visual-2';
+import {dailyWinrate} from './deck-performance-stats.js?v=participants-3';
 export const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=String(text);return e};
 export const pct=value=>value===null?'—':value.toFixed(1)+'%';
 export function tiles(items){const grid=node('div');grid.className='deck-insight-tiles';for(const [label,value]of items){const tile=node('div');tile.append(node('strong',value),node('span',label));grid.append(tile)}return grid}
