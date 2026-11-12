@@ -12,7 +12,6 @@ export async function mountSharedLedger(root,{client,handle}){
  root.hidden=false;root.replaceChildren();
  const shell=node('div');shell.id='statisticsSection';shell.className='public-ledger-statistics';
  const heading=node('div');heading.className='archive-section-heading';
- const index=node('span','01 / THE RECORD');index.className='archive-section-index';
  const titleRow=node('div');titleRow.className='statistics-title-row';
  const title=node('h2','Statistics'),label=node('label','View '),period=node('select');period.id='sharedStatsPeriod';
  for(const [value,text]of rankingPeriods){const option=node('option',text);option.value=value;period.append(option)}label.append(period);titleRow.append(title,label);
@@ -20,7 +19,7 @@ export async function mountSharedLedger(root,{client,handle}){
  const start=node('input'),end=node('input');start.type=end.type='date';start.id='sharedStatsStart';end.id='sharedStatsEnd';
  for(const [text,input]of [['From',start],['Through',end]]){const label=node('label',text);label.append(input);custom.append(label)}
  const status=node('p');status.className='muted';status.setAttribute('role','status');
- heading.append(index,titleRow,node('p','Performance, rivalries, and most memorable commanders.'),custom,status);
+ heading.append(titleRow,node('p','Performance, rivalries, and most memorable commanders.'),custom,status);
  const usage=node('section');usage.id='colorComboUsage';usage.hidden=true;usage.setAttribute('aria-labelledby','colorUsageTitle');const usageTitle=node('h3','Color combo usage');usageTitle.id='colorUsageTitle';const usageChart=node('div');usageChart.id='colorUsageChart';usage.append(usageTitle,usageChart);
  const totals=node('div'),featured=node('div'),colors=node('div'),rivalry=node('div'),reports=node('div'),decks=node('div');
  featured.className='featured-decks';colors.id='statInsights';colors.className='extra-stats';rivalry.className='ledger-rivalry';reports.id='ledgerAdditionalStats';reports.className='ledger-additional-stats';decks.className='ledger-by-deck';
