@@ -8,9 +8,6 @@
 .stats-donut>.stat-games-trigger{bottom:18%;left:50%;transform:translateX(-50%);border:0;background:none}
 .stats-pie-legend .stat-games-trigger{right:0;bottom:4px}
 .best-deck-card>.stat-games-trigger{right:14px;bottom:14px}
-.stats-donut[data-hover-result]::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;mask-image:radial-gradient(circle closest-side,transparent 71%,#000 72%);-webkit-mask-image:radial-gradient(circle closest-side,transparent 71%,#000 72%)}
-.stats-donut[data-hover-result=wins]::after{background:conic-gradient(#ffffff55 0 var(--win-percent),transparent var(--win-percent) 100%)}
-.stats-donut[data-hover-result=losses]::after{background:conic-gradient(transparent 0 var(--win-percent),#ffffff55 var(--win-percent) 100%)}
 @media(prefers-reduced-motion:reduce){.stat-games-interactive{transition:none}.stat-games-interactive:hover,.stat-games-enabled .deck-stats-card:hover{transform:none!important}}
 .stat-game-history .compact-game{border:1px solid #557e6a;border-radius:12px;overflow:hidden;margin:0;color:#f1ebdb;background:#102321}
 .stat-game-history .compact-game-row{position:relative}
@@ -50,3 +47,28 @@
 .stat-games-search{display:grid;gap:5px;margin:14px 0 0;color:#bed1c5;font:11px/1.4 system-ui}
 .stat-games-search input{box-sizing:border-box;width:100%;min-width:0;margin:0;padding:9px 11px;border:1px solid #587e6b;border-radius:7px;background:#0d221e;color:#f1ebdb;font:13px/1.3 system-ui}.stat-games-search input:focus-visible{outline:2px solid #9fceb3;outline-offset:2px}
 .stat-games-pagination[hidden]{display:none}
+
+/* Roomy rounded focus frames without changing the color chart grid's dimensions. */
+@media(hover:hover) and (pointer:fine){
+ #colorUsageChart .color-usage-item.stat-games-interactive:hover{outline:0;box-shadow:none}
+ #colorUsageChart .color-usage-item.stat-games-interactive:hover::after{content:"";position:absolute;inset:-7px -8px;border:1px solid var(--cl-gold,#c9aa75);border-radius:11px;pointer-events:none}
+ #nemesisCommander .best-deck-card.stat-games-interactive:hover{outline:2px solid #edcc82;outline-offset:3px;box-shadow:0 0 0 1px #102321,0 8px 24px #0006}
+ .stat-games-interactive.ledger-pie-chart:hover,.stat-games-interactive:has(.ledger-pie-chart:hover){transform:none!important;outline:none!important;box-shadow:none}
+ .deck-ring-metric.stat-games-interactive:hover{transform:none!important}
+ .deck-ring-metric.stat-games-interactive:has(.deck-rate-ring:hover){transform:none!important;outline:none!important;box-shadow:none}
+}
+#statisticsSection .ledger-chart-row .stats-donut.ledger-pie-chart,.deck-rate-ring.ledger-pie-chart{background:none!important}
+.ledger-pie-chart{position:relative;isolation:isolate;overflow:visible}
+.ledger-pie-segments{position:absolute;inset:-4%;width:108%;height:108%;overflow:visible;pointer-events:none;z-index:-1}
+.ledger-pie-segment{transform-box:fill-box;transform-origin:center;transition:transform .15s ease,filter .15s ease}
+.ledger-pie-wins{stroke:#91cdb0}.ledger-pie-losses{stroke:#3c5a50}
+.deck-rate-ring .ledger-pie-wins{stroke:#8ccdaf}.deck-rate-ring .ledger-pie-losses{stroke:#29483d}
+.ledger-pie-chart[data-hover-result=wins] .ledger-pie-wins,.ledger-pie-chart[data-hover-result=losses] .ledger-pie-losses{transform:translate(var(--segment-x),var(--segment-y)) scale(1.045);filter:brightness(1.15)}
+@media(prefers-reduced-motion:reduce){.ledger-pie-segment{transition:none}.ledger-pie-chart .ledger-pie-segment{transform:none!important}}
+
+#statisticsSection.stat-games-enabled #summary .stats-pie-main{padding:0 9px}
+
+.ledger-report-panel .ledger-excluded-note{display:block;min-height:22px}
+#colorUsageChart .color-usage-item.stat-games-interactive:focus-within{box-shadow:none}
+#colorUsageChart .color-usage-item.stat-games-interactive:focus-within::after{content:"";position:absolute;inset:-7px -8px;border:1px solid var(--cl-gold,#c9aa75);border-radius:11px;pointer-events:none}
+#nemesisCommander .best-deck-card.stat-games-interactive:focus-within{outline:2px solid #edcc82;outline-offset:3px}

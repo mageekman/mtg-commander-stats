@@ -1,4 +1,6 @@
-import {createStatGameExplorer,pieSegmentAt} from './ledger-stat-games.js?v=hover-2';
+import {attachLedgerPie} from './ledger-pie-motion.js?v=1';
+import {createLedgerFriendArtwork} from './ledger-friend-art.js?v=1';
+import {createStatGameExplorer} from './ledger-stat-games.js?v=pie-3';
 import {rankingRange} from './friend-ranking-period.js?v=1';
 import {filterTrendGames} from './ledger-trend-data.js?v=1';
 import {startStatLoading} from './stat-loading.js?v=1';
@@ -9,7 +11,7 @@ import {normalizeLedgerSettings,readLedgerState,mountLedgerSettings,applyLedgerV
 import {selectBestDeck} from './best-deck.js?v=2';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {commanderColors} from './ledger-commander-colors.js?v=1';
-import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=passports-5';
+import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=pie-6';
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=history-2';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=identities-6';
 import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=history-links-3';
@@ -33,6 +35,12 @@ const ledgerTrend=mountLedgerTrend(()=>games);
 const ledgerArt=createLedgerArtController(sb,()=>user);
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
 const statGames=createStatGameExplorer({owner:()=>user?.id,enabled:()=>ledgerSettings.enable_stat_games,renderGame:renderCompactGame,hydrate:(host,rows)=>historyLinker.hydrate(host,rows),matches:(game,term)=>gameMatchesSearch(game,decks.find(deck=>deck.id===game.deck_id),term,friendDisplayNames),period:()=>document.querySelector('#statsDatePreset option:checked')?.textContent||'Selected timeframe'});
+const friendPassportArtwork=createLedgerFriendArtwork(sb);
+function bindLedgerPie(chart,rate,title,getGames){
+ if(!user||!ledgerSettings.enable_stat_games||!Number.isFinite(rate))return;
+ chart.onclick=null;
+ attachLedgerPie(chart,rate,{onSelect:result=>{const label=result==='all'?title:(title==='All games'?'':title+' · ')+(result==='wins'?'Wins':'Losses');statGames.open(label,()=>getGames().filter(game=>result==='all'||(result==='wins'?game.won:!game.won)))}});
+}
 const matchingGames=predicate=>calendarFilteredGames().filter(predicate);
 const winnerOf=game=>!game.won&&Array.isArray(game.players)&&Number.isInteger(game.winner_player)&&game.winner_player>0?game.players[game.winner_player]:null;
 const colorGames=async(code,rivals=false)=>{const rows=calendarFilteredGames();const colors=await Promise.all(rows.map(game=>commanderColors(rivals?winnerOf(game)?.commander:decks.find(deck=>deck.id===game.deck_id)?.commander)));return rows.filter((game,i)=>colors[i]===code&&(!rivals||winnerOf(game)))};
@@ -423,7 +431,7 @@ function render(){
  renderWinrateTrend(visibleGames);
  renderBestDeck(visibleGames);
  renderExtraStats(visibleGames);
- renderAdditionalLedgerStats($('ledgerAdditionalStats'),{games:visibleGames,allGames:games,decks,names:friendDisplayNames,onGames:(host,title,predicate)=>statGames.bind(host,title,()=>matchingGames(predicate)),onArtwork:(image,box,url,deck)=>ledgerArt.attach(box,image,{slot:'deck:'+deck.id,commander:deck.commander,url,title:deck.name,defaultFrame:{x:50,y:30,zoom:1}})});
+ renderAdditionalLedgerStats($('ledgerAdditionalStats'),{games:visibleGames,allGames:games,decks,names:friendDisplayNames,passportArtwork:friendPassportArtwork,onPie:(chart,rate,title,predicate)=>bindLedgerPie(chart,rate,title,()=>matchingGames(predicate)),onGames:(host,title,predicate)=>statGames.bind(host,title,()=>matchingGames(predicate)),onArtwork:(image,box,url,deck)=>ledgerArt.attach(box,image,{slot:'deck:'+deck.id,commander:deck.commander,url,title:deck.name,defaultFrame:{x:50,y:30,zoom:1}})});
  const wins=visibleGames.filter(g=>g.won).length;
  const summary=$('summary');summary.replaceChildren();
  const rate=visibleGames.length?(wins/visibleGames.length*100).toFixed(1):'0.0';
@@ -442,10 +450,7 @@ function render(){
  statGames.bind(total,'All games',()=>calendarFilteredGames());
  if(user&&ledgerSettings.enable_stat_games){
   donut.setAttribute('role','group');statGames.bind(donut,'All games',()=>calendarFilteredGames());
-  const resultAt=event=>{const rect=donut.getBoundingClientRect();return pieSegmentAt(event.clientX-rect.left,event.clientY-rect.top,rect.width,rect.height,rate)};
-  donut.onpointermove=event=>{if(event.pointerType==='touch')return;const result=resultAt(event);if(result==='wins'||result==='losses'){donut.dataset.hoverResult=result;donut.title='View '+result}else{delete donut.dataset.hoverResult;donut.title='View all games'}};
-  donut.onpointerleave=()=>{delete donut.dataset.hoverResult;donut.removeAttribute('title')};
-  donut.onclick=event=>{if(event.target.closest('button'))return;const result=resultAt(event);if(!result)return;statGames.open(result==='all'?'All games':result==='wins'?'Wins':'Losses',()=>matchingGames(game=>result==='all'||(result==='wins'?game.won:!game.won)))};
+  bindLedgerPie(donut,Number(rate),'All games',()=>calendarFilteredGames());
   for(const [index,result]of [[1,'wins'],[2,'losses']]){const row=legend.children[index];row.addEventListener('pointerenter',()=>donut.dataset.hoverResult=result);row.addEventListener('pointerleave',()=>delete donut.dataset.hoverResult);row.addEventListener('focusin',()=>donut.dataset.hoverResult=result);row.addEventListener('focusout',()=>delete donut.dataset.hoverResult)}
  }
 

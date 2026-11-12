@@ -2,11 +2,11 @@ const PAGE_SIZE=5;
 const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e};
 
 // Shared hit testing keeps the hover overlay and clicked result in agreement.
-export function pieSegmentAt(x,y,width,height,winPercent){
+export function pieSegmentAt(x,y,width,height,winPercent,innerRatio=.72){
  if(!(width>0&&height>0))return null;
  const dx=(x-width/2)/(width/2),dy=(y-height/2)/(height/2),radius=Math.hypot(dx,dy);
  if(radius>1)return null;
- if(radius<.72)return 'all';
+ if(radius<innerRatio)return 'all';
  const angle=(Math.atan2(dy,dx)*180/Math.PI+450)%360;
  return angle<Math.max(0,Math.min(100,Number(winPercent)||0))*3.6?'wins':'losses';
 }
