@@ -1,4 +1,4 @@
-import {normalizeLedgerSettings} from './ledger-settings.js?v=strongest-2';
+import {normalizeLedgerSettings} from './ledger-settings.js?v=usage-3';
 import {createClient} from './vendor/supabase-js.mjs';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=share-2';
 import {rankingPeriods,rankingRange} from './friend-ranking-period.js?v=1';

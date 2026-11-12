@@ -1,4 +1,4 @@
-import {normalizeLedgerSettings} from './ledger-settings.js?v=strongest-2';
+import {normalizeLedgerSettings} from './ledger-settings.js?v=usage-3';
 import {commanderKey} from './share-ledger-stats.js?v=combo-4';
 const W=1080,H=1920,ivory='#f4edd9',gold='#d6b46f',teal='#7fe2cd',muted='#bdd1c3';
 export const shareCardTypes=[{id:'ledger',title:'My Ledger'},{id:'rivalries',title:'My Rivalries'},{id:'decks',title:'My Decks'}];

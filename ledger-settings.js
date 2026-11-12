@@ -1,18 +1,21 @@
+import {ledgerStatUpdates} from './ledger-stat-updates.js?v=1';
+import {selectedColorCombinations,mountColorChoices} from './color-combo-usage.js?v=1';
 import {privacyGroups} from './profile-stat-privacy.js?v=strongest-2';
-export const ledgerSettingGroups=privacyGroups;
+const legacyKeys=new Set(['share_record','share_win_chart','share_win_trend','share_best_deck','share_most_played_deck','share_most_played_color','share_best_color_combo','share_lost_to_commander','share_lost_to_player','share_lost_to_color','share_first_player','share_deck_rotation','share_games_together','share_friend_results','share_deck_stats']);
+export const ledgerSettingGroups=[...privacyGroups,['Colors',ledgerStatUpdates.map(stat=>[stat.key,stat.label])]];
 export const ledgerVisibilityKeys=ledgerSettingGroups.flatMap(([,fields])=>fields.map(([key])=>key));
 export function normalizeLedgerSettings(value){
  const source=value&&typeof value==='object'&&!Array.isArray(value)?value:{};
  const minimum=Number(source.best_deck_min_games);
- return {best_deck_min_games:Number.isInteger(minimum)&&minimum>=1&&minimum<=100000?minimum:1,...Object.fromEntries(ledgerVisibilityKeys.map(key=>[key,source[key]!==false]))};
+ return {best_deck_min_games:Number.isInteger(minimum)&&minimum>=1&&minimum<=100000?minimum:1,color_usage_combos:selectedColorCombinations(source.color_usage_combos),...Object.fromEntries(ledgerVisibilityKeys.map(key=>[key,source[key]===true||(legacyKeys.has(key)&&source[key]!==false)]))};
 }
-export async function readLedgerSettings(client,user){
- if(!user?.id)return normalizeLedgerSettings();
- const {data,error}=await client.from('profiles').select('ledger_settings').eq('id',user.id).maybeSingle();
- if(error)throw error;
- if(!data)throw Error('Your Ledger settings could not be loaded.');
- return normalizeLedgerSettings(data.ledger_settings);
+export async function readLedgerState(client,user){
+ if(!user?.id)return {settings:normalizeLedgerSettings(),updates:[]};
+ const {data,error}=await client.from('profiles').select('ledger_settings,ledger_stat_updates').eq('id',user.id).maybeSingle();
+ if(error)throw error;if(!data)throw Error('Your Ledger settings could not be loaded.');
+ return {settings:normalizeLedgerSettings(data.ledger_settings),updates:Array.isArray(data.ledger_stat_updates)?data.ledger_stat_updates:[]};
 }
+export async function readLedgerSettings(client,user){return (await readLedgerState(client,user)).settings}
 export async function saveLedgerSettings(client,user,value){
  if(!user?.id)throw Error('Sign in to save Ledger settings.');
  const settings=normalizeLedgerSettings(value);
@@ -22,7 +25,7 @@ export async function saveLedgerSettings(client,user,value){
 }
 export function applyLedgerVisibility(root,value){
  const s=normalizeLedgerSettings(value),show=(selector,visible)=>{for(const e of root.querySelectorAll(selector))e.hidden=!visible};
- for(const [key,selector] of Object.entries({share_record:'.stats-games-total',share_win_chart:'.stats-donut,.stats-pie-legend>div:not(.stats-games-total)',share_win_trend:'.winrate-trend',share_best_deck:'#bestDeck',share_most_played_deck:'#mostPlayedDeck',share_most_played_color:'#statInsights>.insight-stat:first-child',share_best_color_combo:'#statInsights>.insight-stat:nth-child(2)',share_lost_to_commander:'#nemesisCommander',share_lost_to_player:'#rivalPlayerSlot',share_lost_to_color:'#rivalColorSlot',share_deck_stats:'.ledger-by-deck'}))show(selector,s[key]);
+ for(const [key,selector] of Object.entries({share_record:'.stats-games-total',share_win_chart:'.stats-donut,.stats-pie-legend>div:not(.stats-games-total)',share_win_trend:'.winrate-trend',share_best_deck:'#bestDeck',share_most_played_deck:'#mostPlayedDeck',share_most_played_color:'#statInsights>.insight-stat:first-child',share_best_color_combo:'#statInsights>.insight-stat:nth-child(2)',share_lost_to_commander:'#nemesisCommander',share_lost_to_player:'#rivalPlayerSlot',share_lost_to_color:'#rivalColorSlot',share_deck_stats:'.ledger-by-deck',show_color_usage:'#colorComboUsage'}))show(selector,s[key]);
  show('#summary',s.share_record||s.share_win_chart);show('.ledger-chart-row',s.share_record||s.share_win_chart||s.share_win_trend);show('.featured-decks',s.share_best_deck||s.share_most_played_deck);show('#statInsights',s.share_most_played_color||s.share_best_color_combo);show('.ledger-rivalry',s.share_lost_to_commander||s.share_lost_to_player||s.share_lost_to_color);
  const panels={first:'share_first_player',rotation:'share_deck_rotation',together:'share_games_together',results:'share_friend_results'};
  for(const report of root.querySelectorAll('.ledger-report')){
@@ -38,8 +41,9 @@ export function mountLedgerSettings(client,getUser,onSave){
  const dialog=document.getElementById('ledgerSettingsDialog'),form=document.getElementById('ledgerSettingsForm'),status=document.getElementById('ledgerSettingsStatus'),fields=document.getElementById('ledgerSettingsFields');
  let current=normalizeLedgerSettings(),saving=false;
  for(const [title,choices]of ledgerSettingGroups){const group=document.createElement('fieldset'),legend=document.createElement('legend');legend.textContent=title;group.append(legend);for(const [key,title]of choices){const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.name=key;label.append(input,document.createTextNode(' '+title));group.append(label)}fields.append(group)}
- document.getElementById('openLedgerSettings').onclick=()=>{form.elements.best_deck_min_games.value=current.best_deck_min_games;for(const key of ledgerVisibilityKeys)form.elements[key].checked=current[key];status.textContent='';dialog.showModal()};
+ const colorChoices=mountColorChoices(document.getElementById('ledgerColorChoices'));
+ document.getElementById('openLedgerSettings').onclick=()=>{form.elements.best_deck_min_games.value=current.best_deck_min_games;for(const key of ledgerVisibilityKeys)form.elements[key].checked=current[key];colorChoices.set(current.color_usage_combos);status.textContent='';dialog.showModal()};
  document.getElementById('closeLedgerSettings').onclick=()=>{if(!saving)dialog.close()};dialog.addEventListener('cancel',e=>{if(saving)e.preventDefault()});
- form.onsubmit=async e=>{e.preventDefault();if(saving)return;const actor=getUser();if(!actor)return;const draft={best_deck_min_games:Number(form.elements.best_deck_min_games.value),...Object.fromEntries(ledgerVisibilityKeys.map(key=>[key,form.elements[key].checked]))};saving=true;form.querySelector('button[type=submit]').disabled=true;status.textContent='Saving…';try{const saved=await saveLedgerSettings(client,actor,draft);if(getUser()?.id!==actor.id)return;current=saved;onSave(saved);dialog.close()}catch(error){status.textContent='Could not save settings: '+error.message}finally{saving=false;form.querySelector('button[type=submit]').disabled=false}};
+ form.onsubmit=async e=>{e.preventDefault();if(saving)return;const actor=getUser();if(!actor)return;const draft={color_usage_combos:colorChoices.get(),best_deck_min_games:Number(form.elements.best_deck_min_games.value),...Object.fromEntries(ledgerVisibilityKeys.map(key=>[key,form.elements[key].checked]))};saving=true;form.querySelector('button[type=submit]').disabled=true;status.textContent='Saving…';try{const saved=await saveLedgerSettings(client,actor,draft);if(getUser()?.id!==actor.id)return;current=saved;onSave(saved);dialog.close()}catch(error){status.textContent='Could not save settings: '+error.message}finally{saving=false;form.querySelector('button[type=submit]').disabled=false}};
  return value=>{current=normalizeLedgerSettings(value)};
 }
