@@ -13,6 +13,17 @@ assert.equal(await p.locator('#bestDeck .best-deck-card').count(),1);
 assert.equal(await p.locator('#mostPlayedDeck .best-deck-card').count(),1);
 assert.equal(await p.locator('#nemesisCommander .best-deck-card').count(),1);
 assert.equal(await p.locator('#winrateTrendChart svg').count(),1);
+assert.equal(await p.locator('#trendPeriod').inputValue(),'all');
+await p.selectOption('#trendPeriod','custom');await p.fill('#trendStart','2026-10-01');await p.fill('#trendEnd','2026-10-31');await p.locator('#trendEnd').dispatchEvent('change');
+assert.equal(await p.locator('#winrateTrendChart').getAttribute('data-games'),'2');assert.equal(await p.locator('#statsDatePreset').inputValue(),'all');assert.equal(await p.locator('#summary .stats-games-total strong').textContent(),'6');
+await p.selectOption('#trendGrouping','week');assert.equal(await p.locator('#winrateTrendChart').getAttribute('data-grouping'),'week');
+await p.selectOption('#statsDatePreset','custom');await p.fill('#statsDateStart','2026-11-01');await p.fill('#statsDateEnd','2026-11-30');await p.locator('#statsDateEnd').dispatchEvent('change');
+assert.equal(await p.locator('#trendPeriod').inputValue(),'custom');assert.equal(await p.locator('#trendStart').inputValue(),'2026-11-01');assert.equal(await p.locator('#trendEnd').inputValue(),'2026-11-30');assert.equal(await p.locator('#winrateTrendChart').getAttribute('data-games'),'4');assert.equal(await p.locator('#summary .stats-games-total strong').textContent(),'4');
+await p.selectOption('#trendPeriod','all');assert.equal(await p.locator('#winrateTrendChart').getAttribute('data-games'),'6');assert.equal(await p.locator('#summary .stats-games-total strong').textContent(),'4');
+await p.selectOption('#trendPeriod','custom');await p.fill('#trendStart','2099-01-01');await p.fill('#trendEnd','2099-02-01');await p.locator('#trendEnd').dispatchEvent('change');assert.equal(await p.locator('#winrateTrendChart svg').count(),0);assert.equal(await p.locator('#winrateTrendEmpty').isVisible(),true);
+await p.fill('#trendStart','2099-03-01');await p.locator('#trendStart').dispatchEvent('change');assert.ok((await p.locator('#trendStatus').textContent()).includes('start date'));assert.equal(await p.locator('#statsDatePreset').inputValue(),'custom');
+await p.selectOption('#statsDatePreset','all');assert.equal(await p.locator('#trendPeriod').inputValue(),'all');assert.equal(await p.locator('#winrateTrendChart').getAttribute('data-games'),'6');await p.selectOption('#trendGrouping','auto');
+
 assert.ok((await p.locator('[data-ledger-view=first]').textContent()).includes('66.7%'));
 assert.ok((await p.locator('[data-ledger-view=together]').textContent()).includes('Alex the Commander Collector'));
 assert.equal(await p.locator('.ledger-friend-passport:visible').count(),2);
@@ -35,7 +46,7 @@ for(const width of [1440,1100,1024,800,700,390,320]){
   await p.getByRole('tab',{name,exact:true}).click();
   assert.ok((await pos()).every((r,i)=>Math.abs(r.height-base[i].height)<1&&Math.abs(r.top-base[i].top)<1),'tab layout jump '+width+' '+name);
  }
- assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'page overflow '+width);
+ assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'page overflow '+width);assert.ok(await p.locator('.winrate-trend').evaluate(e=>e.scrollWidth<=e.clientWidth+1&&e.scrollHeight<=e.clientHeight+1),'trend clipping '+width);await p.locator('.winrate-trend').screenshot({path:'/tmp/ledger-trend-'+width+'.png'});if(width===320){await p.selectOption('#trendPeriod','custom');await p.fill('#trendStart','2026-10-01');await p.fill('#trendEnd','2026-11-30');await p.locator('#trendEnd').dispatchEvent('change');assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'custom graph controls overflow');await p.locator('.winrate-trend').screenshot({path:'/tmp/ledger-trend-custom-320.png'});await p.selectOption('#trendPeriod','all');}
  assert.ok(await p.locator('.ledger-report-tabs button').evaluateAll(es=>es.every(e=>e.scrollWidth<=e.clientWidth+1)),'tab clipping '+width);
  assert.ok(await p.locator('.ledger-report, .ledger-report-panel, .ledger-rivalry').evaluateAll(es=>es.every(e=>e.scrollWidth<=e.clientWidth+1 && e.scrollHeight<=e.clientHeight+1)),'clipped report '+width);
  assert.equal(await p.locator('.ledger-by-deck [role=tablist]').count(),0);

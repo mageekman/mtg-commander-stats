@@ -2,13 +2,14 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
 class Element{
- constructor(tag){this.tag=tag;this.children=[];this.attrs={};this.textContent=''}
+ constructor(tag){this.tag=tag;this.children=[];this.attrs={};this.dataset={};this.textContent=''}
  setAttribute(key,value){this.attrs[key]=value}
  append(...nodes){this.children.push(...nodes)}
  replaceChildren(...nodes){this.children=nodes}
 }
-const source=fs.readFileSync(path.join(__dirname,'../ledger-chart.js'),'utf8').replace('export function','function');
-function chart(games,options){const context={document:{createElementNS:(_,tag)=>new Element(tag)}};vm.runInNewContext(source+';globalThis.render=renderWinrateTrendChart;',context);const host=new Element('div'),empty=new Element('p');context.render(host,empty,games,options);return {host,empty}}
+const helpers=fs.readFileSync(path.join(__dirname,'../ledger-trend-data.js'),'utf8').replaceAll('export ','');
+const source=fs.readFileSync(path.join(__dirname,'../ledger-chart.js'),'utf8').replace(/^import .+?;\n/,'').replace('export function','function');
+function chart(games,options){const context={document:{createElementNS:(_,tag)=>new Element(tag)}};vm.runInNewContext(helpers+source+';globalThis.render=renderWinrateTrendChart;',context);const host=new Element('div'),empty=new Element('p');context.render(host,empty,games,options);return {host,empty}}
 const descendants=node=>[node,...node.children.flatMap(descendants)];
 test('shared trend uses cumulative wins in chronological order',()=>{
  const {host,empty}=chart([{id:'c',played_at:'2026-11-03',won:true},{id:'a',played_at:'2026-11-01',won:true},{id:'b',played_at:'2026-11-02',won:false}]);
