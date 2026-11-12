@@ -1,5 +1,5 @@
 // These helpers only present auth state; access control stays with Auth and RLS.
-const returnPages=new Set(['index.html','ledger.html','friends.html','friend-requests.html','find-players.html','profile.html','edit-identity.html','account-settings.html','player.html','deck.html','import.html','csv-import.html','share-my-ledger.html']);
+const returnPages=new Set(['index.html','ledger.html','friends.html','friend-requests.html','find-players.html','profile.html','edit-identity.html','account-settings.html','player.html','deck.html','import.html','csv-import.html','share-my-ledger.html','share-my-deck.html']);
 export function safeReturnPath(value,baseHref){
  try{if(!value)return './profile.html';const base=new URL('./',baseHref),target=new URL(value,base);const filename=target.pathname.slice(base.pathname.length);if(target.origin!==base.origin||target.username||target.password||!target.pathname.startsWith(base.pathname)||!returnPages.has(filename))return './profile.html';return './'+filename+target.search+target.hash}catch{return './profile.html'}
 }
