@@ -1,6 +1,16 @@
 const PAGE_SIZE=5;
 const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e};
 
+// Shared hit testing keeps the hover overlay and clicked result in agreement.
+export function pieSegmentAt(x,y,width,height,winPercent){
+ if(!(width>0&&height>0))return null;
+ const dx=(x-width/2)/(width/2),dy=(y-height/2)/(height/2),radius=Math.hypot(dx,dy);
+ if(radius>1)return null;
+ if(radius<.72)return 'all';
+ const angle=(Math.atan2(dy,dx)*180/Math.PI+450)%360;
+ return angle<Math.max(0,Math.min(100,Number(winPercent)||0))*3.6?'wins':'losses';
+}
+
 export function createStatGameExplorer({owner,enabled=()=>true,renderGame,hydrate,period,matches=(game,term)=>String(game.id||'').toLowerCase().includes(term.toLowerCase())}){
  let dialog,list,status,pager,heading,search,query,actor,scope,page=0,epoch=0;
  function clear(){epoch++;query=null;list?.replaceChildren();pager?.replaceChildren();list?.removeAttribute('aria-busy');if(search)search.value=''}
@@ -40,7 +50,8 @@ export function createStatGameExplorer({owner,enabled=()=>true,renderGame,hydrat
   if(!owner()||!enabled())return;
   if(!buttonOnly)host.classList.add('stat-games-interactive');
   const old=host.querySelector(':scope > .stat-games-trigger');old?.remove();
-  const button=node('button');button.title='View games: '+title;button.innerHTML='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M10 5H5v14h14v-5"/></svg>';if(label)button.textContent=label;button.type='button';button.className='stat-games-trigger'+(label?' stat-games-text-trigger':'');button.setAttribute('aria-label','View games: '+title);button.setAttribute('aria-haspopup','dialog');button.onclick=e=>{e.stopPropagation();open(title,getGames,timeframe)};host.append(button);
+  // Keep a keyboard/screen-reader action without visual clutter on enabled stats.
+  const button=node('button',label||'View games');button.title='View games: '+title;button.type='button';button.className='stat-games-trigger'+(label?' stat-games-text-trigger':'');button.setAttribute('aria-label','View games: '+title);button.setAttribute('aria-haspopup','dialog');button.onclick=e=>{e.stopPropagation();open(title,getGames,timeframe)};host.append(button);
   if(!buttonOnly)host.onclick=e=>{if(e.target.closest('a,button,input,select,label'))return;open(title,getGames,timeframe)};
  }
  return {open,bind,refresh,error(message){if(dialog?.open)status.textContent=message}};

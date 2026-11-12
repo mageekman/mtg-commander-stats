@@ -1,4 +1,4 @@
-import {createStatGameExplorer} from './ledger-stat-games.js?v=1';
+import {createStatGameExplorer,pieSegmentAt} from './ledger-stat-games.js?v=hover-2';
 import {rankingRange} from './friend-ranking-period.js?v=1';
 import {filterTrendGames} from './ledger-trend-data.js?v=1';
 import {startStatLoading} from './stat-loading.js?v=1';
@@ -440,7 +440,15 @@ function render(){
  const total=el('div');total.className='stats-games-total';total.append(el('strong',String(visibleGames.length)),el('span','Total games played'));
  legend.prepend(total);pieCard.append(pieMain);summary.append(pieCard);
  statGames.bind(total,'All games',()=>calendarFilteredGames());
- if(user&&ledgerSettings.enable_stat_games){donut.setAttribute('role','group');statGames.bind(donut,'All games',()=>calendarFilteredGames());donut.onclick=event=>{if(event.target.closest('button'))return;const rect=donut.getBoundingClientRect(),x=event.clientX-rect.left-rect.width/2,y=event.clientY-rect.top-rect.height/2;if(Math.hypot(x,y)<rect.width*.36){statGames.open('All games',()=>calendarFilteredGames());return}const angle=(Math.atan2(y,x)*180/Math.PI+450)%360,isWin=angle<Number(rate)*3.6;statGames.open(isWin?'Wins':'Losses',()=>matchingGames(game=>isWin?game.won:!game.won))}}
+ if(user&&ledgerSettings.enable_stat_games){
+  donut.setAttribute('role','group');statGames.bind(donut,'All games',()=>calendarFilteredGames());
+  const resultAt=event=>{const rect=donut.getBoundingClientRect();return pieSegmentAt(event.clientX-rect.left,event.clientY-rect.top,rect.width,rect.height,rate)};
+  donut.onpointermove=event=>{if(event.pointerType==='touch')return;const result=resultAt(event);if(result==='wins'||result==='losses'){donut.dataset.hoverResult=result;donut.title='View '+result}else{delete donut.dataset.hoverResult;donut.title='View all games'}};
+  donut.onpointerleave=()=>{delete donut.dataset.hoverResult;donut.removeAttribute('title')};
+  donut.onclick=event=>{if(event.target.closest('button'))return;const result=resultAt(event);if(!result)return;statGames.open(result==='all'?'All games':result==='wins'?'Wins':'Losses',()=>matchingGames(game=>result==='all'||(result==='wins'?game.won:!game.won)))};
+  for(const [index,result]of [[1,'wins'],[2,'losses']]){const row=legend.children[index];row.addEventListener('pointerenter',()=>donut.dataset.hoverResult=result);row.addEventListener('pointerleave',()=>delete donut.dataset.hoverResult);row.addEventListener('focusin',()=>donut.dataset.hoverResult=result);row.addEventListener('focusout',()=>delete donut.dataset.hoverResult)}
+ }
+
  statGames.bind(document.querySelector('.winrate-trend .ledger-trend-controls'),'Win rate over time',()=>{const state=ledgerTrend.state();return filterTrendGames(games,rankingRange(state.period,state.start,state.end))},()=>{const state=ledgerTrend.state();return rankingRange(state.period,state.start,state.end).label},{buttonOnly:true,label:'View games'});
  $('statisticsSection').classList.toggle('stat-games-enabled',!!user&&ledgerSettings.enable_stat_games);
  applyLedgerVisibility($('statisticsSection'),ledgerSettings);
