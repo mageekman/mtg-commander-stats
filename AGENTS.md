@@ -9,3 +9,10 @@ When adding any new Ledger statistic:
 - Dismiss only the displayed release IDs using the owner-scoped `dismiss_ledger_stat_updates` RPC. Keep dismissal account-persistent and preserve releases added concurrently.
 - Add tests for existing/new account defaults, preserved saved preferences, combined announcements, persistent dismissal/retry, owner isolation, and responsive chart/settings layouts.
 - Public-profile sharing and share-image visibility require explicit handling; a new private Ledger stat must not become publicly visible automatically.
+
+# Share exports
+
+- Apply the empty-data rule to every share feature: omit unavailable fields, empty groups, unqualified deck slots, and entire cards with no populated content.
+- Preserve meaningful recorded zeroes and explicit colorless identities. Never substitute zero or colorless for missing data.
+- Build the layout from populated sections so remaining artwork and stats reflow without reserved placeholder gaps. Keep existing display/privacy settings in force.
+- Cover sparse histories, missing comparisons/rivals, all-hidden settings, true zeroes, colorless data, and partial multi-image exports in regression checks.
