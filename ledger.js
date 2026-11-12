@@ -1,7 +1,7 @@
-import {renderColorUsage} from './color-combo-usage.js?v=1';
+import {renderColorUsage} from './color-combo-usage.js?v=minimum-2';
 import {mountLedgerUpdates} from './ledger-stat-updates.js?v=1';
 import {selectStrongestColor,selectMostPlayedColor} from './strongest-color.js?v=combo-2';
-import {normalizeLedgerSettings,readLedgerState,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=usage-3';
+import {normalizeLedgerSettings,readLedgerState,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=minimum-4';
 import {selectBestDeck} from './best-deck.js?v=2';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {commanderColors} from './ledger-commander-colors.js?v=1';
@@ -323,7 +323,7 @@ function renderExtraStats(visibleGames){
   if(stamp!==colorStatsStamp)return;
   const combo=new Map();let missing=0;
   ids.forEach((code,i)=>{if(code===null){missing++;return}const data=combo.get(code)||{games:0,wins:0};data.games++;if(visibleGames[i].won)data.wins++;combo.set(code,data)});
-  if(ledgerSettings.show_color_usage)renderColorUsage($('colorUsageChart'),combo,visibleGames.length,missing,ledgerSettings.color_usage_combos);
+  if(ledgerSettings.show_color_usage)renderColorUsage($('colorUsageChart'),combo,visibleGames.length,missing,ledgerSettings.color_usage_combos,ledgerSettings.best_deck_min_games);
   const top=selectMostPlayedColor(combo);
   const colorStrong=cards[0].querySelector('strong'),colorSmall=cards[0].querySelector('small');
   if(top){manaIdentity(colorStrong,top[0]);colorSmall.textContent=top[1].games+' games'+(missing?' · '+missing+' unavailable':'')}else{colorStrong.textContent=missing?'Color data unavailable':'No games yet';colorSmall.textContent=''}
