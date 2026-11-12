@@ -7,7 +7,8 @@ const groups=[
 const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e};
 export function groupDeckStats(grid,selected){
  const cards=new Map([...grid.children].map(card=>[card.dataset.insight,card]));grid.replaceChildren();
- for(const [key,title,views]of groups){
+ for(const [key,title,allViews]of groups){
+  const views=allViews.filter(([id])=>cards.has(id));if(!views.length)continue;
   const group=node('section');group.className='deck-stat-group';group.dataset.group=key;
   const heading=node('header');heading.className='deck-stat-group-heading';const label=node('h3',title);label.id='deck-group-'+key;heading.append(label);group.append(heading);
   const tabs=node('div');tabs.className='deck-stat-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label',title+' views');const panels=node('div');panels.className='deck-stat-group-panels';const buttons=[];

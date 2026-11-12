@@ -1,6 +1,6 @@
 import {renderSharedDeck} from './shared-deck.js?v=1';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
-import {mountDeckPerformance} from './deck-performance.js?v=participants-6';
+import {mountDeckPerformance} from './deck-performance.js?v=interactive-1';
 function colorIdentityIcons(colors){
  const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
  const label=document.createElement('span');label.textContent='Color identity:';wrap.append(label);
