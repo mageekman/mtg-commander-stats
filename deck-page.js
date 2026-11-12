@@ -1,6 +1,7 @@
-import {renderSharedDeck} from './shared-deck.js?v=1';
+import {createDeckHero} from './deck-hero.js?v=1';
+import {renderSharedDeck} from './shared-deck.js?v=captions-2';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
-import {mountDeckPerformance} from './deck-performance.js?v=interactive-1';
+import {mountDeckPerformance} from './deck-performance.js?v=details-2';
 function colorIdentityIcons(colors){
  const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
  const label=document.createElement('span');label.textContent='Color identity:';wrap.append(label);
@@ -92,15 +93,9 @@ async function run(){
  const items=parse(deck.decklist||''),commanderNames=deck.commander.split(/\s+\/\s+|\s+&\s+/).map(s=>s.trim()).filter(Boolean);
  $('status').textContent='Loading card artwork…';
  let cards=new Map();try{cards=await fetchCards([...items.map(i=>i.name),...commanderNames])}catch(e){$('status').textContent=e.message+' — showing card names instead.'}
- const root=$('deckContent'),hero=element('div');hero.className='hero';
- const artPanel=element('div');artPanel.className='deck-hero-art';
- for(const name of commanderNames){const image=art(cards.get(name.toLowerCase()));if(image){const img=document.createElement('img');img.src=image;img.alt=name;artPanel.append(img)}}
- hero.append(artPanel);
- const meta=element('div');meta.className='deck-hero-details';meta.append(element('h2',deck.commander));
- const colors=[...new Set(commanderNames.flatMap(n=>cards.get(n.toLowerCase())?.color_identity||[]))];
- meta.append(colorIdentityIcons(colors));
- meta.append(element('p',items.length?items.reduce((n,i)=>n+i.qty,0)+' cards listed':'No card list uploaded'));if(deck.decklist_url){const a=element('a','View external decklist');a.href=deck.decklist_url;a.target='_blank';a.rel='noopener noreferrer';meta.append(a)}if(deck.bracket_level)meta.append(element('p','Bracket: '+deck.bracket_level));if(deck.theme)meta.append(element('p','Theme: '+deck.theme));if(deck.notes){const note=element('p',deck.notes);note.style.whiteSpace='pre-wrap';meta.append(element('h3','Deck notes'),note)}
- const summary=element('aside');summary.className='deck-hero-performance';summary.setAttribute('aria-label','Deck record');summary.setAttribute('aria-live','polite');summary.append(element('p','Loading deck record…'));hero.classList.add('deck-hero-with-record');hero.append(meta,summary);root.append(hero);
+ const root=$('deckContent');
+ const knownColors=commanderNames.length&&commanderNames.every(name=>Array.isArray(cards.get(name.toLowerCase())?.color_identity));
+ const {hero,summary}=createDeckHero(deck,{commanders:commanderNames.map(name=>({name,url:art(cards.get(name.toLowerCase()))})),colors:knownColors?[...new Set(commanderNames.flatMap(name=>cards.get(name.toLowerCase()).color_identity))]:null,cardCount:items.reduce((total,item)=>total+item.qty,0)});root.append(hero);
  await mountDeckPerformance(root,deck,user,sb,summary);
  const buckets=new Map();
  for(const item of items){
