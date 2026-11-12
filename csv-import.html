@@ -85,7 +85,7 @@ button:hover:not(:disabled){background:#33745e;border-color:#a7d1b0}
    const importer=await import('./csv-import-v5.js?v=auth-state-2');
    await importer.runCsvValidation();
    document.getElementById('matchScryfallCommanders').onclick=()=>importer.enrichOpponentCommanders();
-  }catch(err){status.textContent='CSV importer v5 could not start: '+(err.message||String(err));status.classList.add('csv-import-error')}
+  }catch(err){status.textContent='Unable to validate your CSV. Please try again. If the problem continues, reload this page.';status.classList.add('csv-import-error')}
   finally{button.disabled=false;button.textContent='Validate selected CSV'}
  });
 })();
