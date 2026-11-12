@@ -10,7 +10,7 @@
 #statisticsSection #summary .stats-pie-legend>div+div{border-top:1px solid #41635480}
 #statisticsSection #summary .stats-pie-legend>div>strong{order:-1;font:600 clamp(24px,7cqi,34px)/1 Georgia,serif!important;font-variant-numeric:tabular-nums}
 #statisticsSection #summary .stats-pie-legend>div>span:not(.stats-pie-dot){display:block;font:12px/1.25 system-ui,sans-serif;margin:0!important}
-#statisticsSection #summary .stats-pie-main:has(>.stats-donut[hidden]){grid-template-columns:1fr}
+#statisticsSection #summary .stats-pie-main:not(:has(>.stats-donut:not([hidden]))){grid-template-columns:1fr}
 @media(max-width:480px){#statisticsSection .ledger-chart-row #summary>.stats-pie-card{padding:12px 0 18px!important}#statisticsSection #summary .stats-donut-inner span,#statisticsSection #summary .stats-pie-legend>div>span:not(.stats-pie-dot){font-size:11px}}
 
 #statisticsSection .ledger-chart-row>#summary[hidden],#statisticsSection #summary .stats-pie-legend>[hidden]{display:none!important}

@@ -2,7 +2,7 @@ export const privacyGroups=[
  ['Record and performance',[
   ['share_record','Games played'],['share_win_chart','Win rate, wins, and losses'],['share_win_trend','Win-rate trend'],
   ['share_best_deck','Best deck'],['share_most_played_deck','Most played deck'],
-  ['share_most_played_color','Most played color'],['share_best_color_combo','Strongest Color']]],
+  ['share_most_played_color','Most played color'],['share_best_color_combo','Strongest Color'],['share_color_usage','Color combo usage (uses your Ledger combinations and minimum games)']]],
  ['Rivalry Summary',[
   ['share_lost_to_commander','Rival Commander'],['share_lost_to_player','Rival Player'],['share_lost_to_color','Rival Color Combo']]],
  ['Play Patterns',[
@@ -16,3 +16,6 @@ export function mountPrivacyChoices(host){
  for(const [title,fields]of privacyGroups){const group=document.createElement('fieldset');group.className='profile-privacy-group';const legend=document.createElement('legend');legend.textContent=title;group.append(legend);for(const [key,text]of fields){const label=document.createElement('label');label.className='privacy-option';const input=document.createElement('input');input.type='checkbox';input.name=key;label.append(input,document.createTextNode(' '+text));group.append(label)}host.append(group)}
  const form=host.closest('form'),all=form.elements.public_full_stats;all.onchange=()=>{for(const input of host.querySelectorAll('input'))input.checked=all.checked};host.addEventListener('change',()=>{all.checked=[...host.querySelectorAll('input')].every(input=>input.checked)});
 }
+
+// New sharing choices require explicit consent, even for existing Share everything profiles.
+export function privacyChoiceEnabled(profile,key){return key==='share_color_usage'?profile.share_color_usage===true:!!profile[key]||(key!=='public_full_stats'&&!!profile.public_full_stats)}

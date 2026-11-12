@@ -1,7 +1,7 @@
 import {renderColorUsage} from './color-combo-usage.js?v=minimum-2';
 import {mountLedgerUpdates} from './ledger-stat-updates.js?v=1';
 import {selectStrongestColor,selectMostPlayedColor} from './strongest-color.js?v=combo-2';
-import {normalizeLedgerSettings,readLedgerState,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=minimum-4';
+import {normalizeLedgerSettings,readLedgerState,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=public-5';
 import {selectBestDeck} from './best-deck.js?v=2';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {commanderColors} from './ledger-commander-colors.js?v=1';
@@ -13,7 +13,7 @@ import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
 import {gameMatchesSearch} from './game-history-search.js?v=participants-3';
 import {isGenericOpponentName} from './opponent-names.js?v=1';
-import {mountLedgerTrend} from './ledger-trend-controls.js?v=1';
+import {mountLedgerTrend} from './ledger-trend-controls.js?v=public-2';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const friendService=createGameFriendService(sb);

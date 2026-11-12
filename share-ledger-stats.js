@@ -1,5 +1,5 @@
 import {selectStrongestColor,selectMostPlayedColor} from './strongest-color.js?v=combo-2';
-import {normalizeLedgerSettings} from './ledger-settings.js?v=usage-3';
+import {normalizeLedgerSettings} from './ledger-settings.js?v=public-5';
 import {selectBestDeck} from './best-deck.js?v=2';
 import {isGenericOpponentName} from './opponent-names.js?v=1';
 export function mostCommon(values,{allowEmpty=false}={}){const counts=new Map();for(const value of values){if(value===null||value===undefined)continue;const key=String(value).trim();if(key||allowEmpty)counts.set(key,(counts.get(key)||0)+1)}const first=[...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0];return first?{name:first[0],count:first[1]}:null}
