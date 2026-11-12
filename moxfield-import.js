@@ -4,16 +4,16 @@ import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
 const section=$('moxImport');
-$('importText').addEventListener('input',()=>{parsed=null;saveButton.disabled=false;preview.replaceChildren();status.textContent=$('importText').value.trim()?'Decklist changed. Preview and validate before saving.':'Decklist cleared. You can save without one.'});
+$('importText').addEventListener('input',()=>{listVersion++;suggestionVersion++;parsed=null;validatedText=null;correctedList=false;saveButton.disabled=false;preview.replaceChildren();const text=$('importText').value;status.textContent=savedDecklist!==null&&text===savedDecklist?'Decklist unchanged. You can save without validating again.':text.trim()?'Decklist changed. Preview and validate before saving.':'Decklist cleared. You can save without one.'});
 const status=$('importStatus'), preview=$('importPreview'), saveButton=$('saveImported');
-let parsed=null;
+let parsed=null,savedDecklist=null,validatedText=null,listVersion=0,correctedList=false;
 saveButton.disabled=false;
 const editId=new URLSearchParams(location.search).get('id');
 const isEditing=!!editId;let editLoaded=!isEditing;
 if(isEditing){
  document.title='Edit deck · Command Ledger';
- const heading=document.querySelector('main h1');if(heading)heading.textContent='Edit deck';
- const intro=document.querySelector('main > p');if(intro)intro.textContent='Update your deck name, commander, or card list. Validate the list before saving changes.';
+ const heading=document.querySelector('.archive-import-header .site-heading-title');if(heading)heading.textContent='Edit deck';
+ const intro=document.querySelector('.archive-import-header > p');if(intro)intro.textContent='Update your deck details. Only changes to the card list require validation.';
  saveButton.textContent='Save changes';saveButton.disabled=true;
 }
 async function loadExisting(){
@@ -28,7 +28,7 @@ async function loadExisting(){
  $('importDeckName').value=data.name;
  $('importCommander').value=data.commander;
  $('importText').value=data.decklist||'';$('importDeckUrl').value=data.decklist_url||'';$('importBracket').value=data.bracket_level==null?'':String(data.bracket_level);$('importTheme').value=data.theme||'';$('importNotes').value=data.notes||'';
- editLoaded=true;saveButton.disabled=false;status.textContent='Deck loaded. Preview and validate before saving changes.';
+ savedDecklist=$('importText').value;editLoaded=true;saveButton.disabled=false;status.textContent='Deck loaded. Only changes to the decklist require validation.';
 }
 loadExisting().catch(e=>status.textContent='Unable to load deck: '+e.message);
 const commanderInput=$('importCommander'),matches=$('commanderMatches'),hint=$('commanderHint');
@@ -169,15 +169,17 @@ async function showCorrections(details,missing,version){
   select.onchange=()=>apply.disabled=!select.value;
   apply.onclick=async()=>{
    const replacement=select.value;if(!replacement)return;
+   if(!parsed)return;const editing=parsed,token=listVersion,text=$('importText').value;
    const original=parsed.cards.filter(c=>c.name.toLowerCase()===name.toLowerCase());
    if(!original.length)return;
-   for(const card of original)card.name=replacement;
+   for(const card of original)card.name=replacement;correctedList=true;
    suggestionVersion++;saveButton.disabled=true;status.textContent='Checking corrected card with Scryfall…';
    try{
-    const checked=await resolve(parsed.cards);
-    parsed={...parsed,...checked};
+    const checked=await resolve(editing.cards);
+    if(token!==listVersion||parsed!==editing||$('importText').value!==text)return;
+    parsed={...editing,...checked};validatedText=text;
     draw();
-   }catch(e){status.textContent='Correction check failed: '+e.message}
+   }catch(e){if(token===listVersion&&$('importText').value===text)status.textContent='Correction check failed: '+e.message}
   };
   options.append(select,apply);
  }
@@ -216,36 +218,38 @@ function draw(){
  preview.replaceChildren(details);
  const version=++suggestionVersion;showCorrections(details,missing,version).catch(()=>{});
  $('importCommander').value=commanderName||$('importCommander').value;
- saveButton.disabled=!!(invalid.length||missing.length)||!main.length;
- status.textContent=saveButton.disabled?'Fix unrecognized lines before saving.':'Review the deck and save when ready.';
+ const unchanged=isEditing&&!correctedList&&savedDecklist!==null&&$('importText').value===savedDecklist;
+ saveButton.disabled=!unchanged&&(!!(invalid.length||missing.length)||!main.length);
+ status.textContent=unchanged?'Saved decklist is unchanged. You can save your deck details.':saveButton.disabled?'Fix unrecognized lines before saving.':'Review the deck and save when ready.';
 }
 $('parseImported').onclick=async()=>{
- saveButton.disabled=true;parsed=null;preview.replaceChildren();
+ const token=++listVersion;suggestionVersion++;saveButton.disabled=true;parsed=null;validatedText=null;correctedList=false;preview.replaceChildren();
  const text=$('importText').value;
  const base=parse(text);
  if(!text.trim()){parsed=null;preview.replaceChildren();saveButton.disabled=false;status.textContent='No decklist needed. Enter a name and commander, then save.';return}
  if(!base.cards.length){status.textContent='No valid cards found. Fix the decklist or clear it to save without one.';return}
  status.textContent='Checking card names with Scryfall…';
- try{const checked=await resolve(base.cards);parsed={...base,...checked};draw()}
- catch(e){status.textContent='Import check failed: '+e.message}
+ try{const checked=await resolve(base.cards);if(token!==listVersion||$('importText').value!==text)return;parsed={...base,...checked};validatedText=text;draw()}
+ catch(e){if(token===listVersion&&$('importText').value===text){saveButton.disabled=!(isEditing&&savedDecklist!==null&&text===savedDecklist);status.textContent='Import check failed: '+e.message+(saveButton.disabled?'':' Your saved decklist is unchanged; you can still save your deck details.')}}
 };
 saveButton.onclick=async()=>{
  if(!editLoaded){status.textContent='Your deck has not loaded. Reload the page before saving changes.';return}
- const hasList=!!$('importText').value.trim();
- if(hasList&&(!parsed||parsed.invalid.length||parsed.missing.length)){status.textContent='Preview and resolve decklist errors before saving, or clear the decklist to skip it.';return}
+ const text=$('importText').value,hasList=!!text.trim(),unchanged=isEditing&&!correctedList&&savedDecklist!==null&&text===savedDecklist;
+ if(hasList&&!unchanged&&(!parsed||validatedText!==text||parsed.invalid.length||parsed.missing.length)){status.textContent='Preview and resolve decklist errors before saving, or clear the decklist to skip it.';return}
  const name=$('importDeckName').value.trim(),commander=$('importCommander').value.trim();
  if(!name||!commander){status.textContent='Enter a deck name and commander.';return}
  const bracket_level=$('importBracket').value?Number($('importBracket').value):null,theme=$('importTheme').value.trim()||null,notes=$('importNotes').value.trim()||null;
- const list=hasList?parsed.cards.filter(c=>['main','commander'].includes(c.zone)).map(c=>{const resolved=parsed.found.get(c.name.toLowerCase());const canonical=resolved?.name||c.name;const set=c.set&&c.number?' ('+c.set.toUpperCase()+') '+c.number:'';return c.qty+' '+canonical+set}).join('\n'):'';
+ const list=unchanged?savedDecklist:hasList?parsed.cards.filter(c=>['main','commander'].includes(c.zone)).map(c=>{const resolved=parsed.found.get(c.name.toLowerCase());const canonical=resolved?.name||c.name;const set=c.set&&c.number?' ('+c.set.toUpperCase()+') '+c.number:'';return c.qty+' '+canonical+set}).join('\n'):'';
  const rawUrl=$('importDeckUrl').value.trim();let decklist_url=null;
  if(rawUrl){try{const url=new URL(rawUrl);if(!['http:','https:'].includes(url.protocol))throw Error('Invalid protocol');decklist_url=url.href}catch{status.textContent='Enter a valid http or https decklist link.';return}}
  saveButton.disabled=true;
  try{
  const {data:{user}}=await sb.auth.getUser();
  if(!user){status.textContent='Sign in to save this deck. Your decklist will stay here.';return}
+ const values={name,commander,decklist_url,bracket_level,theme,notes};if(!unchanged)values.decklist=list;
  let {error}=isEditing
- ?await sb.from('decks').update({name,commander,decklist:list,decklist_url,bracket_level,theme,notes}).eq('id',editId).eq('owner_id',user.id).select('id').single()
- :await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list,decklist_url,bracket_level,theme,notes});
+ ?await sb.from('decks').update(values).eq('id',editId).eq('owner_id',user.id).select('id').single()
+ :await sb.from('decks').insert({owner_id:user.id,...values});
  if(error)throw Error(/schema cache|column/i.test(error.message)?'Your deck details could not be saved. Nothing was discarded; please try again shortly.':error.message);
  status.textContent=isEditing?'Deck updated.':'Deck saved.';
  window.location.href=isEditing?'./deck.html?id='+encodeURIComponent(editId):'./index.html#profiles';
