@@ -1,4 +1,4 @@
--- UNAPPLIED: per-deck display preferences. Existing owner-only RLS is preserved.
+-- Per-deck display preferences. Existing owner-only RLS is preserved.
 -- {} keeps every existing report visible; game drill-downs require explicit opt-in.
 ALTER TABLE public.decks
   ADD COLUMN IF NOT EXISTS stat_settings jsonb NOT NULL DEFAULT '{}'::jsonb;
