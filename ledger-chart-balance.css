@@ -1,0 +1,17 @@
+/* Balance the charts within the existing Ledger stat box. */
+#statisticsSection .ledger-chart-row>#summary{container-type:inline-size;display:grid!important;grid-template-columns:minmax(0,1fr)!important;align-items:stretch!important;gap:0!important;margin:0!important;width:100%}
+#statisticsSection .ledger-chart-row #summary>.stats-pie-card{height:100%!important;min-height:0!important;padding:16px 24px 16px 8px!important}
+#statisticsSection .ledger-chart-row #summary .stats-pie-main{display:grid!important;grid-template-columns:minmax(0,1.2fr) minmax(90px,.8fr);align-items:center!important;justify-items:center;gap:clamp(12px,4cqi,32px)!important;width:100%;box-sizing:border-box}
+#statisticsSection .ledger-chart-row #summary .stats-donut{width:min(100%,200px)!important;min-width:0!important;aspect-ratio:1;height:auto!important}
+#statisticsSection #summary .stats-donut-inner strong{font-size:clamp(16px,8cqi,38px);line-height:1.1}
+#statisticsSection #summary .stats-donut-inner span{font-size:12px;margin-top:6px}
+#statisticsSection #summary .stats-pie-legend{display:grid;grid-auto-rows:1fr;width:100%;min-width:0;height:clamp(156px,44cqi,200px);gap:0;align-content:stretch}
+#statisticsSection #summary .stats-pie-legend>div{display:flex!important;flex-direction:column;flex-wrap:nowrap!important;justify-content:center;align-items:center!important;gap:5px!important;width:100%;padding:4px 0!important;border:0;text-align:center;box-sizing:border-box;min-height:0}
+#statisticsSection #summary .stats-pie-legend>div+div{border-top:1px solid #41635480}
+#statisticsSection #summary .stats-pie-legend>div>strong{order:-1;font:600 clamp(24px,7cqi,34px)/1 Georgia,serif!important;font-variant-numeric:tabular-nums}
+#statisticsSection #summary .stats-pie-legend>div>span:not(.stats-pie-dot){display:block;font:12px/1.25 system-ui,sans-serif;margin:0!important}
+#statisticsSection #summary .stats-pie-main:has(>.stats-donut[hidden]){grid-template-columns:1fr}
+@media(max-width:480px){#statisticsSection .ledger-chart-row #summary>.stats-pie-card{padding:12px 0 18px!important}#statisticsSection #summary .stats-donut-inner span,#statisticsSection #summary .stats-pie-legend>div>span:not(.stats-pie-dot){font-size:11px}}
+
+#statisticsSection .ledger-chart-row>#summary[hidden],#statisticsSection #summary .stats-pie-legend>[hidden]{display:none!important}
+#statisticsSection #summary .stats-pie-legend>.stats-games-total[hidden]+div{border-top:0}
