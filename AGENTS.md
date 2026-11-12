@@ -16,3 +16,9 @@ When adding any new Ledger statistic:
 - Preserve meaningful recorded zeroes and explicit colorless identities. Never substitute zero or colorless for missing data.
 - Build the layout from populated sections so remaining artwork and stats reflow without reserved placeholder gaps. Keep existing display/privacy settings in force.
 - Cover sparse histories, missing comparisons/rivals, all-hidden settings, true zeroes, colorless data, and partial multi-image exports in regression checks.
+
+# Universal deck preferences and new-account defaults
+
+- Deck visibility and interactive-stat preferences live in the owner profile’s `deck_settings` and apply to every existing and future deck, including share exports. Do not read/write legacy per-deck `stat_settings` for current UI preferences.
+- Creating a deck must preserve the user’s saved universal choices. New accounts and untouched defaults start with every deck and private Ledger stat/feature enabled.
+- Keep existing users’ Ledger choices, public-profile privacy permissions, and announcement dismissals unchanged when updating signup defaults.

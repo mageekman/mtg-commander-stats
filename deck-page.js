@@ -1,7 +1,7 @@
 import {createDeckHero} from './deck-hero.js?v=1';
 import {renderSharedDeck} from './shared-deck.js?v=captions-2';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
-import {mountDeckPerformance} from './deck-performance.js?v=details-2';
+import {mountDeckPerformance} from './deck-performance.js?v=universal-3';
 function colorIdentityIcons(colors){
  const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
  const label=document.createElement('span');label.textContent='Color identity:';wrap.append(label);
