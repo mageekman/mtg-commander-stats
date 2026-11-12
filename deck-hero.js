@@ -1,14 +1,14 @@
-import {node} from './deck-visuals.js?v=reports-2';
+import {node} from './deck-visuals.js?v=prepared-perf-1';
 const given=value=>value!==null&&value!==undefined&&String(value).trim()!=='';
 export function addCommanderCaption(box,name){
  if(!given(name))return box;
  const caption=node('span',name);caption.className='deck-art-caption';box.append(caption);return box;
 }
 // The owner page and review preview use the same hero and optional-field rules.
-export function createDeckHero(deck,{commanders=[],colors=null,cardCount=0}={}){
+export function createDeckHero(deck,{commanders=[],colors=null,cardCount=0,placeholderArtwork=false,loadingArtwork=false}={}){
  const hero=node('section');hero.className='hero deck-hero-with-record';
  const artwork=node('div');artwork.className='deck-hero-art';
- for(const {name,url}of commanders){if(!url)continue;const frame=node('figure');frame.className='deck-commander-frame';const image=node('img');image.src=url;image.alt=name||'';frame.append(image);addCommanderCaption(frame,name);artwork.append(frame)}
+ for(const {name,url}of commanders){if(!url&&!placeholderArtwork)continue;const frame=node('figure');frame.className='deck-commander-frame';const image=node('img');image.src=url||'./cl-logo-final-transparent.webp?v=delivery-1';image.alt=url?name||'':'';if(!url){image.className='deck-hero-art-placeholder';image.setAttribute('aria-hidden','true')}frame.append(image);if(!url&&loadingArtwork){const label=node('span','Loading artwork…');label.className='deck-art-loading';label.setAttribute('role','status');frame.append(label)}addCommanderCaption(frame,name);artwork.append(frame)}
  if(artwork.children.length)hero.append(artwork);
  const details=node('div');details.className='deck-hero-details';if(given(deck.name))details.append(node('h2',deck.name));
  const fields=node('dl');fields.className='deck-detail-fields';

@@ -1,13 +1,13 @@
-import {addCommanderCaption} from './deck-hero.js?v=1';
-import {normalizeDeckSettings,readDeckSettings,saveDeckSettings,openDeckSettings,watchDeckSettings} from './deck-settings.js?v=universal-2';
-import {createDeckExplorer,bindDeckReports} from './deck-stat-interactions.js?v=1';
+import {addCommanderCaption} from './deck-hero.js?v=prepared-perf-1';
+import {normalizeDeckSettings,readDeckSettings,saveDeckSettings,openDeckSettings,watchDeckSettings} from './deck-settings.js?v=prepared-perf-1';
+import {createDeckExplorer,bindDeckReports} from './deck-stat-interactions.js?v=prepared-perf-1';
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=reports-3';
 import {groupDeckStats} from './deck-stat-tabs.js?v=visibility-2';
 import {record,commanderMatchups,tableSizeStats,recentForm,deckActivity,mostFacedFriendCommander} from './deck-performance-stats.js?v=participants-3';
 import {firstPlayerStats,gamesTogether} from './player-game-stats.js?v=participants-2';
 import {loadFriendDisplayNames} from './friend-display-names.js?v=participants-4';
 import {rankingPeriods,rankingRange,dateString} from './friend-ranking-period.js?v=1';
-import {node,pct,tiles,ring,rateBar,artPanel,prefetchArtwork,pagedCards,renderTrend} from './deck-visuals.js?v=reports-2';
+import {node,pct,tiles,ring,rateBar,artPanel,prefetchArtwork,pagedCards,renderTrend} from './deck-visuals.js?v=prepared-perf-1';
 function commanderCarousel(host,rows,renderCard){
  const carousel=node('div');carousel.className='deck-commander-carousel';carousel.tabIndex=0;carousel.setAttribute('role','region');carousel.setAttribute('aria-roledescription','carousel');carousel.setAttribute('aria-label','Commander matchups');
  for(const row of rows)carousel.append(renderCard(row));

@@ -1,10 +1,10 @@
 import {loadFriendDisplayNames} from './friend-display-names.js?v=participants-4';
-import {normalizeDeckSettings,watchDeckSettings} from './deck-settings.js?v=universal-2';
-import {deckShareTypesFor,renderDeckShare} from './share-deck-renderer.js?v=alignment-5';
-import {loadShareAssets} from './share-ledger-assets.js?v=art-3';
+import {normalizeDeckSettings,watchDeckSettings} from './deck-settings.js?v=prepared-perf-1';
+import {deckShareTypesFor,renderDeckShare} from './share-deck-renderer.js?v=prepared-perf-1';
+import {loadShareAssets} from './share-ledger-assets.js?v=prepared-perf-1';
 import {commanderMatchups,recentForm} from './deck-performance-stats.js?v=participants-3';
 import {rankingPeriods,rankingRange,dateString} from './friend-ranking-period.js?v=1';
-import {node} from './deck-visuals.js?v=reports-2';
+import {node} from './deck-visuals.js?v=prepared-perf-1';
 export async function loadDeckShareData(client,user,id){
  const {data:deck,error}=await client.from('decks').select('id,name,commander,owner_id,bracket_level,theme').eq('id',id).eq('owner_id',user.id).single();if(error)throw error;if(!deck||deck.owner_id!==user.id)throw Error('You can only share a deck you own.');
  const pages=async (fields,deckOnly=false)=>{const rows=[];for(let offset=0;;offset+=1000){let query=client.from('personal_games').select(fields).eq('owner_id',user.id);if(deckOnly)query=query.eq('deck_id',deck.id);const {data,error}=await query.order('id').range(offset,offset+999);if(error)throw error;rows.push(...(data||[]));if(!data||data.length<1000)return rows}};

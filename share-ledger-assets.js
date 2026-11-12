@@ -36,6 +36,6 @@ export async function loadShareAssets(stats,profile,decks=[]){
  for(const name of requested){if(Date.now()>=deadline)break;if(!cards.has(commanderKey(name)))await resolveName(name)}
  const metadata=new Map(requested.map(name=>[commanderKey(name),metadataFor(name,cards)]));
  await artwork;await Promise.all(shown.filter(name=>!images.get(commanderKey(name))&&metadata.get(commanderKey(name))?.art!==initialArt.get(name)).map(async name=>images.set(commanderKey(name),await loadShareImage(metadata.get(commanderKey(name))?.art))));
- const [logo,...symbols]=await Promise.all([loadShareImage('./cl-logo-final-transparent.png?v=final-1'),...[...'WUBRGC'].map(c=>loadShareImage('./assets/mana/'+c+'.svg?v=1'))]);
+ const [logo,...symbols]=await Promise.all([loadShareImage('./cl-logo-final-transparent.webp?v=delivery-1'),...[...'WUBRGC'].map(c=>loadShareImage('./assets/mana/'+c+'.svg?v=1'))]);
  return {metadata,images,logo,symbols:new Map([...'WUBRGC'].map((c,i)=>[c,symbols[i]])),missingArtwork:shown.some(n=>!images.get(commanderKey(n)))};
 }

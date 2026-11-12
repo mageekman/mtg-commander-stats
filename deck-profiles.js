@@ -1,3 +1,4 @@
+import {loadHomepageDeckRecords} from './homepage-deck-records.js?v=prepared-perf-1';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=participants-4';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
@@ -168,11 +169,11 @@ function renderRecentGames(rows,error,friendNames=new Map(),linked=false){
  }
  if(linked)historyLinker.hydrate(container,recent);
 }
-function elWinRate(deckId,winRates){
+function elWinRate(deckId,winRates,unavailable=false){
  const badge=document.createElement('span');badge.className='deck-winrate';
  const stats=winRates.get(deckId);
- badge.textContent=stats?.games?(stats.wins/stats.games*100).toFixed(1)+'%':'No games yet';
- badge.title=stats?.games?stats.wins+' wins in '+stats.games+' games':'No recorded games for this deck';
+ badge.textContent=unavailable?'Record unavailable':stats?.games?(stats.wins/stats.games*100).toFixed(1)+'%':'No games yet';
+ badge.title=unavailable?'Reload to retry loading deck records':stats?.games?stats.wins+' wins in '+stats.games+' games':'No recorded games for this deck';
  return badge;
 }
 function sortDecksForDisplay(list,stats,sort,direction){
@@ -198,18 +199,21 @@ const {data:{user}}=await sb.auth.getUser();
 const friendNames=user?loadFriendDisplayNames(sb):Promise.resolve(new Map());
 let data,error;
 if(!user){data=demoDecks}else{
-({data,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,created_at,archived_at,bracket_level,theme,notes').order('created_at',{ascending:false}));
-if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist,created_at,archived_at').order('created_at',{ascending:false});if(!fallback.error){data=fallback.data;error=null}}
+({data,error}=await sb.from('decks').select('id,name,commander,created_at,archived_at,bracket_level,theme').eq('owner_id',user.id).order('created_at',{ascending:false}));
+if(error){const fallback=await sb.from('decks').select('id,name,commander,created_at,archived_at').eq('owner_id',user.id).order('created_at',{ascending:false});if(!fallback.error){data=fallback.data;error=null}}
 }
 if(error){$('deckGallery').textContent=error.message;return}
 decks=data||[];
-const winRates=new Map();
-const {data:gameRows,error:gameError}=!user?{data:demoGames}:await sb.from('personal_games').select('id,deck_id,played_at,won,players,first_player,winner_player').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false}).limit(1000);
-if(!gameError)for(const game of gameRows||[]){
+let winRates=new Map(),recordError=null;
+const recentRequest=user?sb.from('personal_games').select('id,deck_id,played_at,won,players,first_player,winner_player').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false}).limit(4):Promise.resolve({data:demoGames});
+const [recentResult,totals]=await Promise.all([recentRequest,user?loadHomepageDeckRecords(sb).then(data=>({data}),error=>({error})):Promise.resolve({data:null})]);
+const {data:gameRows,error:gameError}=recentResult;recordError=totals.error||null;if(user&&!recordError)winRates=totals.data;
+if(!user&&!gameError)for(const game of gameRows||[]){
  const stats=winRates.get(game.deck_id)||{games:0,wins:0};
  stats.games++;if(game.won)stats.wins++;if(!stats.last||game.played_at>stats.last)stats.last=game.played_at;winRates.set(game.deck_id,stats);
 }
 renderRecentGames(gameRows,gameError,await friendNames,!!user);
+if(recordError){const warning=document.querySelector('.deck-record-warning')||document.createElement('p');warning.className='deck-record-warning';warning.setAttribute('role','status');warning.textContent='Deck records could not be loaded. Reload to try again.';$('deckGallery').before(warning)}else document.querySelector('.deck-record-warning')?.remove();
 const gallery=$('deckGallery'),archivedGallery=$('archivedDeckGallery'),archivedSection=$('archivedDeckSection');
 gallery.replaceChildren();archivedGallery.replaceChildren();gallery.hidden=false;$('deckProfile').hidden=true;
 const activeDecks=decks.filter(d=>!d.archived_at),archivedDecks=decks.filter(d=>!!d.archived_at);
@@ -225,7 +229,7 @@ const renderGroup=(list,host,term,archived)=>{
   const details=document.createElement('div');details.className='deck-entry-details';
   const title=document.createElement('strong');title.textContent=deck.name;
   const subtitle=document.createElement('span');subtitle.textContent=deck.commander;
-  const performance=elWinRate(deck.id,winRates);details.append(title,subtitle);
+  const performance=elWinRate(deck.id,winRates,!!recordError);details.append(title,subtitle);
   if(deck.bracket_level||deck.theme){const n=document.createElement('span');n.textContent=[deck.bracket_level?'Bracket '+deck.bracket_level:'',deck.theme||''].filter(Boolean).join(' · ');details.append(n)}
   link.append(image,details,performance);wrapper.append(link);host.append(wrapper);
   const commander=String(deck.commander||'').trim();
