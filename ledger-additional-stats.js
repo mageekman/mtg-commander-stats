@@ -17,9 +17,12 @@ function mount(host){
   const stats=firstPlayerStats(select.value?current.games.filter(g=>g.deck_id===select.value):current.games);
   const pair=node('div');pair.className='deck-ring-pair';
   pair.append(ring(stats.first.rate,'You went first',stats.first.wins+' wins / '+stats.first.games+' games'),ring(stats.other.rate,'Someone else went first',stats.other.wins+' wins / '+stats.other.games+' games'));
+  const known=game=>Array.isArray(game.players)&&Number.isInteger(game.first_player)&&game.first_player>=0&&game.first_player<game.players.length&&(!select.value||game.deck_id===select.value);
+  for(const [i,label]of [[0,'You went first'],[1,'Someone else went first']])current.onGames?.(pair.children[i],label,game=>known(game)&&(i===0?game.first_player===0:game.first_player!==0));
   const difference=node('div',stats.difference===null?'Log games in both groups to compare.':(stats.difference>0?'+':'')+stats.difference.toFixed(1)+' percentage points when you go first.');
-  difference.className='deck-change-badge'+(stats.difference<0?' negative':'');
-  firstBody.replaceChildren(pair,difference,node('small',stats.excluded+(stats.excluded===1?' game':' games')+' excluded because starting-player data is missing.'));
+  difference.className='deck-change-badge'+(stats.difference<0?' negative':'');current.onGames?.(difference,'Going first comparison',known);
+  const excluded=node('small',stats.excluded+(stats.excluded===1?' game':' games')+' excluded because starting-player data is missing.');current.onGames?.(excluded,'Games missing starting-player data',game=>(!select.value||game.deck_id===select.value)&&!known(game));
+  firstBody.replaceChildren(pair,difference,excluded);
  }
  select.onchange=drawFirst;
  return data=>{
@@ -34,7 +37,7 @@ function mount(host){
    const card=node('article');card.className='ledger-rotation-card';
    const art=artPanel(row.commander,'',{onImage:(image,box,url)=>data.onArtwork?.(image,box,url,row)});
    const copy=node('div'),link=node('a',row.name);link.href='./deck.html?id='+encodeURIComponent(row.id);
-   copy.append(link,rateBar(row.share,row.games+' games', 'Last played: '+(row.last||'Never')));card.append(art,copy);return card;
+   copy.append(link,rateBar(row.share,row.games+' games', 'Last played: '+(row.last||'Never')));card.append(art,copy);data.onGames?.(card,row.name,game=>game.deck_id===row.id);return card;
   },{size:2,className:'ledger-rotation-list',label:'rotation decks'});
   rotation.append(node('small','Active decks · usage in the selected period. Last played reflects all time.'));
 
@@ -46,14 +49,15 @@ function mount(host){
    card.append(artPanel(mostFacedFriendCommander(data.games,row.id),'ledger-friend-art'));
    const name=node('strong',row.name);name.className='ledger-friend-name';card.append(name);
    for(const [value,label]of [[row.games,'Games together'],[pct(row.your_rate),'Your win rate']]){const metric=node('div');metric.className='ledger-friend-metric';metric.append(node('strong',value),node('small',label));card.append(metric)}
-   return card;
+   data.onGames?.(card,'Games with '+row.name,game=>Array.isArray(game.players)&&game.players.some((player,index)=>index>0&&(player.friend_id||player.participant_id)===row.id));return card;
   },{size:2,className:'ledger-friend-list',label:'friends played with'});
 
   // A multi-friend game contributes once to the user's aggregate record.
   const shared=data.games.filter(game=>Array.isArray(game.players)&&game.players.some((player,index)=>index>0&&data.names.has(player?.friend_id||player?.participant_id)));
   const wins=shared.filter(game=>game.won).length,results=friends.get('results'),totals=node('div');totals.className='ledger-friend-totals';
-  for(const [value,label]of [[shared.length,'Games'],[wins,'Wins'],[shared.length-wins,'Losses']]){const metric=node('div');metric.append(node('strong',value),node('small',label));totals.append(metric)}
-  results.replaceChildren(ring(shared.length?100*wins/shared.length:null,'Your win rate with friends'),totals,node('small','Based on your Ledger. Each tagged game counts once, even with multiple friends.'));
+  for(const [value,label]of [[shared.length,'Games'],[wins,'Wins'],[shared.length-wins,'Losses']]){const metric=node('div');metric.append(node('strong',value),node('small',label));totals.append(metric);data.onGames?.(metric,label+' with friends',game=>Array.isArray(game.players)&&game.players.some((player,index)=>index>0&&data.names.has(player.friend_id||player.participant_id))&&(label==='Games'||(label==='Wins'?game.won:!game.won)))}
+  const sharedRing=ring(shared.length?100*wins/shared.length:null,'Your win rate with friends');data.onGames?.(sharedRing,'Games with friends',game=>Array.isArray(game.players)&&game.players.some((player,index)=>index>0&&data.names.has(player.friend_id||player.participant_id)));
+  results.replaceChildren(sharedRing,totals,node('small','Based on your Ledger. Each tagged game counts once, even with multiple friends.'));
  };
 }
 export function renderAdditionalLedgerStats(host,data){if(!host)return;if(!dashboards.has(host))dashboards.set(host,mount(host));dashboards.get(host)(data)}
