@@ -1,0 +1,51 @@
+.stat-games-interactive{cursor:pointer;position:relative}
+.stat-games-interactive:hover{outline:1px solid #86bfa2;outline-offset:2px}
+.stat-games-trigger{position:absolute;right:8px;bottom:8px;display:grid;place-items:center;width:22px;height:22px;box-sizing:border-box;margin:0;padding:3px;border:1px solid #6f92756b;border-radius:5px;background:#102622cc;color:#bfd8ca;cursor:pointer;z-index:4}
+.stat-games-trigger:hover{color:#f4e8cd;background:#245743}.stat-games-trigger:focus-visible{outline:2px solid #dfbf7b;outline-offset:3px}
+.stats-donut>.stat-games-trigger{bottom:18%;left:50%;transform:translateX(-50%);border:0;background:none}
+.stats-pie-legend .stat-games-trigger{right:0;bottom:4px;width:18px;height:18px;border:0;background:none}
+.best-deck-card>.stat-games-trigger{right:14px;bottom:14px}
+#statInsights>.insight-stat.stat-games-interactive>strong{margin-right:24px}
+#statInsights>.insight-stat>.stat-games-trigger{right:9px;bottom:9px;width:18px;height:18px;border:0;background:none}
+.color-usage-item.stat-games-interactive{padding-right:25px;box-sizing:border-box}.color-usage-item>.stat-games-trigger{right:0;top:0;bottom:auto;width:18px;height:18px;border:0;background:none}
+.deck-stats-record.stat-games-interactive{padding-right:25px}.deck-stats-record>.stat-games-trigger{right:0;bottom:0;width:18px;height:18px}
+.winrate-trend>.stat-games-trigger{right:14px;bottom:10px}
+.stat-game-history .compact-game{border:1px solid #557e6a;border-radius:12px;overflow:hidden;margin:0;color:#f1ebdb;background:#102321}
+.stat-game-history .compact-game-row{position:relative}
+.stat-game-history .compact-game-art{position:absolute;inset:0 auto 0 0;grid-area:auto;overflow:hidden}
+.stat-game-history .compact-game-art-image{position:absolute;inset:0;background-size:cover;background-position:center 24%}
+.stat-game-history .compact-game-info{display:flex;flex-direction:column;min-width:0}
+.stat-game-history .compact-game-date{color:#b8ccbf;font-size:12px}.stat-game-history .compact-game-players{color:#bfd1c5}
+.stat-game-history .compact-game-outcome{display:grid;place-items:center;box-sizing:border-box;border:1px solid #61917b;border-radius:6px;background:#1e5541;color:#b8edd1;font-weight:800;text-transform:uppercase}
+.stat-game-history .compact-game-loss .compact-game-outcome{background:#492d2d;border-color:#956461;color:#f0b7ae}
+.stat-game-history .compact-game-actions{display:flex;flex-direction:column;gap:5px}.stat-game-history .compact-game-actions button{box-sizing:border-box;background:#234a3d;border:1px solid #6b9180;border-radius:5px;color:#eee9d9;padding:4px 7px;font:11px system-ui;cursor:pointer}
+.best-deck-card>.stat-games-trigger{position:absolute;right:14px;bottom:14px;z-index:4;background:#102622e8;border:1px solid #678a77;padding:4px 7px;border-radius:5px}
+.stat-games-dialog{box-sizing:border-box;width:min(960px,calc(100vw - 32px));max-width:none;max-height:88dvh;overflow:auto;margin:auto;padding:24px;border:1px solid #6a9481;border-radius:18px;background:linear-gradient(145deg,#19332e,#102322);color:#f1ebdb;box-shadow:0 24px 100px #0008}
+.stat-games-dialog::backdrop{background:#04100fba;backdrop-filter:blur(4px)}
+.stat-games-dialog>header{display:flex;align-items:center;justify-content:space-between;gap:16px}.stat-games-dialog h2{margin:0;font:600 clamp(23px,4vw,32px)/1.2 Georgia,serif}.stat-games-close,.stat-games-pagination button{padding:8px 13px;border:1px solid #628975;border-radius:7px;background:#214e3f;color:#f1ebdb;cursor:pointer}
+.stat-games-status{font:13px/1.5 system-ui;color:#bed1c5;margin:12px 0 20px}.stat-game-history{display:grid;gap:10px}.stat-games-pagination{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:20px;font:12px system-ui}.stat-games-pagination button:disabled{opacity:.4;cursor:default}
+@media(max-width:540px){.stat-games-dialog{width:calc(100vw - 20px);padding:16px;max-height:92dvh;border-radius:13px}.stat-games-dialog>header{align-items:flex-start}.stat-games-close{font-size:12px;padding:7px 10px}}
+
+/* Only this popup uses the denser rows; regular game history keeps its layout. */
+#statGamesDialog .stat-game-history{gap:6px}
+#statGamesDialog .compact-game{border-radius:8px}
+#statGamesDialog .compact-game-row{box-sizing:border-box;--compact-art-width:76px;grid-template-columns:76px minmax(0,1fr) 46px 40px!important;grid-template-rows:auto!important;column-gap:10px!important;row-gap:0!important;min-height:68px!important;padding:8px 10px 8px 0!important}
+#statGamesDialog .compact-game-row>.compact-game-info{grid-column:2!important;grid-row:1!important;gap:2px!important}
+#statGamesDialog .compact-game-info>.compact-game-date{font-size:10px!important;line-height:1.2}
+#statGamesDialog .compact-game-info>.compact-game-deck-title{font-size:13px!important;line-height:1.2}
+#statGamesDialog .compact-game-info>.compact-game-players{font-size:11px!important;line-height:1.2;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis}
+#statGamesDialog .compact-game-row>.compact-game-outcome{grid-column:3!important;grid-row:1!important;width:46px;height:51px!important;font-size:11px!important}
+#statGamesDialog .compact-game-row>.compact-game-actions{grid-column:4!important;grid-row:1!important;justify-self:end;gap:3px}
+#statGamesDialog .compact-game-actions button{width:38px;min-height:24px;padding:3px 2px;font-size:9px!important;line-height:1.1}
+#statisticsSection .winrate-trend-heading .ledger-trend-controls{display:flex;flex-wrap:nowrap;align-items:end;gap:6px;width:100%;min-width:0}
+#statisticsSection .winrate-trend-heading .ledger-trend-controls label{display:grid;grid-template-columns:minmax(0,1fr);flex:1 1 0;gap:3px;min-width:0;margin:0!important;font-size:9px;line-height:1.1}
+#statisticsSection .winrate-trend-heading .ledger-trend-controls select{width:100%;min-width:0;margin:0!important;padding:4px;height:26px;font-size:10px}
+#statisticsSection .ledger-trend-controls>.stat-games-text-trigger{position:static;display:block;flex:0 0 auto;width:auto;height:26px;padding:4px 6px;font:600 10px/1.2 system-ui;white-space:nowrap}
+@media(min-width:700px){#statisticsSection .winrate-trend-heading .ledger-trend-controls{width:auto;flex:1 1 220px}}
+@media(max-width:540px){#statGamesDialog .compact-game-row{--compact-art-width:48px;grid-template-columns:48px minmax(0,1fr) 34px 32px!important;column-gap:6px!important;min-height:70px!important;padding:7px 7px 7px 0!important}#statGamesDialog .compact-game-row>.compact-game-outcome{width:34px;height:51px!important;font-size:10px!important}#statGamesDialog .compact-game-actions button{width:30px;font-size:9px!important}#statGamesDialog .compact-game-info>.compact-game-deck-title{font-size:12px!important}#statGamesDialog .compact-game-info>.compact-game-players{font-size:10px!important}}
+
+.ledger-report-panel small.stat-games-interactive{display:block;min-height:22px;padding-right:26px}.ledger-report-panel small.stat-games-interactive>.stat-games-trigger{right:0;bottom:0;width:18px;height:18px}
+
+.stat-games-search{display:grid;gap:5px;margin:14px 0 0;color:#bed1c5;font:11px/1.4 system-ui}
+.stat-games-search input{box-sizing:border-box;width:100%;min-width:0;margin:0;padding:9px 11px;border:1px solid #587e6b;border-radius:7px;background:#0d221e;color:#f1ebdb;font:13px/1.3 system-ui}.stat-games-search input:focus-visible{outline:2px solid #9fceb3;outline-offset:2px}
+.stat-games-pagination[hidden]{display:none}

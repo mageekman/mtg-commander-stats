@@ -1,18 +1,21 @@
+import {createStatGameExplorer} from './ledger-stat-games.js?v=1';
+import {rankingRange} from './friend-ranking-period.js?v=1';
+import {filterTrendGames} from './ledger-trend-data.js?v=1';
 import {startStatLoading} from './stat-loading.js?v=1';
-import {renderColorUsage} from './color-combo-usage.js?v=minimum-2';
-import {mountLedgerUpdates} from './ledger-stat-updates.js?v=1';
+import {renderColorUsage} from './color-combo-usage.js?v=stat-games-4';
+import {mountLedgerUpdates} from './ledger-stat-updates.js?v=interactive-2';
 import {selectStrongestColor,selectMostPlayedColor} from './strongest-color.js?v=combo-2';
-import {normalizeLedgerSettings,readLedgerState,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=public-5';
+import {normalizeLedgerSettings,readLedgerState,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=interactive-6';
 import {selectBestDeck} from './best-deck.js?v=2';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {commanderColors} from './ledger-commander-colors.js?v=1';
-import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=settings-3';
+import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=stat-games-4';
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=history-2';
-import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=participants-4';
+import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=search-5';
 import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=history-links-3';
 import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
-import {gameMatchesSearch} from './game-history-search.js?v=participants-3';
+import {gameMatchesSearch} from './game-history-search.js?v=search-4';
 import {isGenericOpponentName} from './opponent-names.js?v=1';
 import {mountLedgerTrend} from './ledger-trend-controls.js?v=loading-3';
 import {createClient} from './vendor/supabase-js.mjs';
@@ -29,6 +32,10 @@ const updateSettingsForm=mountLedgerSettings(sb,()=>user,value=>{ledgerSettings=
 const ledgerTrend=mountLedgerTrend(()=>games);
 const ledgerArt=createLedgerArtController(sb,()=>user);
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
+const statGames=createStatGameExplorer({owner:()=>user?.id,enabled:()=>ledgerSettings.enable_stat_games,renderGame:renderCompactGame,hydrate:(host,rows)=>historyLinker.hydrate(host,rows),matches:(game,term)=>gameMatchesSearch(game,decks.find(deck=>deck.id===game.deck_id),term,friendDisplayNames),period:()=>document.querySelector('#statsDatePreset option:checked')?.textContent||'Selected timeframe'});
+const matchingGames=predicate=>calendarFilteredGames().filter(predicate);
+const winnerOf=game=>!game.won&&Array.isArray(game.players)&&Number.isInteger(game.winner_player)&&game.winner_player>0?game.players[game.winner_player]:null;
+const colorGames=async(code,rivals=false)=>{const rows=calendarFilteredGames();const colors=await Promise.all(rows.map(game=>commanderColors(rivals?winnerOf(game)?.commander:decks.find(deck=>deck.id===game.deck_id)?.commander)));return rows.filter((game,i)=>colors[i]===code&&(!rivals||winnerOf(game)))};
 const message=t=>{$('message').textContent=t;$('gameFormStatus').textContent=t};
 const scryfallLink=name=>'https://scryfall.com/search?q='+encodeURIComponent('!"'+name.replace(/"/g,'')+'"');
 const suggestionCache=new Map();
@@ -133,7 +140,7 @@ async function load(){
 }
 async function loadLedger(){
  historyLinker.clear();
- const auth=await sb.auth.getUser();user=auth.data.user;await ledgerArt.load(user);friendService.clear();friendDisplayNames=new Map();
+ const auth=await sb.auth.getUser();user=auth.data.user;statGames.refresh();await ledgerArt.load(user);friendService.clear();friendDisplayNames=new Map();
  $('openLedgerSettings').hidden=!user;
  if(user){try{const state=await readLedgerState(sb,user);ledgerSettings=state.settings;updateSettingsForm(ledgerSettings);updateLedgerNotices(state.updates);if(openSettingsFromUrl){openSettingsFromUrl=false;$('openLedgerSettings').click()}$('statisticsSection').hidden=false;$('shareLedgerLink').hidden=false}catch(error){$('statisticsSection').hidden=true;message('Unable to load Ledger settings. Reload to try again.');return}}else{updateLedgerNotices([]);ledgerSettings=normalizeLedgerSettings();$('statisticsSection').hidden=false}
  if(!user){decks=demoDecks;games=demoGames;$('save').disabled=true;const filter=$('historyDeckFilter');filter.replaceChildren(el('option','All decks'));filter.firstChild.value='';for(const deck of decks){const option=el('option',deck.name);option.value=deck.id;filter.append(option)}message('');render();return}
@@ -192,7 +199,7 @@ async function deleteGame(game,button){
   if(error)throw error;
   if(editingGameId===game.id)resetEditor();
   await refresh();
- }catch(error){message('Delete failed: '+error.message)}finally{button.disabled=false}
+ }catch(error){message('Delete failed: '+error.message);statGames.error('Delete failed: '+error.message)}finally{button.disabled=false}
 }
 function editGame(game){
  if(!user){location.href='./sign-in.html';return}
@@ -273,6 +280,7 @@ function renderBestDeck(displayGames){
  const winrate=el('strong',rate+' win rate');winrate.className='best-deck-rate';
  const record=el('span',best.wins+' wins in '+best.games+' games');record.className='best-deck-record';
  content.append(label,name,commander,winrate,record);card.append(artwork,content);host.append(card);
+ statGames.bind(card,best.deck.name,()=>matchingGames(game=>game.deck_id===best.deck.id));
  const commanderName=best.deck.commander.trim();
  if(commanderName)getCommanderArtwork(commanderName).then(url=>{
   if(card.isConnected&&url){artwork.style.backgroundImage='url("'+url+'")';ledgerArt.attach(card,artwork,{slot:'best-deck',commander:commanderName,url,title:best.deck.name})}
@@ -296,6 +304,7 @@ function featuredStat(host,deck,label,primary,secondary){
  const content=el('div');content.className='best-deck-content';
  for(const [tag,value,cls] of [['span',label,'best-deck-label'],['strong',deck.name,'best-deck-name'],['span',deck.commander,'best-deck-commander'],['strong',primary,'best-deck-rate'],['span',secondary,'best-deck-record']]){const node=el(tag,value);node.className=cls;content.append(node)}
  card.append(art,content);host.append(card);
+ statGames.bind(card,deck.name,()=>matchingGames(game=>game.deck_id===deck.id));
  const name=deck.commander;
  if(name)getCommanderArtwork(name).then(url=>{if(card.isConnected&&url){art.style.backgroundImage='url("'+url+'")';ledgerArt.attach(card,art,{slot:'most-played-deck',commander:name,url,title:deck.name})}}).catch(()=>{});
 }
@@ -321,12 +330,14 @@ function renderExtraStats(visibleGames){
  ];
  const cards=cardData.map(([label,value,detail])=>{const card=el('div');card.className='insight-stat';card.append(el('span',label),el('strong',value));const small=el('small',detail);card.append(small);host.append(card);return card});
  $('rivalPlayerSlot').replaceChildren(cards[3]);$('rivalColorSlot').replaceChildren(cards[2]);
+ if(topPlayer)statGames.bind(cards[3],'Losses to '+topPlayer[0],()=>matchingGames(game=>String(winnerOf(game)?.name||'').trim()===topPlayer[0]));
  if(topCommander){
   const card=el('div');card.className='best-deck-card';
   const art=el('div');art.className='best-deck-art';art.setAttribute('aria-hidden','true');
   const content=el('div');content.className='best-deck-content';
   for(const [tag,value,cls] of [['span','★ Rival Commander','best-deck-label'],['strong',topCommander[0],'best-deck-name'],['strong',topCommander[1]+' losses','best-deck-rate'],['span','Against this commander','best-deck-record']]){const node=el(tag,value);node.className=cls;content.append(node)}
   card.append(art,content);nemesis.append(card);
+  statGames.bind(card,'Losses to '+topCommander[0],()=>matchingGames(game=>String(winnerOf(game)?.commander||'').trim()===topCommander[0]));
   const name=topCommander[0];
   if(name)getCommanderArtwork(name).then(url=>{if(card.isConnected&&url){art.style.backgroundImage='url("'+url+'")';ledgerArt.attach(card,art,{slot:'rival-commander',commander:name,url,title:name})}}).catch(()=>{});
  }else{const empty=el('div','No recorded losses to named commanders yet.');empty.className='best-deck-empty';nemesis.append(empty)}
@@ -338,17 +349,18 @@ function renderExtraStats(visibleGames){
   const combo=new Map();let missing=0;
   ids.forEach((code,i)=>{if(code===null){missing++;return}const data=combo.get(code)||{games:0,wins:0};data.games++;if(visibleGames[i].won)data.wins++;combo.set(code,data)});
   if(ledgerSettings.show_color_usage)renderColorUsage($('colorUsageChart'),combo,visibleGames.length,missing,ledgerSettings.color_usage_combos,ledgerSettings.best_deck_min_games);
+  for(const item of $('colorUsageChart').querySelectorAll('.color-usage-item'))statGames.bind(item,'Color usage · '+(item.dataset.colorCombo||'Colorless'),()=>colorGames(item.dataset.colorCombo));
   const top=selectMostPlayedColor(combo);
   const colorStrong=cards[0].querySelector('strong'),colorSmall=cards[0].querySelector('small');
-  if(top){manaIdentity(colorStrong,top[0]);colorSmall.textContent=top[1].games+' games'+(missing?' · '+missing+' unavailable':'')}else{colorStrong.textContent=missing?'Color data unavailable':'No games yet';colorSmall.textContent=''}
+  if(top){statGames.bind(cards[0],'Most played color · '+(top[0]||'Colorless'),()=>colorGames(top[0]));manaIdentity(colorStrong,top[0]);colorSmall.textContent=top[1].games+' games'+(missing?' · '+missing+' unavailable':'')}else{colorStrong.textContent=missing?'Color data unavailable':'No games yet';colorSmall.textContent=''}
   const best=selectStrongestColor(combo,ledgerSettings.best_deck_min_games);
   const bestStrong=cards[1].querySelector('strong'),bestSmall=cards[1].querySelector('small');
-  if(best){manaIdentity(bestStrong,best[0]);bestSmall.textContent=(100*best[1].wins/best[1].games).toFixed(1)+'% win rate · '+best[1].wins+' wins in '+best[1].games+' games'}else{bestStrong.textContent=missing?'Color data unavailable':'No qualifying color combo';bestSmall.textContent='Minimum '+ledgerSettings.best_deck_min_games+' games in this timeframe'}
+  if(best){statGames.bind(cards[1],'Strongest Color · '+(best[0]||'Colorless'),()=>colorGames(best[0]));manaIdentity(bestStrong,best[0]);bestSmall.textContent=(100*best[1].wins/best[1].games).toFixed(1)+'% win rate · '+best[1].wins+' wins in '+best[1].games+' games'}else{bestStrong.textContent=missing?'Color data unavailable':'No qualifying color combo';bestSmall.textContent='Minimum '+ledgerSettings.best_deck_min_games+' games in this timeframe'}
  }).catch(()=>{if(stamp===colorStatsStamp){cards[0].querySelector('strong').textContent='Color data unavailable';cards[1].querySelector('strong').textContent='Color data unavailable';if(ledgerSettings.show_color_usage)$('colorUsageChart').textContent='Color usage is unavailable. Please try again.'}}).finally(()=>{colorDone.forEach(done=>done());usageDone()});
  Promise.all(opponents.map(p=>commanderColors(p.commander))).then(ids=>{
   if(stamp!==colorStatsStamp)return;
   const top=mostCommon(ids.filter(x=>x!==null)),strong=cards[2].querySelector('strong'),small=cards[2].querySelector('small');
-  if(top){manaIdentity(strong,top[0]);small.textContent=top[1]+' losses'}
+  if(top){statGames.bind(cards[2],'Losses to '+(top[0]||'Colorless'),()=>colorGames(top[0],true));manaIdentity(strong,top[0]);small.textContent=top[1]+' losses'}
   else{strong.textContent=ids.length?'Color data unavailable':'No recorded losses';small.textContent=''}
  }).catch(()=>{if(stamp===colorStatsStamp)cards[2].querySelector('strong').textContent='Color data unavailable'}).finally(rivalDone);
 }
@@ -374,7 +386,25 @@ function sortDecksForDisplay(list,stats,sort,direction){
 
 function renderWinrateTrend(){ledgerTrend.render()}
 
+function renderCompactGame(g){
+ const deck=decks.find(d=>d.id===g.deck_id);
+   const item=el('article');item.className='compact-game '+(g.won?'compact-game-win':'compact-game-loss');
+   const row=el('div');row.className='compact-game-row';
+   const date=el('span',g.played_at);date.className='compact-game-date';
+   const deckArt=el('div');deckArt.className='compact-game-art';deckArt.setAttribute('aria-hidden','true');row.append(deckArt);
+   if(deck?.commander){const artName=deck.commander.trim(),image=el('div');image.className='compact-game-art-image';deckArt.append(image);ledgerArt.watch(image,{slot:'compact-history',commander:artName});if(artName)getCommanderArtwork(artName).then(url=>{if(image.isConnected&&url)image.style.backgroundImage='url("'+url+'")'}).catch(()=>{})}
+   const deckName=el('strong');deckName.append(historyDeckTitle(deck?.name||'Deleted deck',deck?.id,!!user));deckName.className='compact-game-deck-title';
+   const players=el('span');players.className='compact-game-players';
+   const playerNames=Array.isArray(g.players)&&g.players.length
+    ?g.players.map((p,i)=>gamePlayerDisplayName(p,friendDisplayNames,'Player '+(i+1)))
+    :['You',...(Array.isArray(g.opponents)?g.opponents:[])];
+   playerNames.forEach((name,index)=>{if(index)players.append(document.createTextNode(' · '));players.append(markHistoryPlayer(el('span',name),g,index));if(index)players.append(historyFriendDeckSlot(g,index,true))});
+   players.title=playerNames.join(', ');
+   const info=el('div');info.className='compact-game-info';const outcome=el('span',g.won?'Win':'Loss');outcome.className='compact-game-outcome';info.append(date,deckName,players);const edit=el('button',user?'Edit':'Sign in to edit');edit.type='button';edit.className='compact-game-edit';edit.setAttribute('aria-label','Edit game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));edit.onclick=()=>editGame(g);const actions=el('div');actions.className='compact-game-actions';edit.textContent='Edit';actions.append(edit);if(user){const remove=el('button','Delete');remove.type='button';remove.className='compact-game-delete';remove.setAttribute('aria-label','Delete game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));remove.onclick=()=>deleteGame(g,remove);actions.append(remove)}row.append(info,outcome,actions);item.append(row);return item;
+}
+
 function render(){
+ statGames.refresh();
  const shareLink=$('shareLedgerLink');if(shareLink){const shareParams=new URLSearchParams({period:$('statsDatePreset').value});if($('statsDatePreset').value==='custom'){shareParams.set('start',$('statsDateStart').value);shareParams.set('end',$('statsDateEnd').value)}shareLink.href='./share-my-ledger.html?'+shareParams;}
  const visibleGames=calendarFilteredGames();
  const historyVisibleGames=filteredGames().filter(g=>visibleGames.includes(g));
@@ -393,7 +423,7 @@ function render(){
  renderWinrateTrend(visibleGames);
  renderBestDeck(visibleGames);
  renderExtraStats(visibleGames);
- renderAdditionalLedgerStats($('ledgerAdditionalStats'),{games:visibleGames,allGames:games,decks,names:friendDisplayNames,onArtwork:(image,box,url,deck)=>ledgerArt.attach(box,image,{slot:'deck:'+deck.id,commander:deck.commander,url,title:deck.name,defaultFrame:{x:50,y:30,zoom:1}})});
+ renderAdditionalLedgerStats($('ledgerAdditionalStats'),{games:visibleGames,allGames:games,decks,names:friendDisplayNames,onGames:(host,title,predicate)=>statGames.bind(host,title,()=>matchingGames(predicate)),onArtwork:(image,box,url,deck)=>ledgerArt.attach(box,image,{slot:'deck:'+deck.id,commander:deck.commander,url,title:deck.name,defaultFrame:{x:50,y:30,zoom:1}})});
  const wins=visibleGames.filter(g=>g.won).length;
  const summary=$('summary');summary.replaceChildren();
  const rate=visibleGames.length?(wins/visibleGames.length*100).toFixed(1):'0.0';
@@ -404,11 +434,15 @@ function render(){
  const legend=el('div');legend.className='stats-pie-legend';
  for(const [kind,label,value] of [['win','Wins',wins],['loss','Losses',visibleGames.length-wins]]){
   const line=el('div');const dot=el('span');dot.className='stats-pie-dot '+kind;
-  line.append(dot,el('span',label),el('strong',String(value)));legend.append(line);
+  line.append(dot,el('span',label),el('strong',String(value)));legend.append(line);statGames.bind(line,label,()=>matchingGames(game=>kind==='win'?game.won:!game.won));
  }
  const pieMain=el('div');pieMain.className='stats-pie-main';pieMain.append(donut,legend);
  const total=el('div');total.className='stats-games-total';total.append(el('strong',String(visibleGames.length)),el('span','Total games played'));
  legend.prepend(total);pieCard.append(pieMain);summary.append(pieCard);
+ statGames.bind(total,'All games',()=>calendarFilteredGames());
+ if(user&&ledgerSettings.enable_stat_games){donut.setAttribute('role','group');statGames.bind(donut,'All games',()=>calendarFilteredGames());donut.onclick=event=>{if(event.target.closest('button'))return;const rect=donut.getBoundingClientRect(),x=event.clientX-rect.left-rect.width/2,y=event.clientY-rect.top-rect.height/2;if(Math.hypot(x,y)<rect.width*.36){statGames.open('All games',()=>calendarFilteredGames());return}const angle=(Math.atan2(y,x)*180/Math.PI+450)%360,isWin=angle<Number(rate)*3.6;statGames.open(isWin?'Wins':'Losses',()=>matchingGames(game=>isWin?game.won:!game.won))}}
+ statGames.bind(document.querySelector('.winrate-trend .ledger-trend-controls'),'Win rate over time',()=>{const state=ledgerTrend.state();return filterTrendGames(games,rankingRange(state.period,state.start,state.end))},()=>{const state=ledgerTrend.state();return rankingRange(state.period,state.start,state.end).label},{buttonOnly:true,label:'View games'});
+ $('statisticsSection').classList.toggle('stat-games-enabled',!!user&&ledgerSettings.enable_stat_games);
  applyLedgerVisibility($('statisticsSection'),ledgerSettings);
  const byDeck=$('deckStats');byDeck.replaceChildren();byDeck.className='deck-stats-carousel';
  const search=($('deckStatsSearch')?.value||'').trim().toLowerCase();
@@ -428,6 +462,7 @@ function render(){
   const bottom=el('div');bottom.className='deck-stats-bottom';
   const percentage=el('div',rate);percentage.className='deck-stats-rate';percentage.append(el('small','Win rate'));
   const record=el('span',played.length?wins+' wins · '+(played.length-wins)+' losses':'No games yet');record.className='deck-stats-record';
+  statGames.bind(record,deck.name,()=>matchingGames(game=>game.deck_id===deck.id));statGames.bind(percentage,deck.name,()=>matchingGames(game=>game.deck_id===deck.id));
   bottom.append(percentage,record);content.append(name,commander,bottom);card.append(artwork,content);byDeck.append(card);
   const commanderName=deck.commander.trim();
   if(commanderName)getCommanderArtwork(commanderName).then(url=>{
@@ -450,21 +485,7 @@ function render(){
  }
  for(const g of historyGames){
   const deck=decks.find(d=>d.id===g.deck_id);
-  if(historyView==='compact'){
-   const item=el('article');item.className='compact-game '+(g.won?'compact-game-win':'compact-game-loss');
-   const row=el('div');row.className='compact-game-row';
-   const date=el('span',g.played_at);date.className='compact-game-date';
-   const deckArt=el('div');deckArt.className='compact-game-art';deckArt.setAttribute('aria-hidden','true');row.append(deckArt);
-   if(deck?.commander){const artName=deck.commander.trim(),image=el('div');image.className='compact-game-art-image';deckArt.append(image);ledgerArt.watch(image,{slot:'compact-history',commander:artName});if(artName)getCommanderArtwork(artName).then(url=>{if(image.isConnected&&url)image.style.backgroundImage='url("'+url+'")'}).catch(()=>{})}
-   const deckName=el('strong');deckName.append(historyDeckTitle(deck?.name||'Deleted deck',deck?.id,!!user));deckName.className='compact-game-deck-title';
-   const players=el('span');players.className='compact-game-players';
-   const playerNames=Array.isArray(g.players)&&g.players.length
-    ?g.players.map((p,i)=>gamePlayerDisplayName(p,friendDisplayNames,'Player '+(i+1)))
-    :['You',...(Array.isArray(g.opponents)?g.opponents:[])];
-   playerNames.forEach((name,index)=>{if(index)players.append(document.createTextNode(' · '));players.append(markHistoryPlayer(el('span',name),g,index));if(index)players.append(historyFriendDeckSlot(g,index,true))});
-   players.title=playerNames.join(', ');
-   const info=el('div');info.className='compact-game-info';const outcome=el('span',g.won?'Win':'Loss');outcome.className='compact-game-outcome';info.append(date,deckName,players);const edit=el('button',user?'Edit':'Sign in to edit');edit.type='button';edit.className='compact-game-edit';edit.setAttribute('aria-label','Edit game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));edit.onclick=()=>editGame(g);const actions=el('div');actions.className='compact-game-actions';edit.textContent='Edit';actions.append(edit);if(user){const remove=el('button','Delete');remove.type='button';remove.className='compact-game-delete';remove.setAttribute('aria-label','Delete game from '+g.played_at+' with '+(deck?.name||'Deleted deck'));remove.onclick=()=>deleteGame(g,remove);actions.append(remove)}row.append(info,outcome,actions);item.append(row);history.append(item);continue;
-  }
+  if(historyView==='compact'){history.append(renderCompactGame(g));continue}
   const record=el('article');record.className='game-record';
   const header=el('div');header.className='game-record-header';
   const heading=el('div'),deckHeading=el('strong');deckHeading.append(document.createTextNode((g.won?'Win':'Loss')+' · '),historyDeckTitle(deck?.name||'Deleted deck',deck?.id,!!user));heading.append(deckHeading,el('div',g.played_at));

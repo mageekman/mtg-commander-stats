@@ -16,3 +16,5 @@ test('supports own deck commander, legacy games, and absent player data',async()
  assert.equal(matches({opponents:['Captain America','Alex']},null,'alex'),true);
  assert.equal(matches({players:[null],opponents:null},null,'alex'),false);
 });
+
+test('search supports deck names, dates, saved usernames and terms across multiple players/commanders',async()=>{const{gameMatchesSearch:matches}=await modulePromise;const game={played_at:'2026-11-10',won:true,players:[{name:'José',username:'new_handle',commander:'The Ur-Dragon'},{display_name:'Sam',handle:'sam_tester',commander:'Captain America'}]};for(const term of ['skybound','2026-11-10','@new_handle','NEW HANDLE','urdragon','sam captain','wins','jose'])assert.equal(matches(game,{name:'Skybound Alliance'},term),true,term);for(const term of ['losses','2026-10-01','unrelated'])assert.equal(matches(game,null,term),false,term)});
