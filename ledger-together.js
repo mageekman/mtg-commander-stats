@@ -20,7 +20,7 @@ export function renderGamesTogether(host,rows,{artwork,onGames}={}){
    const card=node('article');card.className='ledger-friend-passport';
    const identity=node(friend.handle?'a':'div');identity.className='ledger-together-passport';identity.title=friend.name+(friend.handle?' · @'+friend.handle:'');
    if(friend.handle){identity.href='./player.html?user='+encodeURIComponent(friend.handle);identity.setAttribute('aria-label','View '+friend.name+' player passport')}
-   const art=artwork?.(friend.commander);if(art){art.classList.add('ledger-together-art');identity.append(art)}
+   const art=artwork?.(friend.commander,friend);if(art){art.classList.add('ledger-together-art');identity.append(art)}
    const shade=node('span');shade.className='ledger-together-shade';const copy=node('span');copy.className='ledger-together-copy';const name=node('strong',friend.name);name.className='ledger-friend-name';copy.append(name);
    if(friend.handle){const handle=node('small','@'+friend.handle);handle.className='ledger-together-handle';copy.append(handle)}identity.append(shade,copy);card.append(identity);
    for(const [value,label]of [[String(friend.games),'Games'],[Number.isFinite(friend.your_rate)?friend.your_rate.toFixed(1)+'%':'—','Your win rate']]){const metric=node('div');metric.className='ledger-friend-metric';metric.append(node('strong',value),node('small',label));card.append(metric)}
