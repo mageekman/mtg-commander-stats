@@ -62,6 +62,7 @@ button:hover:not(:disabled){background:#33745e;border-color:#a7d1b0}
 <div class="csv-import-actions"><button id="downloadCsvTemplate" type="button">Download CSV template</button><label for="csvFile">Select CSV file<input id="csvFile" type="file" accept=".csv,text/csv"></label></div><button id="validateCsvButton" type="button" disabled>Validate selected CSV</button>
 <div id="csvImportStatus" class="muted" role="status">Choose a CSV file, then click Validate selected CSV.</div><div id="csvImportPreview"></div><div class="scryfall-tools"><button id="matchScryfallCommanders" type="button" hidden>Find opponent commanders on Scryfall</button><p id="scryfallStatus" class="muted" role="status"></p><p class="muted">Optional: checks unique opponent commander names in small batches (maximum 25 per click). Suggestions are not applied automatically. This does not connect opponents to user accounts or infer that separate CSV rows are the same game.</p></div></section>
 <section><h2>3. Import valid games</h2><p class="muted">Only rows marked Ready will be imported. Any new decks you select will be created at that time. You can fix skipped rows in your spreadsheet and upload again.</p><button id="confirmCsvImport" type="button" hidden>Import valid games</button><p><a class="archive-return" href="./ledger.html">← Return to My Ledger</a></p></section></main>
+<script src="./scryfall-client.js?v=rate-audit-5"></script>
 <script>
 (function(){
  const file=document.getElementById('csvFile'),button=document.getElementById('validateCsvButton'),status=document.getElementById('csvImportStatus');
@@ -82,7 +83,7 @@ button:hover:not(:disabled){background:#33745e;border-color:#a7d1b0}
   button.disabled=true;button.textContent='Validating…';
   status.textContent='Starting CSV importer…';
   try{
-   const importer=await import('./csv-import-v5.js?v=auth-state-2');
+   const importer=await import('./csv-import-v5.js?v=rate-audit-3');
    await importer.runCsvValidation();
    document.getElementById('matchScryfallCommanders').onclick=()=>importer.enrichOpponentCommanders();
   }catch(err){status.textContent='Unable to validate your CSV. Please try again. If the problem continues, reload this page.';status.classList.add('csv-import-error')}

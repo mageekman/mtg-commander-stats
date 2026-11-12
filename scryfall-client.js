@@ -1,6 +1,6 @@
 /* Shared, conservative Scryfall API client. Loaded before page modules. */
 (()=>{'use strict';
-const nativeFetch=window.fetch.bind(window),prefix='command-ledger:scryfall:v1:',ttl=7*24*60*60*1000;
+const nativeFetch=window.fetch.bind(window),prefix='command-ledger:scryfall:v1:',ttl=7*24*60*60*1000,cooldownKey='command-ledger:scryfall:blocked-until';
 const memoryCache=new Map(),pending=new Map();let queue=Promise.resolve(),nextAt=0,blockedUntil=0;const spacing=500;
 function keyFor(url,opts){const method=(opts?.method||'GET').toUpperCase();return method+' '+url+(method==='POST'?' '+String(opts?.body||''):'')}
 function cached(key){
@@ -18,20 +18,23 @@ function store(key,body){
 }
 function response(body){return new Response(body,{status:200,headers:{'Content-Type':'application/json'}})}
 function wait(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+function savedCooldown(){try{const value=Number(localStorage.getItem(cooldownKey));return Number.isFinite(value)?value:0}catch{return 0}}
 function isScryfall(input){try{const url=new URL(typeof input==='string'?input:input.url,location.href);return url.protocol==='https:'&&url.hostname==='api.scryfall.com'}catch{return false}}
 async function request(input,opts){const url=typeof input==='string'?input:input.url,method=(opts?.method||input?.method||'GET').toUpperCase(),key=keyFor(url,opts),signal=opts?.signal;
 const canCache=(method==='GET'||method==='POST'&&url.includes('/cards/collection'))&&!signal;
 if(canCache){const hit=cached(key);if(hit!==null)return response(hit);if(pending.has(key))return (await pending.get(key)).clone()}
 const task=queue.catch(()=>{}).then(async()=>{
-await wait(Math.max(0,nextAt-Date.now(),blockedUntil-Date.now()));
+await wait(Math.max(0,nextAt-Date.now(),blockedUntil-Date.now(),savedCooldown()-Date.now()));
 if(signal?.aborted)throw new DOMException('Request aborted','AbortError');
 nextAt=Date.now()+spacing;
 const headers=new Headers(opts?.headers||((input instanceof Request)?input.headers:undefined));
 if(!headers.has('Accept'))headers.set('Accept','application/json;q=0.9,*/*;q=0.8');
 const result=await nativeFetch(input,{...opts,headers});
 if(result.status===429){
- const retry=Number(result.headers.get('Retry-After'));
- blockedUntil=Math.max(blockedUntil,Date.now()+(Number.isFinite(retry)&&retry>0?Math.min(retry*1000,60000):30000));
+ const header=result.headers.get('Retry-After'),seconds=Number(header),retry=Number.isFinite(seconds)&&seconds>=0?seconds*1000:Date.parse(header)-Date.now();
+ // Scryfall blocks access for at least 30 seconds after a 429. Longer server waits win.
+ blockedUntil=Math.max(blockedUntil,Date.now()+Math.max(30000,Number.isFinite(retry)?retry:0));
+ try{localStorage.setItem(cooldownKey,String(blockedUntil))}catch{}
  return result; // Never hammer Scryfall with automatic 429 retries.
 }
 if(canCache&&result.ok){const body=await result.clone().text();store(key,body);return body}
