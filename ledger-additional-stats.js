@@ -1,3 +1,4 @@
+import {renderGamesTogether} from './ledger-together.js?v=1';
 import {firstPlayerStats,deckRotation,gamesTogether} from './player-game-stats.js?v=participants-2';
 import {mostFacedFriendCommander} from './deck-performance-stats.js?v=participants-3';
 import {node,pct,ring,rateBar,artPanel,pagedCards} from './deck-visuals.js?v=reports-2';
@@ -41,16 +42,8 @@ function mount(host){
   },{size:2,className:'ledger-rotation-list',label:'rotation decks'});
   rotation.append(node('small','Active decks · usage in the selected period. Last played reflects all time.'));
 
-  const together=friends.get('together'),friendRows=gamesTogether(data.games,data.names);
-  together.replaceChildren(node('p','Tagged current friends · selected period'));
-  if(!friendRows.length)together.append(node('p','No tagged games with friends in this period. Use @ when recording a player to tag a friend.'));
-  else pagedCards(together,friendRows,row=>{
-   const card=node('article');card.className='ledger-friend-passport';
-   card.append(artPanel(mostFacedFriendCommander(data.games,row.id),'ledger-friend-art'));
-   const name=node('strong',row.name);name.className='ledger-friend-name';card.append(name);
-   for(const [value,label]of [[row.games,'Games together'],[pct(row.your_rate),'Your win rate']]){const metric=node('div');metric.className='ledger-friend-metric';metric.append(node('strong',value),node('small',label));card.append(metric)}
-   data.onGames?.(card,'Games with '+row.name,game=>Array.isArray(game.players)&&game.players.some((player,index)=>index>0&&(player.friend_id||player.participant_id)===row.id));return card;
-  },{size:2,className:'ledger-friend-list',label:'friends played with'});
+  const together=friends.get('together'),friendRows=gamesTogether(data.games,data.names).map(row=>({...row,handle:data.names.identities?.get(row.id)?.handle||'',commander:mostFacedFriendCommander(data.games,row.id)}));
+  renderGamesTogether(together,friendRows,{artwork:name=>artPanel(name),onGames:(card,row)=>data.onGames?.(card,'Games with '+row.name,game=>Array.isArray(game.players)&&game.players.some((player,index)=>index>0&&(player.friend_id||player.participant_id)===row.id))});
 
   // A multi-friend game contributes once to the user's aggregate record.
   const shared=data.games.filter(game=>Array.isArray(game.players)&&game.players.some((player,index)=>index>0&&data.names.has(player?.friend_id||player?.participant_id)));

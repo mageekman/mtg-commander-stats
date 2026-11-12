@@ -1,0 +1,18 @@
+.ledger-together>.ledger-together-note{font:11px/16px system-ui;color:#b8cdbf;margin:0 0 8px}
+.ledger-together .ledger-together-list{display:grid;grid-template-rows:repeat(4,46px);gap:6px;height:202px}
+.ledger-together .ledger-friend-passport{display:grid;grid-template-columns:minmax(0,1fr) 48px 68px;align-items:center;gap:6px;min-height:0;height:46px;border:0;border-radius:6px;background:none;overflow:visible}
+.ledger-together-passport{position:relative;isolation:isolate;box-sizing:border-box;display:flex;align-items:center;min-width:0;height:44px;padding:5px 8px;border:1px solid #557369;border-radius:6px;overflow:hidden;text-decoration:none;background:linear-gradient(110deg,#24483e,#142528)}
+.ledger-together-passport>.deck-stat-art{position:absolute;inset:0;z-index:-2;width:100%;height:100%;min-height:0;border-radius:0}
+.ledger-together-passport>.deck-stat-art>img:not(.deck-stat-art-fallback){width:100%;height:100%;object-fit:cover;object-position:center 30%}
+.ledger-together-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#061114dc,#06111440),linear-gradient(0deg,#061114a6,transparent)}
+.ledger-together-copy{display:block;min-width:0;max-width:100%}
+.ledger-together .ledger-friend-name{display:block;grid-column:auto;grid-row:auto;font:600 14px/17px Georgia,serif;color:#f1ebdb;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ledger-together .ledger-together-handle{display:block;color:#c3d6d0;font:9px/12px system-ui;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ledger-together .ledger-friend-metric{grid-column:auto;grid-row:auto;border-left:1px solid #416354;padding:3px 0;align-self:center;text-align:center}
+.ledger-together .ledger-friend-metric strong{font:600 17px/20px Georgia,serif;color:#b3e7c7}
+.ledger-together .ledger-friend-metric small{font:9px/12px system-ui;white-space:nowrap}
+.ledger-together-pages{display:flex;align-items:center;justify-content:space-between;gap:8px;height:26px;margin:8px 0 0;font:10px system-ui;color:#bed1c5}
+.ledger-together-pages button{box-sizing:border-box;height:24px;min-width:0;margin:0;padding:3px 7px;border:1px solid #648b76;border-radius:5px;background:#214e3f;color:#f1ebdb;font:10px system-ui;cursor:pointer}
+.ledger-together-pages button:disabled{opacity:.4;cursor:default}
+.ledger-together-passport:focus-visible,.ledger-together-pages button:focus-visible{outline:2px solid #c9aa75;outline-offset:2px}
+@media(max-width:480px){.ledger-together .ledger-friend-passport{grid-template-columns:minmax(0,1fr) 40px 60px;gap:5px}.ledger-together-passport{padding:4px 6px}.ledger-together .ledger-friend-name{font-size:12px}.ledger-together .ledger-friend-metric strong{font-size:15px}.ledger-together .ledger-friend-metric small{font-size:8px}}
