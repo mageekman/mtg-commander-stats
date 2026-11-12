@@ -1,5 +1,7 @@
+import {renderColorUsage} from './color-combo-usage.js?v=1';
+import {mountLedgerUpdates} from './ledger-stat-updates.js?v=1';
 import {selectStrongestColor,selectMostPlayedColor} from './strongest-color.js?v=combo-2';
-import {normalizeLedgerSettings,readLedgerSettings,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=strongest-2';
+import {normalizeLedgerSettings,readLedgerState,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=usage-3';
 import {selectBestDeck} from './best-deck.js?v=2';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {commanderColors} from './ledger-commander-colors.js?v=1';
@@ -20,6 +22,8 @@ const $=id=>document.getElementById(id);
 let friendDisplayNames=new Map();
 let user=null,decks=[],games=[],playerCount=4,editingGameId=null,savingGame=false;
 let ledgerSettings=normalizeLedgerSettings();
+let openSettingsFromUrl=new URLSearchParams(location.search).get('settings')==='1';
+const updateLedgerNotices=mountLedgerUpdates($('ledgerStatUpdates'),sb,()=>user,()=>$('openLedgerSettings').click());
 const updateSettingsForm=mountLedgerSettings(sb,()=>user,value=>{ledgerSettings=value;render()});
 const ledgerArt=createLedgerArtController(sb,()=>user);
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
@@ -125,7 +129,7 @@ async function load(){
  historyLinker.clear();
  const auth=await sb.auth.getUser();user=auth.data.user;await ledgerArt.load(user);friendService.clear();friendDisplayNames=new Map();
  $('openLedgerSettings').hidden=!user;
- if(user){try{ledgerSettings=await readLedgerSettings(sb,user);updateSettingsForm(ledgerSettings);$('statisticsSection').hidden=false;$('shareLedgerLink').hidden=false}catch(error){$('statisticsSection').hidden=true;message('Unable to load Ledger settings. Reload to try again.');return}}else{ledgerSettings=normalizeLedgerSettings();$('statisticsSection').hidden=false}
+ if(user){try{const state=await readLedgerState(sb,user);ledgerSettings=state.settings;updateSettingsForm(ledgerSettings);updateLedgerNotices(state.updates);if(openSettingsFromUrl){openSettingsFromUrl=false;$('openLedgerSettings').click()}$('statisticsSection').hidden=false;$('shareLedgerLink').hidden=false}catch(error){$('statisticsSection').hidden=true;message('Unable to load Ledger settings. Reload to try again.');return}}else{updateLedgerNotices([]);ledgerSettings=normalizeLedgerSettings();$('statisticsSection').hidden=false}
  if(!user){decks=demoDecks;games=demoGames;$('save').disabled=true;const filter=$('historyDeckFilter');filter.replaceChildren(el('option','All decks'));filter.firstChild.value='';for(const deck of decks){const option=el('option',deck.name);option.value=deck.id;filter.append(option)}message('');render();return}
  $('save').disabled=false;
  const d=await sb.from('decks').select('id,name,commander,created_at,archived_at').eq('owner_id',user.id).order('name');
@@ -289,6 +293,7 @@ function renderExtraStats(visibleGames){
  const host=$('statInsights'),nemesis=$('nemesisCommander');if(!host||!nemesis)return;
  host.replaceChildren();nemesis.replaceChildren();
  const stamp=++colorStatsStamp;
+ if(ledgerSettings.show_color_usage)$('colorUsageChart').textContent='Calculating usage…';
  const stats=decks.filter(deck=>!deck.archived_at).map(deck=>{const played=visibleGames.filter(g=>g.deck_id===deck.id);return {deck,games:played.length,wins:played.filter(g=>g.won).length}}).filter(x=>x.games);
  const most=stats.slice().sort((a,b)=>b.games-a.games||b.wins-a.wins)[0];
  featuredStat($('mostPlayedDeck'),most?.deck,'★ Most played deck',most?most.games+' games played':'',most?most.wins+' wins · '+(most.games-most.wins)+' losses · '+(100*most.wins/most.games).toFixed(1)+'% win rate':'');
@@ -318,13 +323,14 @@ function renderExtraStats(visibleGames){
   if(stamp!==colorStatsStamp)return;
   const combo=new Map();let missing=0;
   ids.forEach((code,i)=>{if(code===null){missing++;return}const data=combo.get(code)||{games:0,wins:0};data.games++;if(visibleGames[i].won)data.wins++;combo.set(code,data)});
+  if(ledgerSettings.show_color_usage)renderColorUsage($('colorUsageChart'),combo,visibleGames.length,missing,ledgerSettings.color_usage_combos);
   const top=selectMostPlayedColor(combo);
   const colorStrong=cards[0].querySelector('strong'),colorSmall=cards[0].querySelector('small');
   if(top){manaIdentity(colorStrong,top[0]);colorSmall.textContent=top[1].games+' games'+(missing?' · '+missing+' unavailable':'')}else{colorStrong.textContent=missing?'Color data unavailable':'No games yet';colorSmall.textContent=''}
   const best=selectStrongestColor(combo,ledgerSettings.best_deck_min_games);
   const bestStrong=cards[1].querySelector('strong'),bestSmall=cards[1].querySelector('small');
   if(best){manaIdentity(bestStrong,best[0]);bestSmall.textContent=(100*best[1].wins/best[1].games).toFixed(1)+'% win rate · '+best[1].wins+' wins in '+best[1].games+' games'}else{bestStrong.textContent=missing?'Color data unavailable':'No qualifying color combo';bestSmall.textContent='Minimum '+ledgerSettings.best_deck_min_games+' games in this timeframe'}
- }).catch(()=>{if(stamp===colorStatsStamp){cards[0].querySelector('strong').textContent='Color data unavailable';cards[1].querySelector('strong').textContent='Color data unavailable'}});
+ }).catch(()=>{if(stamp===colorStatsStamp){cards[0].querySelector('strong').textContent='Color data unavailable';cards[1].querySelector('strong').textContent='Color data unavailable';if(ledgerSettings.show_color_usage)$('colorUsageChart').textContent='Color usage is unavailable. Please try again.'}});
  Promise.all(opponents.map(p=>commanderColors(p.commander))).then(ids=>{
   if(stamp!==colorStatsStamp)return;
   const top=mostCommon(ids.filter(x=>x!==null)),strong=cards[2].querySelector('strong'),small=cards[2].querySelector('small');
