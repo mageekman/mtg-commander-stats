@@ -13,7 +13,7 @@ import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
 import {gameMatchesSearch} from './game-history-search.js?v=participants-3';
 import {isGenericOpponentName} from './opponent-names.js?v=1';
-import {renderWinrateTrendChart} from './ledger-chart.js?v=1';
+import {mountLedgerTrend} from './ledger-trend-controls.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const friendService=createGameFriendService(sb);
@@ -25,6 +25,7 @@ let ledgerSettings=normalizeLedgerSettings();
 let openSettingsFromUrl=new URLSearchParams(location.search).get('settings')==='1';
 const updateLedgerNotices=mountLedgerUpdates($('ledgerStatUpdates'),sb,()=>user,()=>$('openLedgerSettings').click());
 const updateSettingsForm=mountLedgerSettings(sb,()=>user,value=>{ledgerSettings=value;render()});
+const ledgerTrend=mountLedgerTrend(()=>games);
 const ledgerArt=createLedgerArtController(sb,()=>user);
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n};
 const message=t=>{$('message').textContent=t;$('gameFormStatus').textContent=t};
@@ -233,8 +234,8 @@ function calendarFilteredGames(){
  else if(mode==='custom'){start=localDate($('statsDateStart').value);end=localDate($('statsDateEnd').value);if(!start||!end||start>end)return []}
  return games.filter(g=>{const date=localDate(g.played_at);return !!date&&(!start||date>=start)&&date<=end});
 }
-$('statsDatePreset').addEventListener('change',()=>{$('statsCustomDates').hidden=$('statsDatePreset').value!=='custom';render()});
-for(const id of ['statsDateStart','statsDateEnd'])$(id).addEventListener('change',render);
+$('statsDatePreset').addEventListener('change',()=>{$('statsCustomDates').hidden=$('statsDatePreset').value!=='custom';ledgerTrend.sync();render()});
+for(const id of ['statsDateStart','statsDateEnd'])$(id).addEventListener('change',()=>{ledgerTrend.sync();render()});
 function filteredGames(){
  const period=$('historyPeriodFilter').value,result=$('historyResultFilter').value,deck=$('historyDeckFilter').value;
  const today=new Date();const localToday=new Date(today.getFullYear(),today.getMonth(),today.getDate());
@@ -358,7 +359,7 @@ function sortDecksForDisplay(list,stats,sort,direction){
  });
 }
 
-function renderWinrateTrend(visibleGames){renderWinrateTrendChart($('winrateTrendChart'),$('winrateTrendEmpty'),visibleGames)}
+function renderWinrateTrend(){ledgerTrend.render()}
 
 function render(){
  const shareLink=$('shareLedgerLink');if(shareLink){const shareParams=new URLSearchParams({period:$('statsDatePreset').value});if($('statsDatePreset').value==='custom'){shareParams.set('start',$('statsDateStart').value);shareParams.set('end',$('statsDateEnd').value)}shareLink.href='./share-my-ledger.html?'+shareParams;}
