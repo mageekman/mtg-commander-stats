@@ -2,141 +2,14 @@
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Command Ledger</title><link rel="stylesheet" href="./command-ledger-theme.css"><link rel="icon" type="image/png" href="./cl-favicon-black.png?v=black-1"><link rel="apple-touch-icon" href="./cl-favicon-black.png?v=black-1">
 <style>body{font:16px system-ui;background:#101827;color:#f1f5f9;max-width:850px;margin:auto;padding:24px}section{background:#1e293b;padding:20px;border-radius:12px;margin:16px 0}input,textarea,select,button{padding:9px;margin:5px;background:#0f172a;color:white;border:1px solid #64748b;border-radius:6px}button{background:#047857;cursor:pointer}textarea{display:block;width:90%;height:100px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #475569;text-align:left}#deckGallery .deck-entry-art img{object-position:center 24%}#recentGames .recent-game-player-art{background-position:center 24%}</style>
 <a id="siteHomeLogo" href="./index.html" aria-label="Command Ledger home"><img src="./cl-wordmark-final-transparent.png?v=final-1" alt="Command Ledger" width="1608" height="600" loading="eager" decoding="async"></a><nav id="siteNavigation" class="site-top-nav" aria-label="Main navigation"><a href="./index.html">My Decks</a><a href="./ledger.html">My Ledger</a><a href="./friends.html" hidden>Friends</a><a href="./sign-in.html" data-profile-link="true">Sign in/Create Account</a></nav><h1 class="homepage-logo-heading"><a href="./index.html" aria-label="Command Ledger home"><img class="homepage-brand-logo" src="./cl-wordmark-final-transparent.png?v=final-1" alt="Command Ledger" loading="eager"></a></h1><p>Track your Commander decks, games, and stats in one place.</p>
-<section id="account"><h2 id="accountHeading">Your account</h2><div id="profileInfo" hidden><p><strong>Display name</strong><br><span id="profileName"></span></p><p><strong>Email</strong><br><span id="profileEmail"></span></p></div><div id="playerIdentity" hidden><div class="identity-card"><div id="identityAvatar" class="identity-avatar" aria-hidden="true">CL</div><div><div class="identity-eyebrow">PLAYER PASSPORT</div><strong id="identityDisplay">Your name</strong><div id="identityHandle" class="identity-handle">Choose a handle</div><p id="identityBio" class="identity-bio"></p><small id="identityCommander"></small></div></div><details id="editIdentity"><summary>Edit player identity</summary><form id="identityForm"><label>Display name<input name="display_name" maxlength="50" required placeholder="How friends know you"></label><label>Unique handle<input name="handle" minlength="3" maxlength="20" pattern="[a-z0-9_]{3,20}" placeholder="e.g. mana_mage" required><small>3–20 lowercase letters, numbers, or underscores. Friends can find and tag you using this handle.</small></label><label>About me<textarea name="bio" maxlength="240" rows="3" placeholder="A little about your Commander style"></textarea></label><label>Favorite commander<input name="favorite_commander" maxlength="100" placeholder="e.g. Muldrotha, the Gravetide"></label><label>Avatar accent<select name="avatar_color"><option value="jade">Jade</option><option value="gold">Gold</option><option value="violet">Violet</option><option value="blue">Blue</option><option value="rose">Rose</option></select></label><button type="submit">Save profile</button><p id="identityMessage" role="status" aria-live="polite"></p></form></details></div><p id="authStatus">Checking session…</p><form id="signupForm"><h3>Join the archive</h3><p>Choose your username and favorite commander when you create your account.</p><a href="./sign-in.html?mode=signup">Create account</a></form><form id="loginForm"><input name="email" type="email" placeholder="Email" required><input name="password" type="password" placeholder="Password" required><button>Sign in</button></form><div id="accountSecurity" hidden><h3>Account security</h3><form id="changePasswordForm"><label for="newAccountPassword">New password</label><input id="newAccountPassword" name="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required><label for="confirmAccountPassword">Confirm new password</label><input id="confirmAccountPassword" name="confirm" type="password" autocomplete="new-password" minlength="8" placeholder="Repeat new password" required><button type="submit">Update password</button></form><p id="passwordMessage" role="status" aria-live="polite"></p></div><button id="logout" type="button" hidden>Sign out</button><div id="forgotPasswordPanel"><button id="forgotPasswordToggle" type="button">Forgot password?</button><form id="forgotPasswordForm" hidden><label for="recoveryEmail">Account email</label><input id="recoveryEmail" type="email" autocomplete="email" placeholder="you@example.com" required><button type="submit">Email reset link</button></form><p id="recoveryMessage" role="status" aria-live="polite"></p></div><div id="inviteFriends" hidden><h3>Invite friends</h3><p>Send someone a link to create their own Command Ledger account.</p><div class="account-invite-actions"><button id="shareInvite" type="button">Share invitation</button><button id="copyInvite" type="button">Copy invite link</button></div><p id="inviteMessage" role="status" aria-live="polite"></p></div><p id="authMessage" role="status"></p><p>Your decks and games are saved to your account.</p></section>
-<section id="cloudSection" hidden><h2>My Decks</h2><form id="cloudDeckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><select name="bracket_level" aria-label="Commander bracket"><option value="">Bracket (optional)</option><option value="1">Bracket 1</option><option value="2">Bracket 2</option><option value="3">Bracket 3</option><option value="4">Bracket 4</option><option value="5">Bracket 5</option></select><input name="theme" maxlength="120" placeholder="Theme (optional)"><textarea name="notes" maxlength="5000" placeholder="Deck notes (optional)"></textarea><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Save deck</button></form><p id="cloudMessage" role="status"></p><div id="cloudDeckList"></div></section>
-<section id="profiles"><p><a href="./find-players.html">Find Players by Username</a></p><h2>My deck profiles</h2><div class="home-deck-sort"><label class="deck-sort-label" for="homeDeckSort">Sort by <select id="homeDeckSort"><option value="added">Date added</option><option value="winrate" selected>Win rate</option><option value="last">Last played</option></select></label><label class="deck-sort-label" for="homeDeckDirection">Order <select id="homeDeckDirection"><option value="desc">Descending</option><option value="asc">Ascending</option></select></label></div><div class="home-deck-controls"><label class="deck-sort-label" for="homeDeckSearch">Search active decks <input id="homeDeckSearch" type="search" placeholder="Search deck or commander…" autocomplete="off"></label><div class="home-deck-view-toggle"><button id="homeDeckViewToggle" type="button" aria-label="Switch to compact deck view" aria-pressed="false" title="Switch to compact view"><span id="homeDeckViewIcon" aria-hidden="true">☷</span> <span id="homeDeckViewLabel">Compact view</span></button></div></div><div id="deckGallery"></div><details id="archivedDeckSection" class="archived-gallery-section" hidden><summary>Archived decks <span id="archivedDeckCount"></span></summary><p class="muted">Retired decks remain in your Ledger and statistics. Restore them here whenever you want.</p><label for="archivedDeckSearch">Search archived decks <input id="archivedDeckSearch" type="search" placeholder="Search archived decks…" autocomplete="off"></label><div id="archivedDeckGallery" class="archived-deck-gallery"></div></details><div id="deckProfile" hidden></div></section><section id="recentGamesSection"><div class="recent-games-heading"><h2>Recent games</h2><a href="./ledger.html">View all games →</a></div><div id="recentGames">Loading recent games…</div></section><section id="scryfall"><h2>Scryfall card search</h2><p>Search cards and choose a commander. Card information is supplied by Scryfall.</p><form id="scrySearch"><input id="cardQuery" placeholder="e.g. Atraxa, Praetors' Voice" required minlength="2"><button>Find card</button></form><p id="scryMessage" role="status"></p><div id="scryResult"></div></section><section><h2>Archived decks</h2><p>Earlier deck records are kept here for reference.</p><form id="deckForm"><input name="name" placeholder="Deck name" required><input name="commander" placeholder="Commander" required><input name="owner" placeholder="Owner" required><textarea name="list" placeholder="1 Sol Ring&#10;1 Command Tower"></textarea><button>Add deck</button></form><div id="decks"></div></section>
-<section><h2>Record game</h2><form id="gameForm"><input name="date" type="date" required><p>Choose 2 to 6 distinct decks</p><div id="players"></div><button type="button" id="addPlayer">Add player</button><p>Winner: <select id="winner" required></select></p><button>Save game</button></form><p id="message"></p></section>
-<section><h2>Deck standings</h2><div id="standings"></div></section><section><h2>History</h2><div id="history"></div></section>
-<section><h2>Backup</h2><button id="export">Export JSON</button><label>Import JSON <input id="import" type="file" accept=".json"></label><p>Import replaces existing data. Back up before switching devices.</p></section>
-<script>
-const key='command-ledger-v1', $=id=>document.getElementById(id);
-let data;try{data=JSON.parse(localStorage.getItem(key))||{decks:[],games:[]}}catch{data={decks:[],games:[]}}
-if(!Array.isArray(data.decks)||!Array.isArray(data.games))data={decks:[],games:[]};
-const save=()=>localStorage.setItem(key,JSON.stringify(data)),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),deck=id=>data.decks.find(d=>d.id===id),name=id=>deck(id)?.name||'Unknown';
-let count=4;
-function playerSelects(){return [...document.querySelectorAll('.player')]}
-function winnerOptions(){let old=$('winner').value,ids=[...new Set(playerSelects().map(s=>s.value).filter(Boolean))];$('winner').innerHTML='<option value="">Select winner</option>'+ids.map(id=>'<option value="'+esc(id)+'" '+(id===old?'selected':'')+'>'+esc(name(id))+'</option>').join('')}
-function players(){let prev=playerSelects().map(s=>s.value);$('players').innerHTML=Array.from({length:count},(_,i)=>'<label>Player '+(i+1)+' <select class="player" required><option value="">Select deck</option>'+data.decks.map(d=>'<option value="'+esc(d.id)+'" '+(prev[i]===d.id?'selected':'')+'>'+esc(d.owner)+' — '+esc(d.name)+'</option>').join('')+'</select></label>').join('');playerSelects().forEach(s=>s.onchange=winnerOptions);winnerOptions()}
-function render(){
-$('decks').innerHTML=data.decks.map(d=>'<p>'+esc(d.owner)+' — '+esc(d.name)+' ('+esc(d.commander)+'), '+d.list.length+' decklist lines</p>').join('')||'No decks yet.';
-$('standings').innerHTML='<table><tr><th>Deck</th><th>Games</th><th>Wins</th><th>Win rate</th></tr>'+data.decks.map(d=>{let g=data.games.filter(g=>g.players.includes(d.id)),w=g.filter(g=>g.winner===d.id).length;return '<tr><td>'+esc(d.name)+'</td><td>'+g.length+'</td><td>'+w+'</td><td>'+(g.length?(100*w/g.length).toFixed(1):'0')+'%</td></tr>'}).join('')+'</table>';
-$('history').innerHTML=data.games.slice().reverse().map(g=>'<p>'+esc(g.date)+': '+g.players.map(id=>esc(name(id))).join(', ')+' — Winner: '+esc(name(g.winner))+'</p>').join('')||'No games yet.';players()}
-$('deckForm').onsubmit=e=>{e.preventDefault();let f=new FormData(e.target);data.decks.push({id:crypto.randomUUID(),name:String(f.get('name')).trim(),commander:String(f.get('commander')).trim(),owner:String(f.get('owner')).trim(),list:String(f.get('list')).split(/\r?\n/).map(x=>x.trim()).filter(Boolean)});save();e.target.reset();render()};
-$('addPlayer').onclick=()=>{if(count<6){count++;players()}};
-$('gameForm').onsubmit=e=>{e.preventDefault();let ids=playerSelects().map(s=>s.value),winner=$('winner').value;if(ids.some(x=>!x)||new Set(ids).size!==ids.length||!ids.includes(winner)){ $('message').textContent='Choose distinct decks and a valid winner.';return}data.games.push({id:crypto.randomUUID(),date:e.target.elements.date.value,players:ids,winner});save();$('message').textContent='Game saved.';render()};
-$('export').onclick=()=>{let url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='command-ledger.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
-$('import').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!Array.isArray(d.decks)||!Array.isArray(d.games)||!d.decks.every(x=>typeof x.id==='string'&&typeof x.name==='string'&&Array.isArray(x.list))||!d.games.every(x=>Array.isArray(x.players)&&typeof x.winner==='string'))throw Error('Invalid backup');if(confirm('Replace all existing data?')){data=d;save();render()}}catch(err){alert(err.message)}e.target.value=''};
-$('gameForm').elements.date.value=new Date().toLocaleDateString('en-CA');render();
-</script><script>
+<section id="profiles"><p><a href="./find-players.html">Find Players by Username</a></p><h2>My deck profiles</h2><div class="home-deck-sort"><label class="deck-sort-label" for="homeDeckSort">Sort by <select id="homeDeckSort"><option value="added">Date added</option><option value="winrate" selected>Win rate</option><option value="last">Last played</option></select></label><label class="deck-sort-label" for="homeDeckDirection">Order <select id="homeDeckDirection"><option value="desc">Descending</option><option value="asc">Ascending</option></select></label></div><div class="home-deck-controls"><label class="deck-sort-label" for="homeDeckSearch">Search active decks <input id="homeDeckSearch" type="search" placeholder="Search deck or commander…" autocomplete="off"></label><div class="home-deck-view-toggle"><button id="homeDeckViewToggle" type="button" aria-label="Switch to compact deck view" aria-pressed="false" title="Switch to compact view"><span id="homeDeckViewIcon" aria-hidden="true">☷</span> <span id="homeDeckViewLabel">Compact view</span></button></div></div><div id="deckGallery"></div><details id="archivedDeckSection" class="archived-gallery-section" hidden><summary>Archived decks <span id="archivedDeckCount"></span></summary><p class="muted">Retired decks remain in your Ledger and statistics. Restore them here whenever you want.</p><label for="archivedDeckSearch">Search archived decks <input id="archivedDeckSearch" type="search" placeholder="Search archived decks…" autocomplete="off"></label><div id="archivedDeckGallery" class="archived-deck-gallery"></div></details><div id="deckProfile" hidden></div></section><section id="recentGamesSection"><div class="recent-games-heading"><h2>Recent games</h2><a href="./ledger.html">View all games →</a></div><div id="recentGames">Loading recent games…</div></section><script>
 /* Recover reset links that Supabase or an email client lands on the homepage. */
 (function(){
  const q=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.slice(1));
  const recovery=q.get('type')==='recovery'||hash.get('type')==='recovery'||q.has('token_hash')&&q.get('type')==='recovery';
  if(recovery){const target=new URL('./reset-password.html',location.href);target.search=location.search;target.hash=location.hash;location.replace(target.href)}
 })();
-</script><script src="./loading-progress.js?v=1"></script><script src="./scryfall-client.js?v=20261110-batch-4"></script><script type="module">
-import {setupInviteButtons} from './personal-invites.js?v=1';
-import {createClient} from './vendor/supabase-js.mjs';
-const supabase=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
-const $=id=>document.getElementById(id);
-const escapeHtml=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let currentUser=null;
-const identityColors={jade:'#78b9a0',gold:'#c9aa75',violet:'#b7a0e8',blue:'#86b9e6',rose:'#e8a3b5'};
-async function loadIdentity(){
- $('playerIdentity').hidden=false;
- const {data,error}=await supabase.from('profiles').select('display_name,handle,bio,favorite_commander,avatar_color').eq('id',currentUser.id).maybeSingle();
- if(error){$('identityMessage').textContent='Could not load profile: '+error.message;return}
- const p=data||{},name=p.display_name||currentUser.user_metadata?.display_name||'Commander player';
- $('identityDisplay').textContent=name;$('profileName').textContent=name;
- $('identityHandle').textContent=p.handle?'@'+p.handle:'Set your unique handle';
- $('identityBio').textContent=p.bio||'Add a little about your play style.';
- $('identityCommander').textContent=p.favorite_commander?'Favorite commander: '+p.favorite_commander:'';
- const avatar=$('identityAvatar');avatar.textContent=name.trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();avatar.style.setProperty('--identity-accent',identityColors[p.avatar_color]||identityColors.jade);
- const f=$('identityForm');for(const key of ['display_name','handle','bio','favorite_commander'])f.elements[key].value=p[key]|| (key==='display_name'?name:'');f.elements.avatar_color.value=p.avatar_color||'jade';
-}
-$('identityForm').onsubmit=async e=>{
- e.preventDefault();if(!currentUser)return;
- const f=e.target,button=f.querySelector('button[type="submit"]'),message=$('identityMessage'),fd=new FormData(f);
- const payload={display_name:String(fd.get('display_name')||'').trim(),handle:String(fd.get('handle')||'').trim().toLowerCase(),bio:String(fd.get('bio')||'').trim(),favorite_commander:String(fd.get('favorite_commander')||'').trim(),avatar_color:String(fd.get('avatar_color')||'jade')};
- if(!payload.display_name||!/^[a-z0-9_]{3,20}$/.test(payload.handle)){message.textContent='Enter a display name and valid lowercase handle.';return}
- button.disabled=true;message.textContent='Saving…';
- try{const {data,error}=await supabase.from('profiles').update(payload).eq('id',currentUser.id).select('id').single();if(error)throw error;if(!data)throw Error('Profile was not updated.');message.textContent='Profile saved.';await loadIdentity();$('editIdentity').open=false}
- catch(err){message.textContent=err.code==='23505'?'That handle is taken. Try another.':err.message}
- finally{button.disabled=false}
-};
-async function refresh(){
-const {data:{user},error}=await supabase.auth.getUser();
-currentUser=error?null:user;
-$('accountHeading').textContent=currentUser?'My profile':'Sign in or create an account';
-$('profileInfo').hidden=!currentUser;
-$('profileName').textContent=currentUser?(currentUser.user_metadata?.display_name||'Not set'):'';
-$('profileEmail').textContent=currentUser?(currentUser.email||''):'';
-$('signupForm').hidden=!!currentUser;$('loginForm').hidden=!!currentUser;$('logout').hidden=!currentUser;$('accountSecurity').hidden=!currentUser;$('inviteFriends').hidden=!currentUser;$('forgotPasswordPanel').hidden=!!currentUser;$('cloudSection').hidden=!currentUser;
-$('authStatus').textContent=currentUser?'Signed in as '+currentUser.email:'Not signed in';
-if(currentUser){await loadIdentity();await loadDecks()}else{$('playerIdentity').hidden=true;$('cloudDeckList').textContent='';}
-}
-async function loadDecks(){
-const {data,error}=await supabase.from('decks').select('id,name,commander,decklist,created_at,archived_at').order('created_at',{ascending:false});
-if(error){$('cloudMessage').textContent=error.message;return}
-const active=(data||[]).filter(d=>!d.archived_at),archived=(data||[]).filter(d=>!!d.archived_at);
-const renderDeck=(d,isArchived)=>'<p class="cloud-deck-entry"><strong>'+escapeHtml(d.name)+'</strong> — '+escapeHtml(d.commander)+' ('+String(d.decklist||'').split(/\r?\n/).filter(Boolean).length+' lines) <button type="button" class="deck-archive-action" data-deck-id="'+escapeHtml(d.id)+'" data-archive-action="'+(isArchived?'restore':'archive')+'">'+(isArchived?'Restore deck':'Archive deck')+'</button></p>';
-$('cloudDeckList').innerHTML=(active.length?active.map(d=>renderDeck(d,false)).join(''):'<p>No active decks yet.</p>')+(archived.length?'<details class="archived-decks-panel"><summary>Archived decks ('+archived.length+')</summary>'+archived.map(d=>renderDeck(d,true)).join('')+'</details>':'');
-}
-$('cloudDeckList').addEventListener('click',async event=>{
-const button=event.target.closest('button[data-archive-action]');if(!button||!currentUser)return;
-const archive=button.dataset.archiveAction==='archive';
-if(archive&&!confirm('Archive this deck? It will disappear from your active deck list, but its games and statistics will remain.'))return;
-button.disabled=true;
-const {error}=await supabase.from('decks').update({archived_at:archive?new Date().toISOString():null}).eq('id',button.dataset.deckId).eq('owner_id',currentUser.id);
-if(error){$('cloudMessage').textContent='Could not '+(archive?'archive':'restore')+' deck: '+error.message;button.disabled=false;return}
-$('cloudMessage').textContent=archive?'Deck archived. Its games and stats are preserved.':'Deck restored to your active list.';
-await loadDecks();
-});
-
-$('signupForm').onsubmit=e=>{e.preventDefault();location.href='./sign-in.html?mode=signup'};
-$('loginForm').onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target);const {error}=await supabase.auth.signInWithPassword({email:String(f.get('email')).trim(),password:String(f.get('password'))});$('authMessage').textContent=error?error.message:'Signed in.';await refresh()};
-$('forgotPasswordToggle').onclick=()=>{const form=$('forgotPasswordForm');form.hidden=!form.hidden;if(!form.hidden){$('recoveryEmail').value=$('loginForm').elements.email.value||'';$('recoveryEmail').focus()}};
-$('forgotPasswordForm').onsubmit=async e=>{e.preventDefault();const button=e.target.querySelector('button[type="submit"]');button.disabled=true;$('recoveryMessage').textContent='Sending reset link…';try{const email=$('recoveryEmail').value.trim();const redirectTo=new URL('./reset-password.html',location.href).href;const {error}=await supabase.auth.resetPasswordForEmail(email,{redirectTo});$('recoveryMessage').textContent=error?error.message:'If an account exists for that email, you will receive a password reset link.'}catch(err){$('recoveryMessage').textContent=err.message}finally{button.disabled=false}};
-$('changePasswordForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);const password=String(f.get('password'));if(password!==String(f.get('confirm'))){$('passwordMessage').textContent='Passwords do not match.';return}const button=e.target.querySelector('button[type="submit"]');button.disabled=true;$('passwordMessage').textContent='Updating password…';try{const {error}=await supabase.auth.updateUser({password});$('passwordMessage').textContent=error?error.message:'Password updated successfully.';if(!error)e.target.reset()}catch(err){$('passwordMessage').textContent=err.message}finally{button.disabled=false}};
-setupInviteButtons(supabase,{copy:$('copyInvite'),share:$('shareInvite'),status:$('inviteMessage')});
-if(new URLSearchParams(location.search).has('invite')){setTimeout(()=>{const b=$('accountButton');if(b&&$('account').hidden)b.click()},150)};
-$('logout').onclick=async()=>{const {error}=await supabase.auth.signOut();$('authMessage').textContent=error?error.message:'Signed out.';await refresh()};
-$('cloudDeckForm').onsubmit=async e=>{e.preventDefault();if(!currentUser)return;let f=new FormData(e.target);const basic={owner_id:currentUser.id,name:String(f.get('name')).trim(),commander:String(f.get('commander')).trim(),decklist:String(f.get('list'))};let {error}=await supabase.from('decks').insert({...basic,bracket_level:f.get('bracket_level')?Number(f.get('bracket_level')):null,theme:String(f.get('theme')||'').trim()||null,notes:String(f.get('notes')||'').trim()||null});let optionalSkipped=false;if(error&&/bracket_level|theme|notes|schema cache|column/i.test(error.message)){const fallback=await supabase.from('decks').insert(basic);if(!fallback.error){error=null;optionalSkipped=true}else error=fallback.error;}$('cloudMessage').textContent=error?error.message:optionalSkipped?'Deck saved. Optional details require the database upgrade.':'Deck saved to cloud.';if(!error){e.target.reset();await loadDecks()}};
-supabase.auth.onAuthStateChange(()=>{setTimeout(refresh,0)});
-refresh();
-</script><script type="module">
-const $=id=>document.getElementById(id);
-const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const cache=new Map();
-let last=0;
-async function cardLookup(q){
-const key=q.toLowerCase().trim();
-if(cache.has(key))return cache.get(key);
-const wait=Math.max(0,150-(Date.now()-last));if(wait)await new Promise(r=>setTimeout(r,wait));last=Date.now();
-const url='https://api.scryfall.com/cards/named?fuzzy='+encodeURIComponent(q);
-const response=await window.commandLedgerScryfallFetch(url,{headers:{Accept:'application/json'}});
-const card=await response.json();
-if(!response.ok)throw Error(card.details||'Scryfall request failed ('+response.status+')');
-cache.set(key,card);return card;
-}
-$('scrySearch').onsubmit=async e=>{
-e.preventDefault();const q=$('cardQuery').value.trim();if(!q)return;
-$('scryMessage').textContent='Searching Scryfall…';$('scryResult').replaceChildren();
-try{
-const card=await cardLookup(q);
-const image=card.image_uris?.normal||card.card_faces?.[0]?.image_uris?.normal;
-const isCommander=String(card.type_line||'').includes('Legendary Creature')||String(card.oracle_text||'').includes('can be your commander');
-const wrap=document.createElement('div');
-const title=document.createElement('h3');title.textContent=card.name;wrap.append(title);
-if(image){const img=document.createElement('img');img.src=image;img.alt=card.name;img.loading='lazy';img.style.cssText='width:240px;max-width:100%;border-radius:12px';wrap.append(img)}
-const info=document.createElement('p');info.textContent=[card.mana_cost||card.card_faces?.map(x=>x.mana_cost).filter(Boolean).join(' // '),card.type_line].filter(Boolean).join(' · ');wrap.append(info);
-const oracle=document.createElement('p');oracle.textContent=card.oracle_text||card.card_faces?.map(x=>x.oracle_text).filter(Boolean).join(' // ')||'';wrap.append(oracle);
-const link=document.createElement('a');link.href=card.scryfall_uri;link.target='_blank';link.rel='noopener noreferrer';link.textContent='View on Scryfall';link.style.color='#a7f3d0';wrap.append(link);
-if(isCommander){const button=document.createElement('button');button.type='button';button.textContent='Use as commander';button.onclick=()=>{document.querySelector('#deckForm [name="commander"]').value=card.name;document.querySelector('#cloudDeckForm [name="commander"]').value=card.name;$('scryMessage').textContent='Commander selected: '+card.name};wrap.append(document.createTextNode(' '),button)}
-$('scryResult').append(wrap);$('scryMessage').textContent='Card found.';
-}catch(err){$('scryMessage').textContent='Lookup failed: '+err.message}
-};
-</script><style>.ledger-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:14px}.ledger-card{cursor:pointer}.ledger-card img{width:100%;border-radius:10px}.ledger-card div{font-size:13px;margin:4px 0 12px}.deck-hero{display:flex;gap:20px;align-items:center;background:#0f172a;border-radius:12px;padding:15px;margin:15px 0;flex-wrap:wrap}.deck-hero img{width:230px;max-width:100%;height:170px;object-fit:cover;border-radius:10px}.deck-entry{display:block;width:100%;text-align:left;padding:14px;margin:8px 0}</style><script type="module" src="./deck-profiles.js?v=history-links-18"></script><style>
+</script><script src="./loading-progress.js?v=1"></script><script src="./scryfall-client.js?v=20261110-batch-4"></script><style>.ledger-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:14px}.ledger-card{cursor:pointer}.ledger-card img{width:100%;border-radius:10px}.ledger-card div{font-size:13px;margin:4px 0 12px}.deck-hero{display:flex;gap:20px;align-items:center;background:#0f172a;border-radius:12px;padding:15px;margin:15px 0;flex-wrap:wrap}.deck-hero img{width:230px;max-width:100%;height:170px;object-fit:cover;border-radius:10px}.deck-entry{display:block;width:100%;text-align:left;padding:14px;margin:8px 0}</style><script type="module" src="./deck-profiles.js?v=history-links-18"></script><style>
 body{max-width:1100px;margin:auto;padding:24px;background:#101827;color:#f1f5f9}
 #mainHeader{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 24px}
 #mainHeader h1{margin:0;font-size:30px}
@@ -146,10 +19,6 @@ body{max-width:1100px;margin:auto;padding:24px;background:#101827;color:#f1f5f9}
 #mainHeader>div:first-child>p{margin:8px 0 0!important}
 @media(max-width:650px){#mainHeader .homepage-brand-logo{width:min(100%,460px)!important;max-height:none!important}#mainHeader>div:first-child{flex-basis:100%}}
 #mainHeader p{margin:5px 0;color:#94a3b8}
-#account{padding:12px 16px}
-#account h2{font-size:16px;margin:0 0 6px}
-#account p{margin:7px 0}
-#account form{display:flex;flex-wrap:wrap;align-items:center}
 #profiles{background:transparent;padding:0;margin:22px 0}
 #profiles h2{font-size:24px}
 #profiles>p{color:#94a3b8}
@@ -159,15 +28,6 @@ body{max-width:1100px;margin:auto;padding:24px;background:#101827;color:#f1f5f9}
 #refreshProfiles{background:transparent;border:1px solid #475569;color:#cbd5e1;font-size:13px}
 #newDeckButton{background:#047857;padding:11px 16px}
 #quickActions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-#toolsDetails,#importDetails{margin:16px 0;border:1px solid #334155;border-radius:12px;background:#1e293b;padding:12px 18px}
-#toolsDetails summary,#importDetails summary{cursor:pointer;font-weight:600;padding:8px}
-#toolsDetails section,#importDetails section{margin:10px 0;background:#172235}
-#toolsDetails section h2{font-size:18px}
-#toolsDetails textarea,#importDetails textarea{box-sizing:border-box;max-width:100%}
-#cloudSection{display:none!important}
-#toolsDetails[open] #cloudSection{display:block!important}
-#toolsDetails[open] #cloudSection[hidden]{display:none!important}
-#account .account-note{color:#94a3b8;font-size:12px}
 @media(max-width:600px){body{padding:14px}#mainHeader h1{font-size:25px}#deckGallery{grid-template-columns:1fr}}
 </style>
 <script>
@@ -182,28 +42,12 @@ header.append(title);actions.after(header);
 const quickGame=document.createElement('a');quickGame.id='quickRecordGame';quickGame.href='./ledger.html#gameForm';quickGame.innerHTML='<span class="quick-game-icon" aria-hidden="true">＋</span><span><strong>Record a game</strong><small>Log a Commander match in your Ledger</small></span><span class="quick-game-arrow" aria-hidden="true">→</span>';
 header.after(quickGame);
 
-const profiles=$('profiles'),account=$('account');
-account.hidden=true;
+const profiles=$('profiles');
 profiles.querySelector('h2').textContent='My Decks';
 profiles.querySelector('p').remove();
 const collectionHeading=profiles.querySelector('h2');const collectionActions=document.createElement('div');collectionActions.className='home-deck-heading';collectionHeading.before(collectionActions);collectionActions.append(collectionHeading,add);
 add.onclick=()=>{window.location.href='./import.html'};
-// Keep legacy DOM nodes mounted for existing event handlers and cloud workflows,
-// but do not show the retired tools panel on the homepage.
-const legacyContainer=document.createElement('div');
-legacyContainer.id='legacyToolsContainer';
-legacyContainer.hidden=true;legacyContainer.append(account);
-const backup=$('export')?.closest('section');
-const legacy=$('deckForm')?.closest('section');
-const game=$('gameForm')?.closest('section');
-const standings=$('standings')?.closest('section');
-const history=$('history')?.closest('section');
-const search=$('scryfall'),cloud=$('cloudSection');
-for(const section of [search,cloud,game,standings,history,backup])if(section)legacyContainer.append(section);
-if(legacy){legacy.hidden=true;legacy.setAttribute('aria-hidden','true')}
-profiles.after(legacyContainer);
-const note=account.querySelector('p:last-child');if(note)note.classList.add('account-note');
-const authStatus=$('authStatus');if(authStatus)authStatus.setAttribute('aria-live','polite');
+
 })();
 </script><style>
 #deckGallery .deck-entry{position:relative;overflow:hidden;min-height:165px!important;display:flex!important;align-items:flex-end!important;padding:0!important;background:#1e293b!important}
@@ -223,7 +67,6 @@ const authStatus=$('authStatus');if(authStatus)authStatus.setAttribute('aria-liv
 @media(max-width:600px){#quickActions{width:100%}#quickActions #importDetails{left:0;right:auto;width:calc(100vw - 56px)}}
 </style><style>
 #deckForm,#deckForm + #decks{display:none!important}
-#cloudSection{display:none!important}
 </style><style>
 #quickActions{position:relative}
 #accountButton{background:#1e293b;border-color:#475569}
@@ -234,7 +77,6 @@ const authStatus=$('authStatus');if(authStatus)authStatus.setAttribute('aria-liv
 #quickActions #account button{margin:6px 0}
 @media(max-width:600px){#quickActions #account{left:0;right:auto;width:min(420px,calc(100vw - 28px))}}
 </style><style>
-#account [hidden],#quickActions #account [hidden],#quickActions #account form[hidden]{display:none!important}
 #profileInfo p{line-height:1.5;margin:12px 0}
 #profileInfo strong{font-size:12px;color:#94a3b8}
 #authStatus{font-size:13px;color:#94a3b8}
@@ -318,8 +160,6 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 #recentGames .recent-game{background:#101f22!important;border:1px solid #47615b!important;border-radius:12px!important;padding:14px!important}
 #recentGames .recent-game-winner{border-color:var(--cl-gold)!important}
 #quickActions #account{background:#17282a!important;border-color:#668176!important;border-radius:14px!important;box-shadow:0 20px 50px #0009!important}
-#account input{background:#0b1c20;border-color:#527168}
-#account button{background:#24624f}
 @media(max-width:760px){#mainHeader{padding:24px!important;min-height:0;display:flex;align-items:flex-start!important}#quickActions{justify-content:flex-start;width:100%;max-width:none}#quickActions>#newDeckButton,#quickActions>#ledgerLink,#quickActions>#accountButton{flex:1 1 auto}#quickActions #account{left:0!important;right:auto!important}#deckGallery{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))!important}}
 @media(max-width:480px){#mainHeader{padding:20px!important}#mainHeader h1{font-size:38px!important}#quickRecordGame{padding:17px!important}#recentGamesSection{padding:17px!important}#deckGallery{grid-template-columns:1fr!important}}
 </style><style>
@@ -344,14 +184,7 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 @media(max-width:600px){#deckProfile{padding:16px}#deckProfile .deck-hero{padding:14px!important}}
 </style><style>
 /* Modern Archivist | account security and invitations */
-#accountSecurity,#inviteFriends,#forgotPasswordPanel{margin-top:18px;padding-top:15px;border-top:1px solid #49685d}
-#accountSecurity h3,#inviteFriends h3{font-family:Georgia,"Iowan Old Style",serif;font-size:20px;margin:0 0 9px;color:var(--cl-ink)}
-#accountSecurity label,#forgotPasswordPanel label{display:block;font-size:12px;font-weight:700;color:#d6e4d6;margin:8px 0 4px}
-#accountSecurity input,#forgotPasswordPanel input{width:100%;background:#0e2022!important;border:1px solid #5d786d!important;border-radius:9px!important;padding:11px!important}
-#accountSecurity button,#forgotPasswordPanel button,#inviteFriends button{border:1px solid #7a9c83;border-radius:9px;background:#235b4d;color:#f3f1e8;padding:10px 13px;cursor:pointer}
 #forgotPasswordToggle{background:transparent!important;border:0!important;color:var(--cl-gold)!important;text-decoration:underline;text-underline-offset:3px;padding:5px 0!important}
-#accountSecurity [hidden],#forgotPasswordPanel [hidden],#inviteFriends[hidden]{display:none!important}
-#accountSecurity p,#forgotPasswordPanel p,#inviteFriends p{color:#b6c9bd;font-size:12px}
 .account-invite-actions{display:flex;flex-wrap:wrap;gap:8px}
 .account-invite-actions button{flex:1 1 125px}
 </style><style>
@@ -366,7 +199,6 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 .identity-avatar{--identity-accent:#78b9a0;display:grid;place-items:center;flex:none;width:64px;height:64px;border-radius:50%;border:2px solid var(--identity-accent);color:var(--identity-accent);background:#091b1c;font:600 23px Georgia,serif;box-shadow:0 0 0 4px #ffffff0a}
 .identity-eyebrow{font-size:10px;letter-spacing:.18em;color:#c9aa75;font-weight:700}
 #identityDisplay{display:block;font:600 22px Georgia,serif}.identity-handle{color:#78b9a0;font-size:13px}.identity-bio{margin:8px 0;color:#c4d1cb;font-size:13px;overflow-wrap:anywhere}#identityCommander{color:#c9aa75}
-#editIdentity{margin-top:12px;border:1px solid #38514d;border-radius:12px;padding:12px}#editIdentity summary{cursor:pointer;color:#f1ebdb;font-weight:600}#identityForm{display:grid;gap:12px;margin-top:14px}#identityForm label{display:grid;gap:5px;font-size:13px;color:#d6e2dc}#identityForm input,#identityForm textarea,#identityForm select{box-sizing:border-box;width:100%;padding:10px;border-radius:8px;border:1px solid #49645e;background:#0c1c1f;color:#f1ebdb}#identityForm small{color:#a9b9b2}#identityMessage{min-height:1.3em}
 </style><style>
 #myProfileButton{background:#205d4d;color:#f1ebdb;border:1px solid #c9aa7577;border-radius:9px;padding:10px 15px;font-weight:650}
 #myProfileButton:hover{background:#307763;border-color:#c9aa75}
@@ -489,4 +321,4 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 #mainHeader>div:first-child{width:100%;max-width:none!important;flex:1 1 100%}
 #mainHeader .homepage-brand-logo{width:100%!important;max-width:100%!important;max-height:none!important;height:auto!important;object-position:center!important}
 #mainHeader p{max-width:none!important;font-size:clamp(18px,2.2vw,25px)!important;line-height:1.6;margin:14px 0 0!important}
-</style><style>.home-deck-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px}.home-deck-heading h2{margin:0!important}.home-deck-heading #newDeckButton{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;height:42px;margin:0;padding:0 15px;border:1px solid #557369;border-radius:9px;background:#152d2b;color:#f1ebdb;font-size:13px;font-weight:650;line-height:1;cursor:pointer}.home-deck-heading #newDeckButton:hover{background:#307763;border-color:#9bd5bb;color:#fff}</style><link rel="stylesheet" href="./site-navigation.css?v=4"><link rel="stylesheet" href="./game-history-links.css?v=1"><link rel="stylesheet" href="./site-branding.css?v=3"><script src="./commander-art-position.js?v=manual-3" defer></script><link rel="stylesheet" href="./guest-preview.css?v=first-screen-2"><link rel="stylesheet" href="./friend-notifications.css?v=1"><script type="module" src="./site-session.js?v=invites-10"></script><link rel="stylesheet" href="./site-footer.css?v=1"><script src="./site-footer.js?v=3" defer></script><link rel="stylesheet" href="./search-filter-controls.css?v=1"><script type="module" src="./search-filter-controls.js?v=1"></script></html>
+</style><style>.home-deck-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px}.home-deck-heading h2{margin:0!important}.home-deck-heading #newDeckButton{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;height:42px;margin:0;padding:0 15px;border:1px solid #557369;border-radius:9px;background:#152d2b;color:#f1ebdb;font-size:13px;font-weight:650;line-height:1;cursor:pointer}.home-deck-heading #newDeckButton:hover{background:#307763;border-color:#9bd5bb;color:#fff}</style><link rel="stylesheet" href="./site-navigation.css?v=4"><link rel="stylesheet" href="./game-history-links.css?v=1"><link rel="stylesheet" href="./site-branding.css?v=3"><script src="./commander-art-position.js?v=manual-3" defer></script><link rel="stylesheet" href="./guest-preview.css?v=first-screen-2"><link rel="stylesheet" href="./friend-notifications.css?v=1"><script type="module" src="./site-session.js?v=cleanup-11"></script><link rel="stylesheet" href="./site-footer.css?v=1"><script src="./site-footer.js?v=3" defer></script><link rel="stylesheet" href="./search-filter-controls.css?v=1"><script type="module" src="./search-filter-controls.js?v=1"></script></html>

@@ -38,7 +38,7 @@ export function setupSignupProfile(client,{returnTo}){
   const fields=new FormData(form);
   try{
    const invite=signupInviteCode();
-   const {error}=await client.auth.signUp({email:String(fields.get('email')).trim(),password:String(fields.get('password')),options:{data:{...(invite?{invite_code:invite}:{}),display_name:String(fields.get('display')).trim(),username:handle,favorite_commander:favorite,onboarding_version:1,onboarding_profile_complete:true,onboarding_dismissed:false},emailRedirectTo:new URL(returnTo,location.href).href}});
+   const {error}=await client.auth.signUp({email:String(fields.get('email')).trim(),password:String(fields.get('password')),options:{data:{...(invite?{invite_code:invite}:{}),display_name:String(fields.get('display')).trim(),username:handle,favorite_commander:favorite,onboarding_version:1,onboarding_dismissed:false},emailRedirectTo:new URL(returnTo,location.href).href}});
    if(error)throw error;
    clearSignupInvite();location.replace('./account-created.html');
   }catch(error){status.textContent=/database error saving new user|duplicate key|profiles_handle_unique/i.test(error.message)?'We couldn’t create your account. That username may already be taken. Try another username, or try again shortly.':error.message}

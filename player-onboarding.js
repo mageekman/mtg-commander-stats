@@ -1,10 +1,6 @@
 // UI preferences only; these metadata fields never grant access to user data.
-export const newPlayerMetadata={onboarding_version:1,onboarding_profile_complete:false,onboarding_dismissed:false};
 export const needsOnboarding=user=>user?.user_metadata?.onboarding_version===1&&!user.user_metadata.onboarding_dismissed;
-export async function completeOnboardingProfile(client,user){
- if(!needsOnboarding(user))return;
- try{await client.auth.updateUser({data:{onboarding_profile_complete:true}})}catch{/* Profile saving succeeds independently of the welcome checklist. */}
-}
+
 const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e};
 const read=(store,key)=>{try{return store.getItem(key)}catch{return null}};
 const write=(store,key,value)=>{try{store.setItem(key,value)}catch{/* Preferences also live in the signed-in account. */}};
@@ -45,14 +41,14 @@ export function createPlayerOnboarding(client){
   write(sessionStorage,key('visit',actor),'shown');write(localStorage,key('welcomed',actor),'true');
  }
  async function update(user,force=false){
-  const sig=JSON.stringify([user?.id,user?.user_metadata?.onboarding_version,user?.user_metadata?.onboarding_profile_complete,user?.user_metadata?.onboarding_dismissed]);
+  const sig=JSON.stringify([user?.id,user?.user_metadata?.onboarding_version,user?.user_metadata?.onboarding_dismissed]);
   if(!force&&sig===signature)return;signature=sig;current=user;const token=++epoch;clean();ready=null;
   if(!needsOnboarding(user)||excluded()||read(localStorage,key('dismissed',user.id))==='true')return;
   if(read(sessionStorage,key('left',user.id))==='true'){write(sessionStorage,key('visit',user.id),'');write(sessionStorage,key('left',user.id),'')}
   try{
    const [decks,games]=await Promise.all(['decks','personal_games'].map(table=>client.from(table).select('id').eq('owner_id',user.id).limit(1)));
    if(token!==epoch||decks.error||games.error)return;
-   ready={profile:!!user.user_metadata.onboarding_profile_complete,deck:!!decks.data?.length,game:!!games.data?.length};
+   ready={deck:!!decks.data?.length,game:!!games.data?.length};
    if(ready.deck&&ready.game){ready=null;return}
    if(!document.querySelector('link[data-onboarding-style]')){const css=node('link');css.rel='stylesheet';css.href=new URL('./player-onboarding.css?v=1',import.meta.url).href;css.dataset.onboardingStyle='';document.head.append(css)}
    banner=node('aside');banner.id='playerOnboarding';banner.setAttribute('aria-labelledby','onboardingChecklistTitle');
