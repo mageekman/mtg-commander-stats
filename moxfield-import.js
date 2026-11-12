@@ -9,12 +9,12 @@ const status=$('importStatus'), preview=$('importPreview'), saveButton=$('saveIm
 let parsed=null;
 saveButton.disabled=false;
 const editId=new URLSearchParams(location.search).get('id');
-const isEditing=!!editId;
+const isEditing=!!editId;let editLoaded=!isEditing;
 if(isEditing){
  document.title='Edit deck · Command Ledger';
  const heading=document.querySelector('main h1');if(heading)heading.textContent='Edit deck';
  const intro=document.querySelector('main > p');if(intro)intro.textContent='Update your deck name, commander, or card list. Validate the list before saving changes.';
- saveButton.textContent='Save changes';
+ saveButton.textContent='Save changes';saveButton.disabled=true;
 }
 async function loadExisting(){
  if(!isEditing)return;
@@ -22,14 +22,13 @@ async function loadExisting(){
  const {user,error:authError}=await readPageUser(sb);
  if(!user){showAuthPrompt(status,{message:'Sign in to edit this deck.',error:authError});return}
  let {data,error}=await sb.from('decks').select('id,name,commander,decklist,decklist_url,bracket_level,theme,notes').eq('id',editId).eq('owner_id',user.id).single();
- if(error){const fallback=await sb.from('decks').select('id,name,commander,decklist').eq('id',editId).eq('owner_id',user.id).single();if(!fallback.error){data=fallback.data;error=null}}
 
  if(error||!data){status.textContent='Deck not found or you do not have permission to edit it.';return}
  setupDeckRemoval({sb,deckId:editId,ownerId:user.id,onComplete:()=>{window.location.href='./index.html#profiles'}});
  $('importDeckName').value=data.name;
  $('importCommander').value=data.commander;
  $('importText').value=data.decklist||'';$('importDeckUrl').value=data.decklist_url||'';$('importBracket').value=data.bracket_level==null?'':String(data.bracket_level);$('importTheme').value=data.theme||'';$('importNotes').value=data.notes||'';
- status.textContent='Deck loaded. Preview and validate before saving changes.';
+ editLoaded=true;saveButton.disabled=false;status.textContent='Deck loaded. Preview and validate before saving changes.';
 }
 loadExisting().catch(e=>status.textContent='Unable to load deck: '+e.message);
 const commanderInput=$('importCommander'),matches=$('commanderMatches'),hint=$('commanderHint');
@@ -231,6 +230,7 @@ $('parseImported').onclick=async()=>{
  catch(e){status.textContent='Import check failed: '+e.message}
 };
 saveButton.onclick=async()=>{
+ if(!editLoaded){status.textContent='Your deck has not loaded. Reload the page before saving changes.';return}
  const hasList=!!$('importText').value.trim();
  if(hasList&&(!parsed||parsed.invalid.length||parsed.missing.length)){status.textContent='Preview and resolve decklist errors before saving, or clear the decklist to skip it.';return}
  const name=$('importDeckName').value.trim(),commander=$('importCommander').value.trim();
@@ -246,11 +246,7 @@ saveButton.onclick=async()=>{
  let {error}=isEditing
  ?await sb.from('decks').update({name,commander,decklist:list,decklist_url,bracket_level,theme,notes}).eq('id',editId).eq('owner_id',user.id).select('id').single()
  :await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list,decklist_url,bracket_level,theme,notes});
- if(error&&/decklist_url|bracket_level|theme|notes|schema cache|column/i.test(error.message)){
-  const basic=isEditing?await sb.from('decks').update({name,commander,decklist:list}).eq('id',editId).eq('owner_id',user.id).select('id').single():await sb.from('decks').insert({owner_id:user.id,name,commander,decklist:list});
-  if(!basic.error){error=null;status.textContent='Deck saved, but some optional details could not be saved. Please contact the app administrator.';if(decklist_url){alert('Deck saved without its external decklist link. Please contact the app administrator.')}}else error=basic.error;
- }
- if(error)throw Error(error.message);
+ if(error)throw Error(/schema cache|column/i.test(error.message)?'Your deck details could not be saved. Nothing was discarded; please try again shortly.':error.message);
  status.textContent=isEditing?'Deck updated.':'Deck saved.';
  window.location.href=isEditing?'./deck.html?id='+encodeURIComponent(editId):'./index.html#profiles';
  }catch(e){status.textContent='Save failed: '+e.message}
