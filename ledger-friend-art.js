@@ -1,4 +1,4 @@
-import {artPanel} from './deck-visuals.js?v=reports-2';
+import {artPanel} from './deck-visuals.js?v=prepared-perf-1';
 import {applyArt} from './passport-art.js?v=1';
 
 export function createLedgerFriendArtwork(client){

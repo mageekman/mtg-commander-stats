@@ -1,7 +1,7 @@
 import {createStatGameExplorer} from './ledger-stat-games.js?v=pie-3';
 import {attachLedgerPie} from './ledger-pie-motion.js?v=1';
 import {gameMatchesSearch} from './game-history-search.js?v=1';
-import {node} from './deck-visuals.js?v=reports-2';
+import {node} from './deck-visuals.js?v=prepared-perf-1';
 const key=value=>String(value||'').trim().replace(/\s+/g,' ').toLowerCase();
 export const hasCommander=(game,name)=>(Array.isArray(game.players)&&game.players.length>1?game.players.slice(1).map(p=>p?.commander):game.opponents||[]).some(value=>key(value)===key(name));
 export function createDeckExplorer({deck,user,settings,names,period}){

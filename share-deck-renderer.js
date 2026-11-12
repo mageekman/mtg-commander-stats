@@ -2,7 +2,7 @@ import {planShareLayout,hasShareValue,shareCount} from './share-card-layout.js?v
 import {deckShareInsights} from './share-deck-insights.js?v=1';
 import {record,tableSizeStats,dailyWinrate} from './deck-performance-stats.js?v=participants-3';
 import {firstPlayerStats} from './player-game-stats.js?v=participants-2';
-import {normalizeDeckSettings} from './deck-settings.js?v=universal-2';
+import {normalizeDeckSettings} from './deck-settings.js?v=prepared-perf-1';
 import {commanderKey} from './share-ledger-stats.js?v=combo-4';
 export const deckShareTypes=[['performance','Deck Performance'],['matchups','Deck Matchups'],['patterns','Play Patterns']];
 export function deckShareTypesFor(settings,snapshot){const s=normalizeDeckSettings(settings);if(!snapshot)return deckShareTypes.filter(([id])=>id==='performance'?s.record||s.trend||s.recent:id==='matchups'?s.matchups||s.rival||s.friends:s.first||s.sizes||s.activity);const i=deckShareInsights(snapshot),first=firstPlayerStats(snapshot.games),sizes=tableSizeStats(snapshot.games);return deckShareTypes.filter(([id])=>id==='performance'?(s.record&&snapshot.games.length>0)||(s.trend&&dailyWinrate(snapshot.games).length>0)||(s.recent&&(snapshot.form?.current.games>0||snapshot.form?.previous.games>0||i.recent.length>0)):id==='matchups'?(s.rival&&i.matchups.rival)||(s.matchups&&i.matchups.rows.length>0)||(s.friends&&i.friends.games>0):(s.first&&(first.first.games>0||first.other.games>0))||(s.sizes&&sizes.rows.length>0)||(s.activity&&i.activity.games>0))}

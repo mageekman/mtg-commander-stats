@@ -1,4 +1,4 @@
-import {node} from './deck-visuals.js?v=reports-2';
+import {node} from './deck-visuals.js?v=prepared-perf-1';
 export const deckStatChoices=[['record','Win rate & record'],['trend','Win-rate trend'],['recent','Recent form'],['matchups','Commander matchups'],['rival','Rival commander'],['friends','Friend matchups'],['first','Going first'],['sizes','Table size'],['activity','Deck activity']];
 export function normalizeDeckSettings(value){const source=value&&typeof value==='object'&&!Array.isArray(value)?value:{};return Object.fromEntries([...deckStatChoices.map(([key])=>[key,typeof source[key]==='boolean'?source[key]:true]),['interactive',typeof source.interactive==='boolean'?source.interactive:true]])}
 export async function readDeckSettings(client,user){if(!user?.id)throw Error('Sign in to view deck settings.');const {data,error}=await client.from('profiles').select('deck_settings').eq('id',user.id).single();if(error)throw error;if(!data)throw Error('Your deck settings are unavailable.');return normalizeDeckSettings(data.deck_settings)}

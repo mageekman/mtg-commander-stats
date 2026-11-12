@@ -1,7 +1,7 @@
 import {renderGamesTogether} from './ledger-together.js?v=passport-2';
 import {firstPlayerStats,deckRotation,gamesTogether} from './player-game-stats.js?v=participants-2';
 import {mostFacedFriendCommander} from './deck-performance-stats.js?v=participants-3';
-import {node,pct,ring,rateBar,artPanel,pagedCards} from './deck-visuals.js?v=reports-2';
+import {node,pct,ring,rateBar,artPanel,pagedCards} from './deck-visuals.js?v=prepared-perf-1';
 import {createLedgerReport} from './ledger-report-tabs.js?v=settings-2';
 
 // Keep the controls mounted: date changes refresh report data without resetting tabs.

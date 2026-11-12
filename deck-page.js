@@ -1,7 +1,7 @@
-import {createDeckHero} from './deck-hero.js?v=1';
-import {renderSharedDeck} from './shared-deck.js?v=captions-2';
+import {createDeckHero} from './deck-hero.js?v=details-row-1';
+import {renderSharedDeck} from './shared-deck.js?v=details-row-1';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
-import {mountDeckPerformance} from './deck-performance.js?v=universal-3';
+import {mountDeckPerformance} from './deck-performance.js?v=details-row-1';
 function colorIdentityIcons(colors){
  const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
  const label=document.createElement('span');label.textContent='Color identity:';wrap.append(label);
@@ -29,11 +29,9 @@ for(let raw of String(text||'').split(/\r?\n/)){
 }
 return out;
 }
-const wait=ms=>new Promise(r=>setTimeout(r,ms));
 async function fetchCards(names){
  const unique=[...new Set(names.map(n=>n.toLowerCase()))],map=new Map();
  for(let i=0;i<unique.length;i+=75){
- if(i)await wait(600);
  const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/collection',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({identifiers:unique.slice(i,i+75).map(name=>({name}))})});
  if(!response.ok)throw Error('Scryfall request failed: '+response.status);
  const result=await response.json();
@@ -91,12 +89,15 @@ async function run(){
  };
  actions.append(archiveButton,archiveStatus);$('deckTitle').after(actions);
  const items=parse(deck.decklist||''),commanderNames=deck.commander.split(/\s+\/\s+|\s+&\s+/).map(s=>s.trim()).filter(Boolean);
- $('status').textContent='Loading card artwork…';
+ const root=$('deckContent'),count=items.reduce((total,item)=>total+item.qty,0);
+ const {hero,summary}=createDeckHero(deck,{commanders:commanderNames.map(name=>({name})),cardCount:count,placeholderArtwork:true,loadingArtwork:true});root.append(hero);
+ // Records and reports render independently of optional card-list metadata.
+ const performance=mountDeckPerformance(root,deck,user,sb,summary).catch(()=>{summary.replaceChildren(element('p','Deck record is unavailable. Reload to try again.'))});
+ $('status').textContent='Loading card details…';
  let cards=new Map();try{cards=await fetchCards([...items.map(i=>i.name),...commanderNames])}catch(e){$('status').textContent=e.message+' — showing card names instead.'}
- const root=$('deckContent');
  const knownColors=commanderNames.length&&commanderNames.every(name=>Array.isArray(cards.get(name.toLowerCase())?.color_identity));
- const {hero,summary}=createDeckHero(deck,{commanders:commanderNames.map(name=>({name,url:art(cards.get(name.toLowerCase()))})),colors:knownColors?[...new Set(commanderNames.flatMap(name=>cards.get(name.toLowerCase()).color_identity))]:null,cardCount:items.reduce((total,item)=>total+item.qty,0)});root.append(hero);
- await mountDeckPerformance(root,deck,user,sb,summary);
+ const hydrated=createDeckHero(deck,{commanders:commanderNames.map(name=>({name,url:art(cards.get(name.toLowerCase()))})),colors:knownColors?[...new Set(commanderNames.flatMap(name=>cards.get(name.toLowerCase()).color_identity))]:null,cardCount:count,placeholderArtwork:true});
+ hero.replaceChildren(...[hydrated.hero.querySelector('.deck-hero-art'),hydrated.hero.querySelector('.deck-hero-details'),summary].filter(Boolean));
  const buckets=new Map();
  for(const item of items){
  const category=item.commander||commanderNames.some(n=>n.toLowerCase()===item.name.toLowerCase())?'Commander':type(cards.get(item.name.toLowerCase()));
@@ -123,7 +124,8 @@ async function run(){
  }
  section.append(grid);root.append(section);
  }
- if($('status').textContent==='Loading card artwork…')$('status').textContent='';
+ if($('status').textContent==='Loading card details…')$('status').textContent='';
+ await performance;
 }
 const hover=document.createElement('div');hover.id='cardHoverPreview';hover.setAttribute('aria-hidden','true');hover.style.cssText='position:fixed;display:none;pointer-events:none;z-index:1000;width:260px;max-width:60vw;filter:drop-shadow(0 8px 22px rgba(0,0,0,.75))';const hoverImg=document.createElement('img');hoverImg.style.cssText='width:100%;border-radius:12px;display:block';hover.append(hoverImg);document.body.append(hover);
 function moveCardPreview(e){if(hover.style.display==='none')return;const width=hover.getBoundingClientRect().width,height=hover.getBoundingClientRect().height;let x=(e.clientX??window.innerWidth/2)+20,y=(e.clientY??window.innerHeight/2)+12;if(x+width>window.innerWidth-8)x=(e.clientX??window.innerWidth/2)-width-20;if(y+height>window.innerHeight-8)y=window.innerHeight-height-8;hover.style.left=Math.max(8,x)+'px';hover.style.top=Math.max(8,y)+'px'}

@@ -1,5 +1,5 @@
 import {attachLedgerPie} from './ledger-pie-motion.js?v=1';
-import {createLedgerFriendArtwork} from './ledger-friend-art.js?v=1';
+import {createLedgerFriendArtwork} from './ledger-friend-art.js?v=prepared-perf-1';
 import {createStatGameExplorer} from './ledger-stat-games.js?v=pie-3';
 import {rankingRange} from './friend-ranking-period.js?v=1';
 import {filterTrendGames} from './ledger-trend-data.js?v=1';
@@ -11,7 +11,7 @@ import {normalizeLedgerSettings,readLedgerState,mountLedgerSettings,applyLedgerV
 import {selectBestDeck} from './best-deck.js?v=2';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {commanderColors} from './ledger-commander-colors.js?v=1';
-import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=pie-6';
+import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=prepared-perf-1';
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=history-2';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=identities-6';
 import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=history-links-3';
