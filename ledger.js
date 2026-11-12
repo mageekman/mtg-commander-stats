@@ -1,3 +1,4 @@
+import {startStatLoading} from './stat-loading.js?v=1';
 import {renderColorUsage} from './color-combo-usage.js?v=minimum-2';
 import {mountLedgerUpdates} from './ledger-stat-updates.js?v=1';
 import {selectStrongestColor,selectMostPlayedColor} from './strongest-color.js?v=combo-2';
@@ -13,7 +14,7 @@ import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
 import {gameMatchesSearch} from './game-history-search.js?v=participants-3';
 import {isGenericOpponentName} from './opponent-names.js?v=1';
-import {mountLedgerTrend} from './ledger-trend-controls.js?v=public-2';
+import {mountLedgerTrend} from './ledger-trend-controls.js?v=loading-3';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const friendService=createGameFriendService(sb);
@@ -127,6 +128,10 @@ $('deck').addEventListener('change',syncOwnCommander);
 drawPlayers();
 $('date').value=new Date().toLocaleDateString('en-CA');
 async function load(){
+ const done=startStatLoading($('statisticsSection'));
+ try{return await loadLedger()}finally{done()}
+}
+async function loadLedger(){
  historyLinker.clear();
  const auth=await sb.auth.getUser();user=auth.data.user;await ledgerArt.load(user);friendService.clear();friendDisplayNames=new Map();
  $('openLedgerSettings').hidden=!user;
@@ -150,6 +155,10 @@ async function load(){
  syncOwnCommander();await refresh();
 }
 async function refresh(){
+ const done=startStatLoading($('statisticsSection'));
+ try{return await refreshLedger()}finally{done()}
+}
+async function refreshLedger(){
  const [r,names]=await Promise.all([sb.from('personal_games').select('id,deck_id,played_at,won,opponents,notes,players,first_player,winner_player').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false}),loadFriendDisplayNames(sb)]);
  friendDisplayNames=names;
  if(r.error){message('Unable to load your games. Please contact the app administrator. '+r.error.message);$('save').disabled=true;return}
@@ -294,7 +303,9 @@ function renderExtraStats(visibleGames){
  const host=$('statInsights'),nemesis=$('nemesisCommander');if(!host||!nemesis)return;
  host.replaceChildren();nemesis.replaceChildren();
  const stamp=++colorStatsStamp;
- if(ledgerSettings.show_color_usage)$('colorUsageChart').textContent='Calculating usage…';
+ const usageHost=ledgerSettings.show_color_usage?$('colorUsageChart'):null;
+ if(usageHost)usageHost.replaceChildren();
+ const usageDone=startStatLoading(usageHost,'Loading color combo usage…');
  const stats=decks.filter(deck=>!deck.archived_at).map(deck=>{const played=visibleGames.filter(g=>g.deck_id===deck.id);return {deck,games:played.length,wins:played.filter(g=>g.won).length}}).filter(x=>x.games);
  const most=stats.slice().sort((a,b)=>b.games-a.games||b.wins-a.wins)[0];
  featuredStat($('mostPlayedDeck'),most?.deck,'★ Most played deck',most?most.games+' games played':'',most?most.wins+' wins · '+(most.games-most.wins)+' losses · '+(100*most.wins/most.games).toFixed(1)+'% win rate':'');
@@ -320,6 +331,8 @@ function renderExtraStats(visibleGames){
   if(name)getCommanderArtwork(name).then(url=>{if(card.isConnected&&url){art.style.backgroundImage='url("'+url+'")';ledgerArt.attach(card,art,{slot:'rival-commander',commander:name,url,title:name})}}).catch(()=>{});
  }else{const empty=el('div','No recorded losses to named commanders yet.');empty.className='best-deck-empty';nemesis.append(empty)}
  const gameDecks=visibleGames.map(g=>decks.find(d=>d.id===g.deck_id));
+ const colorDone=cards.slice(0,2).map(card=>{const value=card.querySelector('strong');value.replaceChildren();return startStatLoading(value,'Loading color stats…')});
+ const rivalValue=cards[2].querySelector('strong');rivalValue.replaceChildren();const rivalDone=startStatLoading(rivalValue,'Loading rival colors…');
  Promise.all(gameDecks.map(d=>d?commanderColors(d.commander):Promise.resolve(null))).then(ids=>{
   if(stamp!==colorStatsStamp)return;
   const combo=new Map();let missing=0;
@@ -331,13 +344,13 @@ function renderExtraStats(visibleGames){
   const best=selectStrongestColor(combo,ledgerSettings.best_deck_min_games);
   const bestStrong=cards[1].querySelector('strong'),bestSmall=cards[1].querySelector('small');
   if(best){manaIdentity(bestStrong,best[0]);bestSmall.textContent=(100*best[1].wins/best[1].games).toFixed(1)+'% win rate · '+best[1].wins+' wins in '+best[1].games+' games'}else{bestStrong.textContent=missing?'Color data unavailable':'No qualifying color combo';bestSmall.textContent='Minimum '+ledgerSettings.best_deck_min_games+' games in this timeframe'}
- }).catch(()=>{if(stamp===colorStatsStamp){cards[0].querySelector('strong').textContent='Color data unavailable';cards[1].querySelector('strong').textContent='Color data unavailable';if(ledgerSettings.show_color_usage)$('colorUsageChart').textContent='Color usage is unavailable. Please try again.'}});
+ }).catch(()=>{if(stamp===colorStatsStamp){cards[0].querySelector('strong').textContent='Color data unavailable';cards[1].querySelector('strong').textContent='Color data unavailable';if(ledgerSettings.show_color_usage)$('colorUsageChart').textContent='Color usage is unavailable. Please try again.'}}).finally(()=>{colorDone.forEach(done=>done());usageDone()});
  Promise.all(opponents.map(p=>commanderColors(p.commander))).then(ids=>{
   if(stamp!==colorStatsStamp)return;
   const top=mostCommon(ids.filter(x=>x!==null)),strong=cards[2].querySelector('strong'),small=cards[2].querySelector('small');
   if(top){manaIdentity(strong,top[0]);small.textContent=top[1]+' losses'}
   else{strong.textContent=ids.length?'Color data unavailable':'No recorded losses';small.textContent=''}
- }).catch(()=>{if(stamp===colorStatsStamp)cards[2].querySelector('strong').textContent='Color data unavailable'});
+ }).catch(()=>{if(stamp===colorStatsStamp)cards[2].querySelector('strong').textContent='Color data unavailable'}).finally(rivalDone);
 }
 let colorStatsStamp=0;
 let comboStatsStamp=0;

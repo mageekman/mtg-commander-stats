@@ -1,3 +1,4 @@
+import {startStatLoading} from './stat-loading.js?v=1';
 import {rankingPeriods,rankingRange} from './friend-ranking-period.js?v=1';
 import {filterTrendGames} from './ledger-trend-data.js?v=1';
 import {renderWinrateTrendChart} from './ledger-chart.js?v=timeline-2';
@@ -10,15 +11,16 @@ export function mountLedgerTrend(getGames,options={}){
  let lastWidth=0,frame=0,epoch=0,disposed=false,observer;
  async function render(){
   const token=++epoch;let range;try{range=rankingRange(preset.value,start.value,end.value)}catch(error){host.replaceChildren();empty.hidden=true;status.textContent=error.message;host.removeAttribute('aria-busy');return}
+  let done=()=>{};
   try{
-   let games;if(options.loadGames){status.textContent='Loading graph…';host.setAttribute('aria-busy','true');games=await options.loadGames(range);if(token!==epoch||disposed)return}else games=filterTrendGames(getGames(),range);
+   let games;if(options.loadGames){status.textContent='';done=startStatLoading(status,'Loading graph…');host.setAttribute('aria-busy','true');games=await options.loadGames(range);if(token!==epoch||disposed)return}else games=filterTrendGames(getGames(),range);
    lastWidth=host.clientWidth;
    renderWinrateTrendChart(host,empty,games,{groupBy:group.value,maxPoints:Math.max(24,Math.min(90,Math.floor((lastWidth||560)/8))),width:Math.max(220,lastWidth||560),height:200,maxLabels:lastWidth&&lastWidth<400?3:5});
    empty.textContent='No games in this graph timeline.';
    const grouping={game:'Per game',day:'Daily',week:'Weekly',month:'Monthly'}[host.dataset.grouping]||'Per game';
    status.textContent=range.label+' · '+(host.dataset.games||0)+' games · '+grouping.toLowerCase()+' cumulative win rate';
   }catch(error){if(token===epoch&&!disposed){host.replaceChildren();empty.hidden=true;status.textContent='Could not load graph. '+error.message}}
-  finally{if(token===epoch&&!disposed)host.removeAttribute('aria-busy')}
+  finally{done();if(token===epoch&&!disposed)host.removeAttribute('aria-busy')}
  }
  for(const input of [preset,group,start,end])input.addEventListener('change',()=>{customDates();render()});
  if(typeof ResizeObserver!=='undefined'){observer=new ResizeObserver(()=>{const width=host.clientWidth;if(width>0&&width!==lastWidth){cancelAnimationFrame(frame);frame=requestAnimationFrame(render)}});observer.observe(host)}

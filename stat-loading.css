@@ -1,0 +1,4 @@
+.stat-loading{display:flex;align-items:center;gap:8px;padding:8px 0;color:#bed1c5;font:500 12px/1.5 system-ui,sans-serif;letter-spacing:normal;text-transform:none}
+.stat-loading::before{content:"";display:block;flex:none;width:13px;height:13px;box-sizing:border-box;border:2px solid #56776a;border-top-color:#a7dac0;border-radius:50%;animation:stat-loading-spin .85s linear infinite}
+@keyframes stat-loading-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.stat-loading::before{animation:none}}

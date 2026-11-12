@@ -1,7 +1,8 @@
+import {startStatLoading} from './stat-loading.js?v=1';
 import {selectStrongestColor,selectMostPlayedColor} from './strongest-color.js?v=combo-2';
 import {node,pct,ring,rateBar,artPanel,pagedCards} from './deck-visuals.js?v=reports-2';
 import {createLedgerReport} from './ledger-report-tabs.js?v=mockup-1';
-import {mountLedgerTrend} from './ledger-trend-controls.js?v=public-2';
+import {mountLedgerTrend} from './ledger-trend-controls.js?v=loading-3';
 import {renderColorUsage} from './color-combo-usage.js?v=public-3';
 import {commanderColors} from './ledger-commander-colors.js?v=1';
 import {rankingPeriods,rankingRange} from './friend-ranking-period.js?v=1';
@@ -38,6 +39,11 @@ export async function mountSharedLedger(root,{client,handle}){
  function stat(label,value,detail=''){const box=node('div');box.className='insight-stat';box.append(node('span',label),node('strong',value),node('small',detail));return box}
  function mana(box,code){const value=box.querySelector('strong');value.replaceChildren();if(!code){value.textContent='Colorless';return}for(const c of code){const img=node('img');img.src='https://svgs.scryfall.io/card-symbols/'+c+'.svg';img.alt=({W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'})[c]+' mana';img.width=img.height=26;value.append(img)}}
  async function drawColors(data,token){
+  const finishes=[];
+  if(data.color_permissions?.most_played||data.color_permissions?.best_combo)finishes.push(startStatLoading(colors,'Loading color stats…'));
+  if(data.color_usage)finishes.push(startStatLoading(usageChart,'Loading color combo usage…'));
+  if(data.lost_color_enabled)finishes.push(startStatLoading(rivalry.querySelector('[data-rival=color]'),'Loading rival colors…'));
+  try{
   const results=await Promise.all((data.color_decks||data.color_usage?.decks||[]).map(async deck=>({deck,code:await commanderColors(deck.commander)})));
   const lost=await Promise.all((data.lost_color_commanders||[]).map(commanderColors));if(token!==epoch)return;
   const combos=new Map();let missing=0;
@@ -46,6 +52,7 @@ export async function mountSharedLedger(root,{client,handle}){
   if(data.color_permissions?.most_played){const top=selectMostPlayedColor(combos),box=stat('Most played color',top?'':missing?'Color data unavailable':'No games yet',top?top[1].games+' games'+(missing?' · '+missing+' unavailable':''):'');if(top)mana(box,top[0]);colors.append(box)}
   if(data.color_permissions?.best_combo){const best=selectStrongestColor(combos,data.color_permissions.minimum_games),box=stat('Strongest Color',best?'':missing?'Color data unavailable':'No qualifying color combo',best?pct(100*best[1].wins/best[1].games)+' win rate · '+best[1].wins+' wins in '+best[1].games+' games':'');if(best)mana(box,best[0]);colors.append(box)}
   if(data.lost_color_enabled){const counts=new Map();for(const code of lost)if(code!==null)counts.set(code,(counts.get(code)||0)+1);const top=[...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0],box=stat('Rival Color Combo',top?'':lost.length?'Color data unavailable':'No recorded losses',top?top[1]+' losses':'');if(top)mana(box,top[0]);rivalry.querySelector('[data-rival=color]').append(box)}
+  }finally{finishes.forEach(done=>done())}
  }
  function drawTotals(data,syncTrend){
   const previous=sharedTrend?.state();sharedTrend?.destroy();sharedTrend=null;
@@ -89,7 +96,7 @@ export async function mountSharedLedger(root,{client,handle}){
  }
  async function load(syncTrend=false){
   const token=++epoch;custom.hidden=period.value!=='custom';let range;try{range=rankingRange(period.value,start.value,end.value)}catch(error){status.textContent=error.message;for(const host of [totals,featured,colors,usage,rivalry,reports,decks])host.hidden=true;return}
-  status.textContent='Loading statistics…';shell.setAttribute('aria-busy','true');
+  status.textContent='';const done=startStatLoading(status);shell.setAttribute('aria-busy','true');
   try{const {data,error}=await client.rpc('get_shared_ledger_stats_v2',{target_handle:handle,date_start:range.range_start,date_end:range.range_end});if(token!==epoch)return;if(error)throw error;if(!data)throw Error('Player statistics are not available.');current=data;for(const host of [totals,featured,colors])host.hidden=false;
    usage.hidden=!data.color_usage;colors.hidden=!data.color_permissions?.most_played&&!data.color_permissions?.best_combo;usageChart.replaceChildren();drawTotals(data,syncTrend);featured.replaceChildren();colors.replaceChildren();rivalry.replaceChildren();featuredCard(featured,data.best_deck,'★ Best deck','best-deck');featuredCard(featured,data.most_played_deck,'★ Most played deck','most-played-deck');
    const rivalTitle=node('h3','Rivalry Summary'),grid=node('div');grid.className='ledger-rivalry-grid';const commander=node('div');commander.id='nemesisCommander';commander.className='best-deck nemesis-section';const player=node('div'),color=node('div');color.dataset.rival='color';grid.append(commander,player,color);rivalry.append(rivalTitle,grid);if(data.nemesis_commander)featuredCard(commander,data.nemesis_commander,'★ Rival Commander','rival-commander');else if(data.nemesis_commander_enabled)commander.append(node('p','No recorded losses to named commanders yet.'));if(data.nemesis_player_enabled||data.nemesis_player)player.append(stat('Rival Player',data.nemesis_player?.player||'No named opponents',data.nemesis_player?data.nemesis_player.losses+' losses':''));
@@ -98,7 +105,7 @@ export async function mountSharedLedger(root,{client,handle}){
    const any=!!(data.record||data.win_chart||data.winrate_history||data.best_deck||data.most_played_deck||data.color_permissions?.most_played||data.color_permissions?.best_combo||data.color_usage||slots.some(Boolean)||data.first_player||data.rotation||data.games_together||data.friend_results||data.decks_enabled);
    status.textContent=any?'':"This player hasn't shared any statistics.";
   }catch(error){if(token!==epoch)return;status.textContent='Could not load statistics. '+error.message;for(const host of [totals,featured,colors,usage,rivalry,reports,decks])host.hidden=true}
-  finally{if(token===epoch)shell.removeAttribute('aria-busy')}
+  finally{done();if(token===epoch)shell.removeAttribute('aria-busy')}
  }
  period.onchange=start.onchange=end.onchange=()=>load(true);
  const refresh=()=>{if(shell.isConnected&&!document.hidden)load()};window.addEventListener('focus',refresh);window.addEventListener('pageshow',event=>{if(event.persisted)refresh()});document.addEventListener('visibilitychange',refresh);await load();
