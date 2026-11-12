@@ -12,12 +12,12 @@ export function createDeckHero(deck,{commanders=[],colors=null,cardCount=0,place
  if(artwork.children.length)hero.append(artwork);
  const details=node('div');details.className='deck-hero-details';if(given(deck.name))details.append(node('h2',deck.name));
  const fields=node('dl');fields.className='deck-detail-fields';
- const field=(label,value)=>{if(!given(value))return;const row=node('div');row.append(node('dt',label),node('dd',value));fields.append(row)};
+ const field=(label,value,className='')=>{if(!given(value))return;const row=node('div');if(className)row.className=className;row.append(node('dt',label),node('dd',value));fields.append(row)};
  if(Array.isArray(colors)){
   const row=node('div'),value=node('dd');value.className='deck-color-identity';row.append(node('dt','Color combo'),value);const names={W:'White',U:'Blue',B:'Black',R:'Red',G:'Green'};const ordered=[...'WUBRG'].filter(color=>colors.includes(color));
   if(!ordered.length)value.append(node('span','Colorless'));else for(const color of ordered){const image=node('img');image.src='./assets/mana/'+color+'.svg?v=1';image.alt=names[color];image.title=names[color];image.width=image.height=24;value.append(image)}fields.append(row);
  }
- field('Bracket',deck.bracket_level);field('Theme',deck.theme);if(cardCount>0)field('Deck list',cardCount+' cards');if(deck.archived_at)field('Status','Archived');
+ field('Bracket',deck.bracket_level,'deck-detail-bracket');field('Theme',deck.theme,'deck-detail-theme');if(cardCount>0)field('Deck list',cardCount+' cards');if(deck.archived_at)field('Status','Archived');
  if(!artwork.children.length)field('Commander',deck.commander);
  if(fields.children.length)details.append(fields);
  if(given(deck.decklist_url)){try{const url=new URL(deck.decklist_url);if(['http:','https:'].includes(url.protocol)){const link=node('a','View external decklist');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';details.append(link)}}catch{}}

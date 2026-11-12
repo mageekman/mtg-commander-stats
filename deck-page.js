@@ -1,7 +1,7 @@
-import {createDeckHero} from './deck-hero.js?v=prepared-perf-1';
-import {renderSharedDeck} from './shared-deck.js?v=prepared-perf-1';
+import {createDeckHero} from './deck-hero.js?v=details-row-1';
+import {renderSharedDeck} from './shared-deck.js?v=details-row-1';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
-import {mountDeckPerformance} from './deck-performance.js?v=prepared-perf-1';
+import {mountDeckPerformance} from './deck-performance.js?v=details-row-1';
 function colorIdentityIcons(colors){
  const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
  const label=document.createElement('span');label.textContent='Color identity:';wrap.append(label);

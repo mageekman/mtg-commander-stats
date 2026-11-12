@@ -1,4 +1,4 @@
-import {addCommanderCaption} from './deck-hero.js?v=prepared-perf-1';
+import {addCommanderCaption} from './deck-hero.js?v=details-row-1';
 const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e};
 export async function renderSharedDeck(root,deck,{fetchCards,colorIdentityIcons}){
  const hero=node('div');hero.className='hero deck-hero-with-record shared-deck-hero';

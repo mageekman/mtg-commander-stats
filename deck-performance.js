@@ -1,4 +1,4 @@
-import {addCommanderCaption} from './deck-hero.js?v=prepared-perf-1';
+import {addCommanderCaption} from './deck-hero.js?v=details-row-1';
 import {normalizeDeckSettings,readDeckSettings,saveDeckSettings,openDeckSettings,watchDeckSettings} from './deck-settings.js?v=prepared-perf-1';
 import {createDeckExplorer,bindDeckReports} from './deck-stat-interactions.js?v=prepared-perf-1';
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=reports-3';
