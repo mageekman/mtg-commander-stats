@@ -91,13 +91,12 @@ function csvMatchDeck(name){
 let previewRows=[],opponentCells=[];
 const scryCache=new Map();
 const scryKey=name=>String(name||'').trim().toLowerCase().replace(/\s+/g,' ');
-const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function lookupCommander(name){
  const key=scryKey(name);
  if(scryCache.has(key))return scryCache.get(key);
  let result={name,matched:false};
  try{
-  const response=await fetch('https://api.scryfall.com/cards/named?fuzzy='+encodeURIComponent(name),{headers:{Accept:'application/json'}});
+  const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/named?fuzzy='+encodeURIComponent(name),{headers:{Accept:'application/json'}});
   if(response.status===429||response.status===403)throw Error('Scryfall is rate limiting requests. Stop lookups and try again later.');
   if(response.ok){
    const card=await response.json();
@@ -136,7 +135,6 @@ export async function enrichOpponentCommanders(){
  let checked=0;
  try{
   for(const name of toFetch){
-   await pause(300);
    await lookupCommander(name);
    checked++;
    status.textContent='Checked '+checked+' of '+toFetch.length+' unique commanders…';
