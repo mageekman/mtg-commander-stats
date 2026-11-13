@@ -1,6 +1,6 @@
 import {planShareLayout,hasShareValue,hasShareColor,populatedLedgerShareCards,shareCount} from './share-card-layout.js?v=1';
-import {normalizeLedgerSettings} from './ledger-settings.js?v=by-deck-minimum-1';
-import {commanderKey} from './share-ledger-stats.js?v=by-deck-minimum-1';
+import {normalizeLedgerSettings} from './ledger-settings.js?v=nav-notices-1';
+import {commanderKey} from './share-ledger-stats.js?v=nav-notices-1';
 const W=1080,H=1920,ivory='#f4edd9',gold='#d6b46f',teal='#7fe2cd',muted='#bdd1c3';
 export const shareCardTypes=[{id:'ledger',title:'My Ledger'},{id:'rivalries',title:'My Rivalries'},{id:'decks',title:'My Decks'}];
 function box(c,x,y,w,h,r=24,fill='#102a21',stroke='#bca267'){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=2;c.stroke()}}
