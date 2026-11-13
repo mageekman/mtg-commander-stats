@@ -1,12 +1,12 @@
 import {populatedLedgerShareCards} from './share-card-layout.js?v=1';
-import {normalizeLedgerSettings} from './ledger-settings.js?v=public-5';
+import {normalizeLedgerSettings} from './ledger-settings.js?v=by-deck-minimum-1';
 import {createClient} from './vendor/supabase-js.mjs';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=share-2';
 import {rankingPeriods,rankingRange} from './friend-ranking-period.js?v=1';
 import {loadShareLedger} from './share-ledger-data.js?v=2';
-import {buildShareStats,resolveRivalColors,resolveOwnColors,availableShareCards,periodHeading} from './share-ledger-stats.js?v=combo-4';
-import {loadShareAssets} from './share-ledger-assets.js?v=prepared-perf-1';
-import {renderShareCard,shareCardTypes} from './share-ledger-renderer.js?v=nonempty-5';
+import {buildShareStats,resolveRivalColors,resolveOwnColors,availableShareCards,periodHeading} from './share-ledger-stats.js?v=by-deck-minimum-1';
+import {loadShareAssets} from './share-ledger-assets.js?v=by-deck-minimum-1';
+import {renderShareCard,shareCardTypes} from './share-ledger-renderer.js?v=by-deck-minimum-1';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT'),$=id=>document.getElementById(id);
 let user=null,epoch=0,busy=false,controller=null,urls=[],files=[],starting=false;
 const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e};

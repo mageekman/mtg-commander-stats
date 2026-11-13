@@ -7,7 +7,7 @@ import {startStatLoading} from './stat-loading.js?v=1';
 import {renderColorUsage} from './color-combo-usage.js?v=stat-games-4';
 import {mountLedgerUpdates} from './ledger-stat-updates.js?v=interactive-2';
 import {selectStrongestColor,selectMostPlayedColor} from './strongest-color.js?v=combo-2';
-import {normalizeLedgerSettings,readLedgerState,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=interactive-6';
+import {normalizeLedgerSettings,readLedgerState,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=by-deck-minimum-1';
 import {selectBestDeck} from './best-deck.js?v=2';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {commanderColors} from './ledger-commander-colors.js?v=1';
@@ -461,8 +461,9 @@ function render(){
  const search=($('deckStatsSearch')?.value||'').trim().toLowerCase();
  const deckStats=new Map();
  for(const game of visibleGames){const stats=deckStats.get(game.deck_id)||{games:0,wins:0,last:null};stats.games++;if(game.won)stats.wins++;if(!stats.last||game.played_at>stats.last)stats.last=game.played_at;deckStats.set(game.deck_id,stats)}
- const matchingDecks=sortDecksForDisplay(decks.filter(d=>!d.archived_at&&deckStats.has(d.id)&&(!search||(d.name||'').toLowerCase().includes(search)||(d.commander||'').toLowerCase().includes(search))),deckStats,$('ledgerDeckSort').value,$('ledgerDeckDirection').value);
- $('deckStatsEmpty').hidden=!!matchingDecks.length||!search;
+ const matchingDecks=sortDecksForDisplay(decks.filter(d=>!d.archived_at&&(deckStats.get(d.id)?.games||0)>=ledgerSettings.best_deck_min_games&&(!search||(d.name||'').toLowerCase().includes(search)||(d.commander||'').toLowerCase().includes(search))),deckStats,$('ledgerDeckSort').value,$('ledgerDeckDirection').value);
+ $('deckStatsEmpty').hidden=!!matchingDecks.length||!decks.length;
+ $('deckStatsEmpty').textContent=search?'No qualifying decks match your search.':'No active decks have reached the minimum of '+ledgerSettings.best_deck_min_games+' games in this timeframe.';
  for(const deck of matchingDecks){
   const played=visibleGames.filter(g=>g.deck_id===deck.id),wins=played.filter(g=>g.won).length;
   const rate=played.length?(wins/played.length*100).toFixed(1)+'%':'—';
