@@ -1,4 +1,4 @@
-import {ledgerStatUpdates} from './ledger-stat-updates.js?v=interactive-2';
+import {ledgerStatUpdates} from './ledger-stat-updates.js?v=nav-notices-1';
 import {selectedColorCombinations,mountColorChoices} from './color-combo-usage.js?v=minimum-2';
 import {privacyGroups} from './profile-stat-privacy.js?v=by-deck-minimum-1';
 const legacyKeys=new Set(['share_record','share_win_chart','share_win_trend','share_best_deck','share_most_played_deck','share_most_played_color','share_best_color_combo','share_lost_to_commander','share_lost_to_player','share_lost_to_color','share_first_player','share_deck_rotation','share_games_together','share_friend_results','share_deck_stats']);

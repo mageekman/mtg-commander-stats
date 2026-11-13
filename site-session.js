@@ -1,12 +1,14 @@
+import {createSiteAnnouncements} from './site-announcements.js?v=1';
 import './personal-invites.js?v=1';
 import {createPlayerOnboarding} from './player-onboarding.js?v=cleanup-5';
 import {setFriendNotificationUser} from './friend-notifications.js?v=invite-3';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const onboarding=createPlayerOnboarding(sb);
+const announcements=createSiteAnnouncements(sb);let sessionKnown=false;
 let guest=true,currentUser=null;
 function update(user){
- currentUser=user;onboarding.update(user);guest=!user;setFriendNotificationUser(user);document.body.classList.toggle('guest-preview',guest);
+ currentUser=user;onboarding.update(user);if(sessionKnown)announcements.update(user);guest=!user;setFriendNotificationUser(user);document.body.classList.toggle('guest-preview',guest);
  for(const nav of document.querySelectorAll('#siteNavigation,#siteFooter nav'))for(const link of nav.querySelectorAll('a')){
   const path=new URL(link.href,location.href).pathname.split('/').pop();
   if(path==='find-players.html'||path==='friends.html')link.hidden=guest;
@@ -28,7 +30,7 @@ document.addEventListener('click',event=>{
  const target=event.target.closest('#newDeckButton,#quickRecordGame,.ledger-toolbar a,#openGameForm,.compact-game-edit,a[href*="deck.html?id=demo"]');
  if(target){event.preventDefault();event.stopImmediatePropagation();location.href='./sign-in.html'}
 },true);
-sb.auth.onAuthStateChange((_event,session)=>update(session?.user));
-sb.auth.getUser().then(({data:{user}})=>update(user)).catch(()=>update(null));
+sb.auth.onAuthStateChange((_event,session)=>{sessionKnown=true;update(session?.user)});
+sb.auth.getUser().then(({data:{user}})=>{sessionKnown=true;update(user)}).catch(()=>{sessionKnown=true;update(null)});
 
 document.addEventListener('footer-ready',()=>update(currentUser));

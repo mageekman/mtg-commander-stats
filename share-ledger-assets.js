@@ -1,4 +1,4 @@
-import {commanderKey} from './share-ledger-stats.js?v=by-deck-minimum-1';
+import {commanderKey} from './share-ledger-stats.js?v=nav-notices-1';
 const cards=new Map(),imageCache=new Map();
 const timed=(promise,ms,fallback=null)=>new Promise(resolve=>{const timer=setTimeout(()=>resolve(fallback),ms);Promise.resolve(promise).then(value=>{clearTimeout(timer);resolve(value)},()=>{clearTimeout(timer);resolve(fallback)})});
 const art=card=>card?.image_uris?.art_crop||card?.card_faces?.find(f=>f.image_uris?.art_crop)?.image_uris?.art_crop||card?.image_uris?.large||card?.card_faces?.find(f=>f.image_uris?.large)?.image_uris?.large||null;
