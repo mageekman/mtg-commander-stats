@@ -25,5 +25,6 @@ When adding any new Ledger statistic:
 
 # Public changelog
 
-- For shipped features, meaningful bug fixes, and stability improvements, update `site-changelog.js` with a brief player-facing summary and publication date, newest first. Group related changes and omit minor positioning or cosmetic tweaks.
+- After preparing a major feature, meaningful bug fix, or stability improvement, ask the user whether they would like it added to the public changelog. Do not add an entry automatically or treat permission to implement/publish the feature as permission to add a changelog entry. This question must not block the authorized feature work.
+- When the user approves a changelog entry, update `site-changelog.js` with a brief player-facing summary and publication date, newest first. Group related changes and omit minor positioning or cosmetic tweaks.
 - Describe completed behavior without implementation details, private data, or unshipped promises. Keep older entries when adding new ones. Refresh the changelog import version in `site-footer.js` and footer script references when entries change.
