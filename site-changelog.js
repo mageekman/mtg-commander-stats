@@ -1,6 +1,9 @@
 // Newest first. Summarize shipped features, fixes, and stability improvements.
 // Dates reflect publication; group related changes and omit minor layout tweaks.
 export const changelogEntries=[
+ {date:'2026-11-13',title:'See what’s ahead on the Roadmap',updates:[
+  'Open the Roadmap from the footer to explore plans for Playgroups, Store Accounts, and Events.'
+ ]},
  {date:'2026-11-12',title:'Faster loading and more consistent stats',updates:[
   'Deck statistics load while card details are still being fetched, and smaller logo images help pages load faster.',
   'Homepage deck records include your full game history, including accounts with more than 1,000 games.',

@@ -11,7 +11,7 @@ if(!document.getElementById('siteFooter')){
  </nav>`;
  footer.querySelector('#openSiteChangelog').addEventListener('click',async event=>{
   event.preventDefault();const link=event.currentTarget;if(link.getAttribute('aria-busy')==='true')return;link.setAttribute('aria-busy','true');
-  try{const {openChangelog}=await import('./site-changelog.js?v=1');footer.querySelector('.changelog-error')?.remove();openChangelog()}
+  try{const {openChangelog}=await import('./site-changelog.js?v=roadmap-release-1');footer.querySelector('.changelog-error')?.remove();openChangelog()}
   catch{let status=footer.querySelector('.changelog-error');if(!status){status=document.createElement('p');status.className='changelog-error';status.setAttribute('role','status');footer.append(status)}status.textContent='The changelog could not be loaded. Please try again.'}
   finally{link.removeAttribute('aria-busy')}
  });
