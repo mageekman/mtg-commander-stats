@@ -22,3 +22,9 @@ When adding any new Ledger statistic:
 - Deck visibility and interactive-stat preferences live in the owner profile’s `deck_settings` and apply to every existing and future deck, including share exports. Do not read/write legacy per-deck `stat_settings` for current UI preferences.
 - Creating a deck must preserve the user’s saved universal choices. New accounts and untouched defaults start with every deck and private Ledger stat/feature enabled.
 - Keep existing users’ Ledger choices, public-profile privacy permissions, and announcement dismissals unchanged when updating signup defaults.
+
+# Public changelog
+
+- After preparing a major feature, meaningful bug fix, or stability improvement, ask the user whether they would like it added to the public changelog. Do not add an entry automatically or treat permission to implement/publish the feature as permission to add a changelog entry. This question must not block the authorized feature work.
+- When the user approves a changelog entry, update `site-changelog.js` with a brief player-facing summary and publication date, newest first. Group related changes and omit minor positioning or cosmetic tweaks.
+- Describe completed behavior without implementation details, private data, or unshipped promises. Keep older entries when adding new ones. Refresh the changelog import version in `site-footer.js` and footer script references when entries change.
