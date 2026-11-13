@@ -9,7 +9,7 @@ export const privacyGroups=[
   ['share_first_player','Going First Advantage'],['share_deck_rotation','Deck Rotation (active deck usage and last played)']]],
  ['Friends',[
   ['share_games_together','Games Together (friend display names, commanders, and your results)'],['share_friend_results','Your Results with friends (combined games, wins, and losses)']]],
- ['Decks', [['share_deck_stats','By Deck carousel (active decks with games)']]]
+ ['Decks', [['share_deck_stats','By Deck carousel (active decks meeting your Ledger minimum games)']]]
 ];
 export const privacyKeys=['public_full_stats',...privacyGroups.flatMap(([,fields])=>fields.map(([key])=>key))];
 export function mountPrivacyChoices(host){

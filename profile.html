@@ -6,7 +6,7 @@
 <section id="signedOut" class="panel" hidden><h2>Sign in or create an account</h2><div class="auth-grid"><form id="loginForm"><h3>Welcome back</h3><label class="field">Email<input name="email" type="email" autocomplete="email" required></label><label class="field">Password<input name="password" type="password" autocomplete="current-password" required></label><button>Sign in</button></form><form id="signupForm"><h3>Join the archive</h3><p>Choose your username and favorite commander when you create your account.</p><a href="./sign-in.html?mode=signup&amp;next=.%2Fprofile.html">Create account</a></form></div><p id="authStatus" class="status" role="status"></p><hr style="border:0;border-top:1px solid #38514d;margin:22px 0"><h3>Forgot your password?</h3><form id="recoveryForm"><label class="field">Account email<input name="email" type="email" required></label><button class="secondary">Email reset link</button></form><p id="recoveryStatus" class="status" role="status"></p></section>
 </main><script src="./loading-progress.js?v=1"></script><script src="./scryfall-client.js?v=rate-audit-5"></script><script type="module">
 import {applyPassportArt} from './passport-art.js?v=1';
-import {privacyKeys,mountPrivacyChoices,privacyChoiceEnabled} from './profile-stat-privacy.js?v=usage-3';
+import {privacyKeys,mountPrivacyChoices,privacyChoiceEnabled} from './profile-stat-privacy.js?v=by-deck-minimum-1';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');

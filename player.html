@@ -7,7 +7,7 @@ main{max-width:800px}.profile-card{margin-top:25px}.profile-banner{min-height:31
 <section id="passport" class="panel profile-card" hidden><div class="profile-banner"><div id="commanderShowcase" hidden><svg class="favorite-heart" viewBox="0 0 24 24" aria-label="Favorite commander" role="img"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg><strong id="commanderTitle"></strong></div><img id="commanderArt" alt="Favorite commander artwork" hidden><div class="banner-shade"></div><div class="banner-content"><h2 id="playerName"></h2><div class="profile-meta"><span id="playerHandle" class="handle"></span><span id="playerPronouns"></span></div><p id="playerBio" class="bio"></p><p id="memberSince" class="private"></p></div></div></section><section class="archive-section" id="sharedLedger" hidden></section></main>
 <script src="./loading-progress.js?v=1"></script><script src="./scryfall-client.js?v=rate-audit-5"></script><script type="module">
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
-import {mountSharedLedger} from './public-ledger.js?v=prepared-perf-1';
+import {mountSharedLedger} from './public-ledger.js?v=by-deck-minimum-1';
 import {mountFriendAction} from './friends.js?v=3';
 import {applyPassportArt} from './passport-art.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';

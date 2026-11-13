@@ -1,6 +1,6 @@
 import {ledgerStatUpdates} from './ledger-stat-updates.js?v=interactive-2';
 import {selectedColorCombinations,mountColorChoices} from './color-combo-usage.js?v=minimum-2';
-import {privacyGroups} from './profile-stat-privacy.js?v=usage-3';
+import {privacyGroups} from './profile-stat-privacy.js?v=by-deck-minimum-1';
 const legacyKeys=new Set(['share_record','share_win_chart','share_win_trend','share_best_deck','share_most_played_deck','share_most_played_color','share_best_color_combo','share_lost_to_commander','share_lost_to_player','share_lost_to_color','share_first_player','share_deck_rotation','share_games_together','share_friend_results','share_deck_stats']);
 export const ledgerSettingGroups=[['Features',ledgerStatUpdates.filter(stat=>stat.kind==='feature').map(stat=>[stat.key,stat.label])],...privacyGroups.map(([title,choices])=>[title,choices.filter(([key])=>key!=='share_color_usage')]),['Colors',ledgerStatUpdates.filter(stat=>stat.kind!=='feature').map(stat=>[stat.key,stat.label])]];
 export const ledgerPreferenceKeys=ledgerSettingGroups.flatMap(([,fields])=>fields.map(([key])=>key));
