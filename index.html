@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Command Ledger</title><link rel="stylesheet" href="./command-ledger-theme.css"><link rel="icon" type="image/png" href="./cl-favicon-64.png?v=1"><link rel="apple-touch-icon" href="./cl-touch-icon-180.png?v=1">
-<style>body{font:16px system-ui;background:#101827;color:#f1f5f9;max-width:850px;margin:auto;padding:24px}section{background:#1e293b;padding:20px;border-radius:12px;margin:16px 0}input,textarea,select,button{padding:9px;margin:5px;background:#0f172a;color:white;border:1px solid #64748b;border-radius:6px}button{background:#047857;cursor:pointer}textarea{display:block;width:90%;height:100px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #475569;text-align:left}#deckGallery .deck-entry-art img{object-position:center 24%}#recentGames .recent-game-player-art{background-position:center 24%}</style>
+<style>body{font:16px system-ui;background:#101827;color:#f1f5f9;max-width:850px;margin:auto;padding:24px}section{background:#1e293b;padding:20px;border-radius:12px;margin:16px 0}input,textarea,select,button{padding:9px;margin:5px;background:#0f172a;color:white;border:1px solid #64748b;border-radius:6px}button{background:#047857;cursor:pointer}textarea{display:block;width:90%;height:100px}table{width:100%;border-collapse:collapse}td,th{padding:8px;border-bottom:1px solid #475569;text-align:left}:is(#deckGallery,#archivedDeckGallery) .deck-entry-art img{object-position:center 24%}#recentGames .recent-game-player-art{background-position:center 24%}</style>
 <a id="siteHomeLogo" href="./index.html" aria-label="Command Ledger home"><img src="./cl-wordmark-final-transparent.webp?v=delivery-1" alt="Command Ledger" width="1608" height="600" loading="eager" decoding="async"></a><nav id="siteNavigation" class="site-top-nav" aria-label="Main navigation"><a href="./index.html">My Decks</a><a href="./ledger.html">My Ledger</a><a href="./friends.html" hidden>Friends</a><a href="./sign-in.html" data-profile-link="true">Sign in/Create Account</a></nav><h1 class="homepage-logo-heading"><a href="./index.html" aria-label="Command Ledger home"><img class="homepage-brand-logo" src="./cl-wordmark-final-transparent.webp?v=delivery-1" alt="Command Ledger" loading="eager"></a></h1><p>Track your Commander decks, games, and stats in one place.</p>
 <section id="profiles"><p><a href="./find-players.html">Find Players by Username</a></p><h2>My deck profiles</h2><div class="home-deck-sort"><label class="deck-sort-label" for="homeDeckSort">Sort by <select id="homeDeckSort"><option value="added">Date added</option><option value="winrate" selected>Win rate</option><option value="last">Last played</option></select></label><label class="deck-sort-label" for="homeDeckDirection">Order <select id="homeDeckDirection"><option value="desc">Descending</option><option value="asc">Ascending</option></select></label></div><div class="home-deck-controls"><label class="deck-sort-label" for="homeDeckSearch">Search active decks <input id="homeDeckSearch" type="search" placeholder="Search deck or commander…" autocomplete="off"></label><div class="home-deck-view-toggle"><button id="homeDeckViewToggle" type="button" aria-label="Switch to compact deck view" aria-pressed="false" title="Switch to compact view"><span id="homeDeckViewIcon" aria-hidden="true">☷</span> <span id="homeDeckViewLabel">Compact view</span></button></div></div><div id="deckGallery"></div><details id="archivedDeckSection" class="archived-gallery-section" hidden><summary>Archived decks <span id="archivedDeckCount"></span></summary><p class="muted">Retired decks remain in your Ledger and statistics. Restore them here whenever you want.</p><label for="archivedDeckSearch">Search archived decks <input id="archivedDeckSearch" type="search" placeholder="Search archived decks…" autocomplete="off"></label><div id="archivedDeckGallery" class="archived-deck-gallery"></div></details><div id="deckProfile" hidden></div></section><section id="recentGamesSection"><div class="recent-games-heading"><h2>Recent games</h2><a href="./ledger.html">View all games →</a></div><div id="recentGames">Loading recent games…</div></section><script>
 /* Recover reset links that Supabase or an email client lands on the homepage. */
@@ -22,13 +22,13 @@ body{max-width:1100px;margin:auto;padding:24px;background:#101827;color:#f1f5f9}
 #profiles{background:transparent;padding:0;margin:22px 0}
 #profiles h2{font-size:24px}
 #profiles>p{color:#94a3b8}
-#deckGallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
-#deckGallery .deck-entry{box-sizing:border-box;min-height:100px;margin:0!important;padding:18px!important;background:#1e293b!important;border:1px solid #334155;border-radius:12px!important;display:flex!important;align-items:center;font-weight:600}
-#deckGallery .deck-entry:hover{border-color:#34d399;background:#26394a!important}
+:is(#deckGallery,#archivedDeckGallery){display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+:is(#deckGallery,#archivedDeckGallery) .deck-entry{box-sizing:border-box;min-height:100px;margin:0!important;padding:18px!important;background:#1e293b!important;border:1px solid #334155;border-radius:12px!important;display:flex!important;align-items:center;font-weight:600}
+:is(#deckGallery,#archivedDeckGallery) .deck-entry:hover{border-color:#34d399;background:#26394a!important}
 #refreshProfiles{background:transparent;border:1px solid #475569;color:#cbd5e1;font-size:13px}
 #newDeckButton{background:#047857;padding:11px 16px}
 #quickActions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-@media(max-width:600px){body{padding:14px}#mainHeader h1{font-size:25px}#deckGallery{grid-template-columns:1fr}}
+@media(max-width:600px){body{padding:14px}#mainHeader h1{font-size:25px}:is(#deckGallery,#archivedDeckGallery){grid-template-columns:1fr}}
 </style>
 <script>
 (function(){
@@ -50,10 +50,10 @@ add.onclick=()=>{window.location.href='./import.html'};
 
 })();
 </script><style>
-#deckGallery .deck-entry{position:relative;overflow:hidden;min-height:165px!important;display:flex!important;align-items:flex-end!important;padding:0!important;background:#1e293b!important}
+:is(#deckGallery,#archivedDeckGallery) .deck-entry{position:relative;overflow:hidden;min-height:165px!important;display:flex!important;align-items:flex-end!important;padding:0!important;background:#1e293b!important}
 .deck-entry-art{position:absolute;inset:0;background:linear-gradient(135deg,#134e4a,#0f172a)}
 .deck-entry-art img{width:100%;height:100%;object-fit:cover;object-position:center 35%;display:block;transition:transform .25s ease}
-#deckGallery .deck-entry:hover .deck-entry-art img{transform:scale(1.06)}
+:is(#deckGallery,#archivedDeckGallery) .deck-entry:hover .deck-entry-art img{transform:scale(1.06)}
 .deck-entry-details{position:relative;z-index:1;width:100%;box-sizing:border-box;padding:35px 15px 15px;background:linear-gradient(transparent,rgba(2,6,23,.94));display:flex;flex-direction:column;gap:5px;text-shadow:0 1px 3px #000}
 .deck-entry-details strong{font-size:17px;color:white}.deck-entry-details span{font-size:13px;color:#cbd5e1}
 </style><style>
@@ -90,9 +90,9 @@ add.onclick=()=>{window.location.href='./import.html'};
 #quickRecordGame .quick-game-arrow{font-size:26px}
 @media(max-width:600px){#quickRecordGame{padding:17px;gap:12px}#quickRecordGame strong{font-size:19px}#quickRecordGame .quick-game-icon{width:43px;height:43px}}
 </style><style>
-#deckGallery .deck-entry-details{padding-right:115px}
-#deckGallery .deck-winrate{position:absolute;right:11px;bottom:11px;z-index:3;padding:6px 9px;border:1px solid #6ee7b7a0;border-radius:7px;background:#022c22e8;color:#d1fae5;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px #0006}
-@media(max-width:420px){#deckGallery .deck-entry-details{padding-right:100px}#deckGallery .deck-winrate{font-size:11px;padding:5px 7px}}
+:is(#deckGallery,#archivedDeckGallery) .deck-entry-details{padding-right:115px}
+:is(#deckGallery,#archivedDeckGallery) .deck-winrate{position:absolute;right:11px;bottom:11px;z-index:3;padding:6px 9px;border:1px solid #6ee7b7a0;border-radius:7px;background:#022c22e8;color:#d1fae5;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px #0006}
+@media(max-width:420px){:is(#deckGallery,#archivedDeckGallery) .deck-entry-details{padding-right:100px}:is(#deckGallery,#archivedDeckGallery) .deck-winrate{font-size:11px;padding:5px 7px}}
 </style><style>
 #recentGamesSection{margin-top:16px}
 .recent-games-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
@@ -148,20 +148,20 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 .home-deck-sort{padding:14px 0!important;margin:8px 0 18px!important;border-top:1px solid var(--cl-line);border-bottom:1px solid var(--cl-line)}
 .deck-sort-label{color:#c2d0c7!important}
 .deck-sort-label select{background:#182c2c!important;border-color:#48675e!important;border-radius:8px!important;color:var(--cl-ink)}
-#deckGallery{gap:18px!important}
-#deckGallery .deck-entry{min-height:215px!important;border-radius:14px!important;border:1px solid #69847478!important;box-shadow:0 10px 28px #0003;transition:transform .22s,border-color .22s,box-shadow .22s}
-#deckGallery .deck-entry:hover{transform:translateY(-4px);border-color:var(--cl-gold)!important;box-shadow:0 20px 42px #0006}
-#deckGallery .deck-entry-details{background:linear-gradient(transparent,#071311e8 65%,#071311f5)!important;padding-top:60px!important;padding-bottom:18px!important}
-#deckGallery .deck-entry-details strong{font-family:Georgia,"Iowan Old Style",serif;font-size:20px!important;font-weight:600}
-#deckGallery .deck-winrate{border-color:#c9aa7580!important;background:#122f29ec!important;color:#f4dfb6!important;border-radius:8px!important}
+:is(#deckGallery,#archivedDeckGallery){gap:18px!important}
+:is(#deckGallery,#archivedDeckGallery) .deck-entry{min-height:215px!important;border-radius:14px!important;border:1px solid #69847478!important;box-shadow:0 10px 28px #0003;transition:transform .22s,border-color .22s,box-shadow .22s}
+:is(#deckGallery,#archivedDeckGallery) .deck-entry:hover{transform:translateY(-4px);border-color:var(--cl-gold)!important;box-shadow:0 20px 42px #0006}
+:is(#deckGallery,#archivedDeckGallery) .deck-entry-details{background:linear-gradient(transparent,#071311e8 65%,#071311f5)!important;padding-top:60px!important;padding-bottom:18px!important}
+:is(#deckGallery,#archivedDeckGallery) .deck-entry-details strong{font-family:Georgia,"Iowan Old Style",serif;font-size:20px!important;font-weight:600}
+:is(#deckGallery,#archivedDeckGallery) .deck-winrate{border-color:#c9aa7580!important;background:#122f29ec!important;color:#f4dfb6!important;border-radius:8px!important}
 #recentGamesSection{margin-top:42px!important;padding:24px!important;border:1px solid var(--cl-line);border-radius:16px;background:linear-gradient(150deg,#182c2c,#142323)}
 .recent-games-heading{margin-bottom:20px!important}
 .recent-games-heading a{color:var(--cl-gold)!important;font-weight:650}
 #recentGames .recent-game{background:#101f22!important;border:1px solid #47615b!important;border-radius:12px!important;padding:14px!important}
 #recentGames .recent-game-winner{border-color:var(--cl-gold)!important}
 #quickActions #account{background:#17282a!important;border-color:#668176!important;border-radius:14px!important;box-shadow:0 20px 50px #0009!important}
-@media(max-width:760px){#mainHeader{padding:24px!important;min-height:0;display:flex;align-items:flex-start!important}#quickActions{justify-content:flex-start;width:100%;max-width:none}#quickActions>#newDeckButton,#quickActions>#ledgerLink,#quickActions>#accountButton{flex:1 1 auto}#quickActions #account{left:0!important;right:auto!important}#deckGallery{grid-template-columns:repeat(auto-fit,minmax(230px,1fr))!important}}
-@media(max-width:480px){#mainHeader{padding:20px!important}#mainHeader h1{font-size:38px!important}#quickRecordGame{padding:17px!important}#recentGamesSection{padding:17px!important}#deckGallery{grid-template-columns:1fr!important}}
+@media(max-width:760px){#mainHeader{padding:24px!important;min-height:0;display:flex;align-items:flex-start!important}#quickActions{justify-content:flex-start;width:100%;max-width:none}#quickActions>#newDeckButton,#quickActions>#ledgerLink,#quickActions>#accountButton{flex:1 1 auto}#quickActions #account{left:0!important;right:auto!important}:is(#deckGallery,#archivedDeckGallery){grid-template-columns:repeat(auto-fit,minmax(230px,1fr))!important}}
+@media(max-width:480px){#mainHeader{padding:20px!important}#mainHeader h1{font-size:38px!important}#quickRecordGame{padding:17px!important}#recentGamesSection{padding:17px!important}:is(#deckGallery,#archivedDeckGallery){grid-template-columns:1fr!important}}
 </style><style>
 /* Modern Archivist | embedded deck profile in the collection */
 #deckProfile{margin-top:20px;padding:clamp(18px,3vw,28px);background:linear-gradient(145deg,#172b2b,#102124);border:1px solid var(--cl-line);border-radius:18px;box-shadow:0 15px 35px #0003}
@@ -321,4 +321,9 @@ body{max-width:1180px!important;padding:clamp(16px,3vw,36px)!important}
 #mainHeader>div:first-child{width:100%;max-width:none!important;flex:1 1 100%}
 #mainHeader .homepage-brand-logo{width:100%!important;max-width:100%!important;max-height:none!important;height:auto!important;object-position:center!important}
 #mainHeader p{max-width:none!important;font-size:clamp(18px,2.2vw,25px)!important;line-height:1.6;margin:14px 0 0!important}
-</style><style>.home-deck-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px}.home-deck-heading h2{margin:0!important}.home-deck-heading #newDeckButton{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;height:42px;margin:0;padding:0 15px;border:1px solid #557369;border-radius:9px;background:#152d2b;color:#f1ebdb;font-size:13px;font-weight:650;line-height:1;cursor:pointer}.home-deck-heading #newDeckButton:hover{background:#307763;border-color:#9bd5bb;color:#fff}</style><link rel="stylesheet" href="./site-navigation.css?v=4"><link rel="stylesheet" href="./game-history-links.css?v=1"><link rel="stylesheet" href="./site-branding.css?v=3"><script src="./commander-art-position.js?v=manual-3" defer></script><link rel="stylesheet" href="./guest-preview.css?v=first-screen-2"><link rel="stylesheet" href="./friend-notifications.css?v=1"><script type="module" src="./site-session.js?v=cleanup-11"></script><link rel="stylesheet" href="./site-footer.css?v=1"><script src="./site-footer.js?v=prepared-perf-1" defer></script><link rel="stylesheet" href="./search-filter-controls.css?v=1"><script type="module" src="./search-filter-controls.js?v=1"></script></html>
+</style><style>.home-deck-heading{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px}.home-deck-heading h2{margin:0!important}.home-deck-heading #newDeckButton{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;height:42px;margin:0;padding:0 15px;border:1px solid #557369;border-radius:9px;background:#152d2b;color:#f1ebdb;font-size:13px;font-weight:650;line-height:1;cursor:pointer}.home-deck-heading #newDeckButton:hover{background:#307763;border-color:#9bd5bb;color:#fff}</style><link rel="stylesheet" href="./site-navigation.css?v=4"><link rel="stylesheet" href="./game-history-links.css?v=1"><link rel="stylesheet" href="./site-branding.css?v=3"><script src="./commander-art-position.js?v=manual-3" defer></script><link rel="stylesheet" href="./guest-preview.css?v=first-screen-2"><link rel="stylesheet" href="./friend-notifications.css?v=1"><script type="module" src="./site-session.js?v=cleanup-11"></script><link rel="stylesheet" href="./site-footer.css?v=1"><script src="./site-footer.js?v=prepared-perf-1" defer></script><link rel="stylesheet" href="./search-filter-controls.css?v=1"><script type="module" src="./search-filter-controls.js?v=1"></script><style>/* Archived artwork stays distinct in both gallery views. */
+#archivedDeckGallery .deck-entry-art img{filter:grayscale(1)}
+.archived-gallery-section{margin-top:24px;padding-top:18px;border-top:1px solid var(--cl-line,#38514d)}
+.archived-gallery-section>summary{cursor:pointer;font-weight:650}
+#archivedDeckGallery{margin-top:14px}
+</style></html>
