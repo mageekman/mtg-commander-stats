@@ -25,6 +25,7 @@ window.addEventListener('focus',refreshFriendNotifications);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshFriendNotifications()});
 document.addEventListener('friends-changed',refreshFriendNotifications);
 document.addEventListener('game-invitations-changed',refreshFriendNotifications);
+document.addEventListener('playgroup-invitations-changed',refreshFriendNotifications);
 setInterval(()=>{if(document.visibilityState==='visible')refreshFriendNotifications()},45000);
 export async function showFriendNotifications(host,{markSeen=false}={}){
  const id=userId,current=epoch;
@@ -51,7 +52,7 @@ export async function showFriendNotifications(host,{markSeen=false}={}){
   if(!notifications.length){if(host.dataset.viewer!==id||host.dataset.seen!=='true'){host.hidden=true;host.replaceChildren()}return}
   host.dataset.viewer=id;delete host.dataset.seen;host.replaceChildren();
   const title=document.createElement('h2');title.id='friendUpdatesTitle';title.textContent='Friend updates';const list=document.createElement('ul');
-  for(const update of notifications){const item=document.createElement('li');const link=document.createElement('a');link.textContent=update.display_name||update.handle||'A player';link.href='./player.html?user='+encodeURIComponent(update.handle||'');item.append(link,document.createTextNode(update.kind==='invite_joined'?' joined Command Ledger through your invite. You are now friends.':update.kind==='game_tagged'?' tagged you in a game. You can choose to add it to your Ledger.':update.kind==='request_accepted'?' accepted your friend request.':' sent you a friend request.'));list.append(item)}
+  for(const update of notifications){const item=document.createElement('li');const link=document.createElement('a');link.textContent=update.display_name||update.handle||'A player';link.href='./player.html?user='+encodeURIComponent(update.handle||'');item.append(link,document.createTextNode(update.kind==='playgroup_invited'?' invited you to a playgroup. Review your playgroup invitations on the Friends page.':update.kind==='invite_joined'?' joined Command Ledger through your invite. You are now friends.':update.kind==='game_tagged'?' tagged you in a game. You can choose to add it to your Ledger.':update.kind==='request_accepted'?' accepted your friend request.':' sent you a friend request.'));list.append(item)}
   host.append(title,list);
   if(!markSeen){const manage=document.createElement('a');manage.className='friends-page-button';manage.href='./friend-requests.html';manage.textContent='View updates and manage requests';host.append(manage)}
   host.hidden=false;

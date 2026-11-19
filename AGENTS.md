@@ -31,8 +31,8 @@ When adding any new Ledger statistic:
 
 # Playgroup membership
 
-- Playgroups are private. Membership grants access to group details and member identities, never to a player's private Ledger, decks, or stats. Game sharing and group statistics require a separate implementation and consent model.
+- Playgroups are private. Members and authenticated players with a valid invite link or pending invitation may view group details and member identities. Neither invitation nor membership grants access to a player's private Ledger, decks, or stats. Game sharing and group statistics require a separate implementation and consent model.
 - Keep tables in the private schema without direct client grants. Public RPC wrappers use security invoker; private implementations must authenticate and authorize every operation. Do not derive roles from user metadata.
 - Serialize membership, ownership, and invite-link mutations on the group row. Owners must transfer ownership or delete the group before leaving; only owners may appoint admins or transfer ownership. Admins cannot remove other admins or owners.
-- Invitations require explicit acceptance. Invite links use high-entropy tokens stored only as hashes, expire after 30 days, and must be checked again under the group lock when joining. Never expose roster data through link previews.
+- Invitations require explicit acceptance. Copyable invite tokens stay only in private tables and are exposed through member-authorized copy RPCs. Each sharing member has a stable attributed link; owner/admin reset invalidates all existing group links. Links expire after 30 days and must be checked again under the group lock when joining. Invited viewers may see the roster, but never management controls, other invitations, or personal Ledger stats. Signup metadata is untrusted: validate the bearer token in the database and create only a pending request, never automatic membership.
 - Leaving, removal, and group deletion must not change personal Ledger games or decks.
