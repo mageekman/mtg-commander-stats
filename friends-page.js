@@ -1,13 +1,14 @@
+import {mountPlaygroupInvitations} from './playgroup-invitations.js?v=group-invites-1';
 import {createGameHistoryLinker} from './game-history-links.js?v=1';
 import {mountPlayedWith} from './played-with.js?v=1';
-import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
+import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=playgroups-1';
 import {mountFriendRivalries} from './friend-rivalries.js?v=prepared-perf-1';
 import {rankingPeriods,rankingRange,dateString} from './friend-ranking-period.js?v=1';
 import {applyPassportArt} from './passport-art.js?v=1';
 import {mountGameInvitations} from './game-invitations.js?v=2';
 import {mountRecentFriendGames} from './recent-friend-games.js?v=history-links-5';
 import {renderFriendDashboard} from './friends-dashboard.js?v=ranking-tabs-5';
-import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=invite-3';
+import {setFriendNotificationUser,showFriendNotifications} from './friend-notifications.js?v=group-invites-1';
 import {createClient} from './vendor/supabase-js.mjs';
 import {mountRequestsPanel} from './friends.js?v=3';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
@@ -82,17 +83,18 @@ async function loadFriends(){
   let next=0;await Promise.all(Array.from({length:Math.min(4,jobs.length)},async()=>{while(next<jobs.length&&current===version)await jobs[next++]()}));
  }catch(error){status.textContent='Could not load friends: '+error.message;const retry=node('button','Try again');retry.type='button';retry.className='friends-page-button';retry.onclick=loadFriends;host.replaceChildren(retry);host.hidden=false}
 }
-let activeUser=null;
+let activeUser=null,disposeGroupInvites=null;
 async function start(){
  try{const {user,error}=await readPageUser(sb);activeUser=user;setFriendNotificationUser(user);document.querySelector('.friends-page-tools').hidden=!user;
-  if(!user){showFriendNotifications(document.getElementById('friendUpdates'));host.hidden=true;status.textContent='';showAuthPrompt(document.getElementById('friendsPageSignIn'),{message:'Sign in to see your friends and requests.',error});return}
+  if(!user){disposeGroupInvites?.();disposeGroupInvites=null;showFriendNotifications(document.getElementById('friendUpdates'));host.hidden=true;status.textContent='';showAuthPrompt(document.getElementById('friendsPageSignIn'),{message:'Sign in to see your friends and requests.',error});return}
   document.getElementById('friendsPageSignIn').hidden=true;updateNotifications();
+  let groupInvites=document.getElementById('friendPlaygroupInvites');if(!groupInvites){groupInvites=node('section');groupInvites.id='friendPlaygroupInvites';host.before(groupInvites)}disposeGroupInvites?.();disposeGroupInvites=mountPlaygroupInvitations(groupInvites,sb);
   if(document.body.dataset.friendsPage==='requests'){host.replaceChildren();host.hidden=false;status.textContent='';const games=node('section'),friends=node('section'),played=node('section');host.append(games,friends,played);mountPlayedWith(played,sb);mountGameInvitations(games,{loadInvitations:()=>rpc('list_game_invitations'),loadDecks:async()=>{const {data,error}=await sb.from('decks').select('id,name,commander,archived_at').eq('owner_id',user.id).order('name');if(error)throw error;return data||[]},respond:(id,decision,deck)=>rpc('respond_game_invitation',{invitation_id:id,decision,selected_deck_id:deck})});mountRequestsPanel(friends)}else await loadFriends();
  }catch(error){console.error('Connections unavailable',error);status.textContent='Your connections could not be loaded. Please try again.'}
 }
 document.addEventListener('friends-changed',()=>{if(activeUser&&document.body.dataset.friendsPage==='friends')loadFriends()});
 window.addEventListener('focus',()=>{if(activeUser&&document.body.dataset.friendsPage==='friends')loadFriends()});
-sb.auth.onAuthStateChange((_event,session)=>{if((session?.user?.id||null)!==(activeUser?.id||null)){version++;host.replaceChildren();host.hidden=true;setTimeout(start,0)}});
+sb.auth.onAuthStateChange((_event,session)=>{if((session?.user?.id||null)!==(activeUser?.id||null)){version++;disposeGroupInvites?.();disposeGroupInvites=null;host.replaceChildren();host.hidden=true;setTimeout(start,0)}});
 start();
 
 function updateNotifications(){if(activeUser)showFriendNotifications(document.getElementById('friendUpdates'),{markSeen:document.body.dataset.friendsPage==='requests'})}

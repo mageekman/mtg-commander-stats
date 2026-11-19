@@ -1,0 +1,8 @@
+// Keep a group invitation separate from personal friend-referral codes.
+const key='command-ledger:playgroup-invite',lifetime=30*24*60*60*1000;
+const valid=token=>typeof token==='string'&&/^[0-9a-f]{64}$/i.test(token);
+export function capturePlaygroupInvite(){const token=new URLSearchParams(location.search).get('invite');if(location.pathname.endsWith('/playgroups.html')&&valid(token))try{localStorage.setItem(key,JSON.stringify({token:token.toLowerCase(),expires:Date.now()+lifetime}))}catch{}}
+export function playgroupInviteToken(){try{const page=new URL(location.href),next=page.searchParams.get('next'),target=page.pathname.endsWith('/playgroups.html')?page:next?new URL(next,page):null;if(target?.origin===page.origin&&target.pathname.endsWith('/playgroups.html')&&valid(target.searchParams.get('invite')))return target.searchParams.get('invite').toLowerCase()}catch{}try{const value=JSON.parse(localStorage.getItem(key));if(valid(value?.token)&&value.expires>Date.now())return value.token}catch{}return null}
+export function clearPlaygroupInvite(){try{localStorage.removeItem(key)}catch{}}
+export function createPlaygroupInviteClaimer(client){let pending=null,signature='';return user=>{const token=playgroupInviteToken();if(!user||!token)return;const next=user.id+':'+token;if(signature===next)return;signature=next;pending=client.rpc('playgroup_action',{action:'claim_link',invite_token:token}).then(({error})=>{if(signature!==next)return;if(error){if(/invalid or expired|unavailable/i.test(error.message||''))clearPlaygroupInvite();else signature='';return}clearPlaygroupInvite();document.dispatchEvent(new Event('playgroup-invitations-changed'))}).catch(()=>{if(signature===next)signature=''});return pending}}
+capturePlaygroupInvite();

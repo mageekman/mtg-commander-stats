@@ -12,3 +12,5 @@ body{max-width:1180px;margin:auto;padding:clamp(16px,3vw,36px);color:#f1ebdb;bac
 .friends-page-tools[hidden]{display:none!important}
 
 @media(min-width:651px) and (max-width:1000px){.friends-passport-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.playgroup-request-panel{margin:18px 0}.playgroup-request-row{border-top:1px solid #38514d;padding:14px 0}.playgroup-request-row h3{margin:0 0 5px}.playgroup-request-row p{margin:6px 0;color:#bed0c4}.playgroup-request-row>.friend-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.playgroup-request-row button{min-height:40px;padding:9px 14px;border:1px solid #557369;border-radius:9px;background:#152d2b;color:#f1ebdb;cursor:pointer}

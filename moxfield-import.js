@@ -1,4 +1,4 @@
-import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=1';
+import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=playgroups-1';
 import {setupDeckRemoval} from './deck-removal.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
