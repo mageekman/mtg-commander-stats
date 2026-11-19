@@ -63,6 +63,10 @@ function openMember(member,group,trigger){
  d.addEventListener('close',()=>{disposeFriends?.();d.remove();if(trigger.isConnected)trigger.focus()},{once:true});document.body.append(d);d.showModal();close.focus();
 }
 
+function closePlaygroupPopups(){
+ // Close the topmost dialog first so native modal focus/inert state is unwound.
+ for(const dialog of [...document.querySelectorAll('.pg-dialog[open]')].reverse())dialog.close();
+}
 function openMemberOptions(member,group,parent,trigger){
  if(!user||!parent.open||document.querySelector('.pg-player-options-dialog[open]'))return;
  const actor=user.id,d=node('dialog');d.className='pg-dialog pg-player-options-dialog';d.setAttribute('aria-labelledby','pgMemberOptionsTitle');
@@ -70,7 +74,7 @@ function openMemberOptions(member,group,parent,trigger){
  const choices=actions();let confirmation=null;
  const ask=(text,label,action)=>{
   if(confirmation?.open||user?.id!==actor)return;
-  confirmation=confirmAction('Are you sure?',text,label,()=>{if(user?.id!==actor)return;d.close();parent.close();mutate(action,{target_group:group.id,target_user:member.id})});
+  confirmation=confirmAction('Are you sure?',text,label,()=>{if(user?.id!==actor)return;closePlaygroupPopups();mutate(action,{target_group:group.id,target_user:member.id})});
   confirmation.classList.add('pg-stacked-confirm');
  };
  if(group.role==='owner'){
