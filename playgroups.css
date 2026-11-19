@@ -6,12 +6,15 @@
 
 .pg-member .player-passport-card{display:flex}
 
-/* Dense member roster, with roles inside the passport and actions beside it. */
-.pg-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));align-items:start;gap:10px;margin:12px 0 20px}
-.pg-roster>.pg-member{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:0;border:0}
+/* Member actions live in the player popup, leaving equal-width passport cards. */
+.pg-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));align-items:start;gap:8px;margin:12px 0 20px}
+.pg-roster>.pg-member{display:block;padding:0;border:0}
 .pg-roster .pg-member>.pg-player-copy{position:relative;width:auto;max-width:none;min-width:0;flex:none}
-.pg-roster .player-passport-card>.pg-role{position:absolute;right:7px;bottom:6px;z-index:2;margin:0;padding:2px 7px;border-radius:6px;background:#0c2222eb;font:500 10px/1.3 system-ui;color:#e7d3a7;pointer-events:none}
-.pg-roster .player-passport-copy>small{padding-right:64px}
-.pg-member-tools{position:relative;min-width:0}.pg-member-tools>summary{box-sizing:border-box;display:flex;align-items:center;justify-content:center;min-height:34px;padding:7px 10px;border:1px solid #557369;border-radius:8px;background:#152d2b;color:#f1ebdb;font:650 12px/1.3 system-ui;cursor:pointer;list-style:none}.pg-member-tools>summary::-webkit-details-marker{display:none}.pg-member-tools>summary:hover{background:#307763}.pg-member-tools>summary:focus-visible{outline:2px solid #c9aa75;outline-offset:3px}
-.pg-member-tools>.pg-actions{position:absolute;z-index:20;right:0;top:calc(100% + 6px);display:flex;flex-direction:column;align-items:stretch;gap:5px;width:200px;padding:7px;border:1px solid #557369;border-radius:10px;background:#142326;box-shadow:0 10px 28px #0007}
-.pg-member-tools:not([open])>.pg-actions{display:none}.pg-member-tools .pg-actions>button{min-height:34px;justify-content:flex-start;padding:7px 10px;font-size:12px}
+.pg-member-passport>.pg-role{position:absolute;right:9px;bottom:7px;z-index:2;margin:0;padding:2px 7px;border:1px solid #849676;border-radius:6px;background:#071e1ef5;font:600 10px/1.3 system-ui;color:#f4dfb3;pointer-events:none}
+.pg-member-passport .player-passport-copy>small{padding-right:70px}
+.pg-player-dialog .pg-heading h2{margin:0}.pg-player-dialog .pg-heading>button{width:36px;min-height:36px;padding:0;font-size:23px}
+.pg-player-dialog>.player-passport-card{min-height:140px;padding:16px}.pg-player-dialog .player-passport-copy>strong{font-size:24px}.pg-player-dialog .player-passport-copy>small{font-size:13px}.pg-player-dialog .pg-member-passport>.pg-role{right:12px;bottom:12px;font-size:11px;padding:3px 8px}
+.pg-player-dialog>.pg-actions{margin-top:14px}.pg-player-friends .friend-feedback{flex-basis:100%;font-size:13px}.pg-player-friends .friend-relationship{font-size:13px;color:#bed0c4}
+.pg-player-options{margin-top:18px;border-top:1px solid #38514d;padding-top:14px}.pg-player-options>summary{width:fit-content;box-sizing:border-box;display:flex;align-items:center;min-height:40px;padding:9px 14px;border:1px solid #557369;border-radius:9px;background:#152d2b;font:650 13px/1.3 system-ui;cursor:pointer;list-style:none}.pg-player-options>summary::-webkit-details-marker{display:none}.pg-player-options>summary:focus-visible{outline:2px solid #c9aa75;outline-offset:3px}.pg-player-options>.pg-actions{flex-direction:column;align-items:stretch;margin-top:8px;gap:7px}.pg-player-options:not([open])>.pg-actions{display:none}.pg-player-options .pg-actions>button{justify-content:flex-start}
+
+.pg-player-dialog .pg-player-friends{margin:0}.pg-player-friends .friend-feedback:empty,.pg-player-friends .friend-relationship:empty{display:none}.pg-player-options>summary:hover{background:#307763}
