@@ -1,3 +1,4 @@
+import {createPlaygroupGameField} from './ledger-playgroup-field.js?v=1';
 import {attachLedgerPie} from './ledger-pie-motion.js?v=1';
 import {createLedgerFriendArtwork} from './ledger-friend-art.js?v=prepared-perf-1';
 import {createStatGameExplorer} from './ledger-stat-games.js?v=pie-3';
@@ -14,7 +15,7 @@ import {commanderColors} from './ledger-commander-colors.js?v=1';
 import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=prepared-perf-1';
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=history-2';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=identities-6';
-import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=history-links-3';
+import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=group-games-1';
 import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
 import {gameMatchesSearch} from './game-history-search.js?v=search-4';
@@ -22,11 +23,14 @@ import {isGenericOpponentName} from './opponent-names.js?v=1';
 import {mountLedgerTrend} from './ledger-trend-controls.js?v=loading-3';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
-const friendService=createGameFriendService(sb);
+let gamePlaygroup;
+const friendService=createGameFriendService(sb,{groupMembers:()=>gamePlaygroup.members()});
 const historyLinker=createGameHistoryLinker(sb);
 const $=id=>document.getElementById(id);
 let friendDisplayNames=new Map();
 let user=null,decks=[],games=[],playerCount=4,editingGameId=null,savingGame=false;
+gamePlaygroup=createPlaygroupGameField({client:sb,getUser:()=>user,getPlayers:()=>[...document.querySelectorAll('.player-row')].map(gamePlayerSnapshot),select:$('gamePlaygroup'),prompt:$('gamePlaygroupPrompt'),status:$('gamePlaygroupStatus'),note:$('gamePlaygroupSnapshotNote')});
+$('gameForm').addEventListener('game-participants-changed',()=>gamePlaygroup.reconsider());$('gameForm').addEventListener('input',()=>gamePlaygroup.reconsider());
 let ledgerSettings=normalizeLedgerSettings();
 let openSettingsFromUrl=new URLSearchParams(location.search).get('settings')==='1';
 const updateLedgerNotices=mountLedgerUpdates($('ledgerStatUpdates'),sb,()=>user,()=>$('openLedgerSettings').click());
@@ -174,12 +178,13 @@ async function refresh(){
  try{return await refreshLedger()}finally{done()}
 }
 async function refreshLedger(){
- const [r,names]=await Promise.all([sb.from('personal_games').select('id,deck_id,played_at,won,opponents,notes,players,first_player,winner_player').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false}),loadFriendDisplayNames(sb)]);
+ const [r,names]=await Promise.all([sb.from('personal_games').select('id,deck_id,played_at,won,opponents,notes,players,first_player,winner_player,playgroup_id').eq('owner_id',user.id).order('played_at',{ascending:false}).order('id',{ascending:false}),loadFriendDisplayNames(sb)]);
  friendDisplayNames=names;
  if(r.error){message('Unable to load your games. Please contact the app administrator. '+r.error.message);$('save').disabled=true;return}
  games=r.data||[];message('');render();
 }
 function setEditorOpen(open){
+ if(open)gamePlaygroup.load(true);
  const dialog=$('gameEditor');
  if(open&&!dialog.open){dialog.showModal();requestAnimationFrame(()=>$('deck').focus())}
  else if(!open&&dialog.open)dialog.close();
@@ -194,6 +199,7 @@ $('closeGameEditor').onclick=()=>{if(!savingGame)resetEditor()};
 $('gameEditor').addEventListener('cancel',event=>{event.preventDefault();if(!savingGame)resetEditor()});
 $('gameEditor').addEventListener('close',()=>{if(!$('gameEditor').open){document.body.classList.remove('game-editor-open');$('openGameForm').setAttribute('aria-expanded','false')}});
 function resetEditor(){
+ gamePlaygroup.reset();
  editingGameId=null;$('formTitle').textContent='Record a game';$('save').textContent='Save game';$('cancelEdit').hidden=false;
  $('deck').value='';$('notes').value='';$('date').value=new Date().toLocaleDateString('en-CA');
  playerCount=4;drawPlayers([]);$('firstPlayer').value='0';$('winnerPlayer').value='0';setEditorOpen(false);
@@ -212,6 +218,7 @@ async function deleteGame(game,button){
 function editGame(game){
  if(!user){location.href='./sign-in.html';return}
  setEditorOpen(true);editingGameId=game.id;$('formTitle').textContent='Edit game';$('save').textContent='Save changes';$('cancelEdit').hidden=false;
+ gamePlaygroup.reset(game.playgroup_id||null,game.players||[]);
  $('deck').value=game.deck_id;$('date').value=game.played_at;$('notes').value=game.notes||'';
  const own=decks.find(d=>d.id===game.deck_id);
  const existing=Array.isArray(game.players)&&game.players.length?game.players:[
@@ -540,13 +547,13 @@ $('gameForm').onsubmit=async e=>{
  if([...document.querySelectorAll('.player-row')].some(row=>row.friendLoading)){message('Wait for the friend deck choices to finish loading.');return}
  const players=[...document.querySelectorAll('.player-row')].map((row,i)=>({...gamePlayerSnapshot(row),...(i===0?{name:'You'}:{})}));
  if(!played_at||players.length<2||players.length>6||players.some(p=>!p.commander)){message('Enter a date and select a commander for everyone. Player names are optional.');return}
- const taggedIds=players.map(p=>p.friend_id).filter(Boolean);if(new Set(taggedIds).size!==taggedIds.length){message('Tag each friend only once in a game.');return}
+ const taggedIds=players.map(p=>p.friend_id||p.participant_id).filter(Boolean);if(new Set(taggedIds).size!==taggedIds.length){message('Tag each player only once in a game.');return}
  const opponentInputs=[...document.querySelectorAll('.player-row')].slice(1).map(r=>r.querySelector('.player-commander'));
  if(opponentInputs.some(input=>input.getSelectedCommander?.()!==input.value.trim())){message('Select each opponent commander from the Scryfall suggestions.');return}
  const first_player=Number($('firstPlayer').value),winner_player=Number($('winnerPlayer').value);
  if(!Number.isInteger(first_player)||!Number.isInteger(winner_player)||first_player<0||winner_player<0||first_player>=players.length||winner_player>=players.length){message('Select who went first and who won.');return}
  const button=$('save');button.disabled=true;savingGame=true;message('Saving game…');
- const payload={deck_id,played_at,won:winner_player===0,opponents:players.slice(1).map(p=>p.commander),players,first_player,winner_player,notes:$('notes').value.trim()};
+ const payload={deck_id,played_at,playgroup_id:gamePlaygroup.value(),won:winner_player===0,opponents:players.slice(1).map(p=>p.commander),players,first_player,winner_player,notes:$('notes').value.trim()};
  try{
   const r=editingGameId?await sb.from('personal_games').update(payload).eq('id',editingGameId).eq('owner_id',user.id):await sb.from('personal_games').insert({...payload,owner_id:user.id});
   if(r.error){message('Save failed: '+r.error.message+(r.error.message.includes('column')?' — Please contact the app administrator.':''));return}

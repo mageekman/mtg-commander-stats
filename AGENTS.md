@@ -36,3 +36,11 @@ When adding any new Ledger statistic:
 - Serialize membership, ownership, and invite-link mutations on the group row. Owners must transfer ownership or delete the group before leaving; only owners may appoint admins or transfer ownership. Admins cannot remove other admins or owners.
 - Invitations require explicit acceptance. Copyable invite tokens stay only in private tables and are exposed through member-authorized copy RPCs. Each sharing member has a stable attributed link; owner/admin reset invalidates all existing group links. Links expire after 30 days and must be checked again under the group lock when joining. Invited viewers may see the roster, but never management controls, other invitations, or personal Ledger stats. Signup metadata is untrusted: validate the bearer token in the database and create only a pending request, never automatic membership.
 - Leaving, removal, and group deletion must not change personal Ledger games or decks.
+
+# Playgroup games
+
+- A new or imported Ledger game defaults to no playgroup. Suggestions from tagged co-members must require an explicit choice; never assign a group automatically or backfill existing games.
+- Shared game snapshots exclude personal notes and private deck lists. Ledger copies and group snapshots remain independent; explain that clearing the field or editing/deleting a Ledger copy does not remove an existing group snapshot.
+- Independent accepted copies retain one shared event identity, so each playgroup counts the event once. A later copy cannot overwrite the first submitted snapshot.
+- Only current group members can read game snapshots. An invitation permits roster previews, not access to member-only game history.
+- Group-only tags use recorded participant IDs, not live friend links. Co-membership must not grant friend-only deck access or include non-friends in Friends statistics. Preserve normal system updates such as unfriending and group deletion.
