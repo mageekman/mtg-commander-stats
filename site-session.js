@@ -10,8 +10,10 @@ let guest=true,currentUser=null;
 function update(user){
  currentUser=user;onboarding.update(user);if(sessionKnown)announcements.update(user);guest=!user;setFriendNotificationUser(user);document.body.classList.toggle('guest-preview',guest);
  for(const nav of document.querySelectorAll('#siteNavigation,#siteFooter nav'))for(const link of nav.querySelectorAll('a')){
+  // Popup anchors are not page destinations (especially on Profile/Friends pages).
+  if(link.getAttribute('href')?.startsWith('#'))continue;
   const path=new URL(link.href,location.href).pathname.split('/').pop();
-  if(path==='find-players.html'||path==='friends.html')link.hidden=guest;
+  if(path==='find-players.html'||path==='friends.html'||path==='playgroups.html')link.hidden=guest;
   if(path==='profile.html'||link.dataset.profileLink){link.dataset.profileLink='true';link.textContent=guest?'Sign in/Create Account':'My Profile';link.href=guest?'./sign-in.html':'./profile.html'}
  }
  let intro=document.getElementById('guestIntroduction');

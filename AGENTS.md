@@ -28,3 +28,11 @@ When adding any new Ledger statistic:
 - After preparing a major feature, meaningful bug fix, or stability improvement, ask the user whether they would like it added to the public changelog. Do not add an entry automatically or treat permission to implement/publish the feature as permission to add a changelog entry. This question must not block the authorized feature work.
 - When the user approves a changelog entry, update `site-changelog.js` with a brief player-facing summary and publication date, newest first. Group related changes and omit minor positioning or cosmetic tweaks.
 - Describe completed behavior without implementation details, private data, or unshipped promises. Keep older entries when adding new ones. Refresh the changelog import version in `site-footer.js` and footer script references when entries change.
+
+# Playgroup membership
+
+- Playgroups are private. Membership grants access to group details and member identities, never to a player's private Ledger, decks, or stats. Game sharing and group statistics require a separate implementation and consent model.
+- Keep tables in the private schema without direct client grants. Public RPC wrappers use security invoker; private implementations must authenticate and authorize every operation. Do not derive roles from user metadata.
+- Serialize membership, ownership, and invite-link mutations on the group row. Owners must transfer ownership or delete the group before leaving; only owners may appoint admins or transfer ownership. Admins cannot remove other admins or owners.
+- Invitations require explicit acceptance. Invite links use high-entropy tokens stored only as hashes, expire after 30 days, and must be checked again under the group lock when joining. Never expose roster data through link previews.
+- Leaving, removal, and group deletion must not change personal Ledger games or decks.
