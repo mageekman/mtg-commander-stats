@@ -1,6 +1,12 @@
 // Newest first. Summarize shipped features, fixes, and stability improvements.
 // Dates reflect publication; group related changes and omit minor layout tweaks.
 export const changelogEntries=[
+ {date:'2026-11-19',title:'Playgroups are here',updates:[
+  'Create private playgroups, invite players by username or a reusable link, and manage owners, admins, and members.',
+  'Invited players can review the group roster before accepting. New accounts keep their invitation, and Friends now shows playgroup requests with Accept, View Playgroup, and Decline.',
+  'Open member player cards to view profiles, manage friend connections, and access group options. Important changes require confirmation.',
+  'Owners and admins can reset invite links. Your personal Ledger stays private when you join a playgroup.'
+ ]},
  {date:'2026-11-13',title:'See what’s ahead on the Roadmap',updates:[
   'Open the Roadmap from the footer to explore plans for Playgroups, Store Accounts, and Events.'
  ]},
