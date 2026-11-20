@@ -31,7 +31,11 @@ function renderDetail(group){const host=$('playgroupDetail');host.replaceChildre
 
  if(manager){
   const management=node('div');management.className='pg-management';management.append(node('h3','Invite players'));const form=node('form');form.className='pg-inline-form';const label=node('label','Username'),input=node('input');input.name='handle';input.required=true;input.maxLength=21;input.autocomplete='off';input.placeholder='@username';input.setAttribute('list','pgFriendOptions');const options=node('datalist');options.id='pgFriendOptions';for(const friend of friendOptions){const option=node('option');option.value=friend.handle;option.label=friend.display_name||friend.handle;options.append(option)}label.append(input,options);const send=node('button','Send invitation');send.type='submit';form.append(label,send);form.onsubmit=event=>{event.preventDefault();const handle=input.value.trim().replace(/^@/,'');if(!handle){input.setCustomValidity('Enter a username.');input.reportValidity();return}input.setCustomValidity('');mutate('invite',{target_group:group.id,target_handle:handle})};input.oninput=()=>input.setCustomValidity('');management.append(form);
-  for(const invited of group.invitations||[]){const row=node('div');row.className='pg-member';row.append(playerCopy(invited),button('Cancel invitation',()=>mutate('revoke',{target_group:group.id,target_user:invited.id})));management.append(row)}
+  if(group.invitations?.length){
+   const pending=node('section');pending.className='pg-pending-invitations';pending.setAttribute('aria-label','Invited players');pending.append(node('h3','Invited players'));const list=node('div');list.className='pg-invited-grid';
+   for(const invited of group.invitations){const row=node('div');row.className='pg-invited-player';row.append(playerCopy(invited,{passport:true}),actions(button('Cancel invitation',()=>mutate('revoke',{target_group:group.id,target_user:invited.id}))));list.append(row)}
+   pending.append(list);management.append(pending);
+  }
   host.append(management);
  }
  if(group.role==='invited')return;
