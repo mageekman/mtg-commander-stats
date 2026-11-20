@@ -44,3 +44,10 @@ When adding any new Ledger statistic:
 - Independent accepted copies retain one shared event identity, so each playgroup counts the event once. A later copy cannot overwrite the first submitted snapshot.
 - Only current group members can read game snapshots. An invitation permits roster previews, not access to member-only game history.
 - Group-only tags use recorded participant IDs, not live friend links. Co-membership must not grant friend-only deck access or include non-friends in Friends statistics. Preserve normal system updates such as unfriending and group deletion.
+
+# Playgroup dashboard
+
+- Aggregate only `private.playgroup_games` snapshots, never personal Ledger games or private profile statistics. The public stats wrapper stays security invoker and the private implementation must require current membership; invitees cannot view the dashboard.
+- Count each shared event once. Player rankings use recorded participant IDs and current membership, never names/handles guessed from free text. Win-rate ties use games played, followed by stable identity ordering.
+- Commander performance counts seat appearances, including guests and former members in shared history. Mirrored commanders have multiple appearances and only the winning seat earns a win. Keep this denominator clear in the UI.
+- Filter dates in the database before aggregating, use the existing group/date index, and return aggregates rather than downloading game histories. Keep ranking/commander pagination compact and reuse the central artwork cache and saved passport framing.
