@@ -1,3 +1,4 @@
+import {mountPlaygroupGames} from './playgroup-games.js?v=1';
 import {clearPlaygroupInvite} from './playgroup-invite-link.js?v=group-invites-1';
 import {mountFriendAction} from './friends.js?v=playgroup-popup-1';
 import {createPlayerPassportCards} from './player-passport-card.js?v=popup-2';
@@ -33,6 +34,7 @@ function renderDetail(group){const host=$('playgroupDetail');host.replaceChildre
   host.append(management);
  }
  if(group.role==='invited')return;
+ const sharedGames=node('section');host.append(sharedGames);mountPlaygroupGames(sharedGames,client,group.id);
  const links=node('div');links.className='pg-management';links.append(node('h3','Invite link'),paragraph('Copy your invite link to share this playgroup. Links expire after 30 days.','pg-muted'));
  links.append(actions(button('Copy Invite Link',async()=>{await mutate('copy_link',{target_group:group.id},async result=>{const url=new URL('./playgroups.html',location.href);url.searchParams.set('invite',result.token);inviteLink={group:group.id,url:url.href,manual:false};try{await navigator.clipboard.writeText(url.href);return 'Invite link copied.'}catch{inviteLink.manual=true;return 'Select and copy your invite link below.'}});if(inviteLink?.manual){const input=$('playgroupManualLink');input?.focus();input?.select()}}),...(manager?[button('Reset Link',()=>confirmAction('Reset invite links?','Existing invite links for this playgroup will stop working. Pending invitations and members are kept.','Reset Link',()=>mutate('reset_link',{target_group:group.id},()=>{inviteLink=null;return 'Invite links reset. Copy your new link to share it.'})),true)]:[])));
  if(inviteLink?.group===group.id&&inviteLink.manual){const label=node('label','Invite link'),input=node('input');input.id='playgroupManualLink';input.readOnly=true;input.value=inviteLink.url;label.append(input);links.append(label)}host.append(links);

@@ -21,3 +21,5 @@
 .pg-player-options-dialog::backdrop,.pg-stacked-confirm::backdrop{background:#06100e99}.pg-stacked-confirm{width:min(380px,calc(100% - 28px));box-shadow:0 18px 60px #0009}
 
 .pg-invite-banner{border-color:#c9aa75;animation:pg-invite-pulse 2.5s ease-in-out infinite}.pg-invite-banner h2{font-size:24px;line-height:1.35}.pg-invite-banner>.pg-actions{margin-top:16px}@keyframes pg-invite-pulse{0%,100%{box-shadow:0 0 0 0 #c9aa7500}50%{box-shadow:0 0 0 4px #c9aa7528}}@media(prefers-reduced-motion:reduce){.pg-invite-banner{animation:none}}
+
+.pg-games .pg-heading h3{margin:0}.pg-group-game{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;padding:10px 12px;margin-bottom:7px;border:1px solid #38514d;border-radius:9px;background:#102725}.pg-group-game time{font-size:12px;color:#a9b9b2}.pg-group-game strong{font-size:14px;overflow-wrap:anywhere}.pg-group-game p,.pg-group-game small{grid-column:1/-1;margin:0;font-size:12px;color:#bed0c4}
