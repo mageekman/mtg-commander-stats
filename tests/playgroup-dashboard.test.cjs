@@ -1,0 +1,3 @@
+const{test}=require('node:test'),assert=require('assert/strict'),fs=require('fs');
+const source=fs.readFileSync('playgroup-dashboard.js','utf8').replace(/^import .*;\n/,'');const api=import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+test('playgroup timeframe uses inclusive local calendar days across month/year boundaries',async()=>{const{playgroupStatsRange:range}=await api,now=new Date(2026,0,15,12);assert.deepEqual(range('all',now),{range_start:null,range_end:null});assert.deepEqual(range('year',now),{range_start:'2026-01-01',range_end:'2026-01-15'});assert.deepEqual(range('30',now),{range_start:'2025-12-17',range_end:'2026-01-15'});assert.deepEqual(range('90',now),{range_start:'2025-10-18',range_end:'2026-01-15'})});
