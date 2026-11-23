@@ -1,4 +1,4 @@
-import {record,deckActivity,commanderMatchups} from './deck-performance-stats.js?v=participants-3';
+import {record,deckActivity,commanderMatchups} from './deck-performance-stats.js?v=second-commanders-1';
 // Every result belongs to the selected snapshot; no player names are exported.
 export function deckShareInsights(snapshot){
  const ordered=snapshot.games.slice().sort((a,b)=>String(a.played_at).localeCompare(String(b.played_at))||String(a.created_at||'').localeCompare(String(b.created_at||''))||String(a.id).localeCompare(String(b.id)));

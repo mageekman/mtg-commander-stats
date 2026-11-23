@@ -1,3 +1,4 @@
+import {commanderNames as splitCommanders} from './commander-pairs.js?v=1';
 import {loadHomepageDeckRecords} from './homepage-deck-records.js?v=prepared-perf-1';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=participants-4';
@@ -74,9 +75,9 @@ const back=document.createElement('button');back.textContent='← All decks';bac
 const heading=document.createElement('h2');heading.textContent=active.name;view.append(heading);
 const status=document.createElement('p');status.textContent='Loading card artwork…';view.append(status);
 const items=parse(active.decklist||'');
-const names=[...items.map(x=>x.name),...active.commander.split(/\s+\/\s+|\s+&\s+/).filter(Boolean)];
+const names=[...items.map(x=>x.name),...splitCommanders(active.commander)];
 try{await lookup(names)}catch(e){status.textContent='Card artwork could not load: '+e.message}
-const commanderNames=active.commander.split(/\s+\/\s+|\s+&\s+/).map(s=>s.trim()).filter(Boolean);
+let commanderNames=splitCommanders(active.commander);if(commanderNames.length===1&&!cardCache.has(commanderNames[0].toLowerCase())&&active.commander.includes(' & ')){const legacy=active.commander.split(/\s+&\s+/).map(n=>n.trim());try{await lookup(legacy);if(legacy.every(n=>cardCache.has(n.toLowerCase())))commanderNames=legacy}catch{}}
 const hero=document.createElement('div');hero.className='deck-hero';
 for(const name of commanderNames){const card=cardCache.get(name.toLowerCase());if(art(card)){const img=document.createElement('img');img.src=art(card);img.alt=name;hero.append(img)}}
 const description=document.createElement('div');const title=document.createElement('h3');title.textContent=active.commander;description.append(title);

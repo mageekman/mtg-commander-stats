@@ -84,7 +84,8 @@ window.commandLedgerCommanderArtwork=async name=>{
   if(!result.ok)throw Error('Scryfall '+result.status);
   return result.json();
  }
- let card=await lookup(full);
+ const explicit=full.split(/\s+\/\s+/).map(x=>x.trim()).filter(Boolean);
+ let card=await lookup(explicit.length>1?explicit[0]:full);
  if(!card){const parts=full.split(/\s+\/\s+|\s+&\s+/).map(x=>x.trim()).filter(Boolean);if(parts.length>1)card=await lookup(parts[0])}
  return card?.image_uris?.art_crop||card?.card_faces?.find(face=>face.image_uris?.art_crop)?.image_uris?.art_crop||card?.image_uris?.large||card?.card_faces?.find(face=>face.image_uris?.large)?.image_uris?.large||null;
 };

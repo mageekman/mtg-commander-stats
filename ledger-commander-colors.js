@@ -16,6 +16,8 @@ export async function commanderColors(name){
  const full=String(name||'').trim();
  if(!full)return null;
  // Try the complete card name first: an ampersand can be part of a single name (Minsc & Boo).
+ const explicit=full.split(/\s+\/\s+/).map(x=>x.trim()).filter(Boolean);
+ if(explicit.length>1){const ids=await Promise.all(explicit.map(commanderIdentity));return ids.some(x=>x===null)?null:[...new Set(ids.flat())].sort((a,b)=>'WUBRG'.indexOf(a)-'WUBRG'.indexOf(b)).join('')}
  const exact=await commanderIdentity(full);
  if(exact!==null)return [...new Set(exact)].sort((a,b)=>'WUBRG'.indexOf(a)-'WUBRG'.indexOf(b)).join('');
  const parts=commanderParts(full);

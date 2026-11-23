@@ -51,3 +51,10 @@ When adding any new Ledger statistic:
 - Count each shared event once. Player rankings use recorded participant IDs and current membership, never names/handles guessed from free text. Win-rate ties use games played, followed by stable identity ordering.
 - Commander performance counts seat appearances, including guests and former members in shared history. Mirrored commanders have multiple appearances and only the winning seat earns a win. Keep this denominator clear in the UI.
 - Filter dates in the database before aggregating, use the existing group/date index, and return aggregates rather than downloading game histories. Keep ranking/commander pagination compact and reuse the central artwork cache and saved passport framing.
+
+# Second commanders
+
+- Decks and recorded players store an optional commander pair as `First / Second` in the existing commander field. Each pair remains one deck/seat/game; never add a player or duplicate a win for the second commander.
+- Use separate, optional second-commander controls. Own-game commanders come from the selected deck; tagged friend decks retain both commanders and their deck association. Clearing the checkbox removes only the second commander from future saves, not historical snapshots.
+- A spaced single slash is the pair separator. Preserve ampersands in real card names (Minsc & Boo) and double-faced `//` names. Resolve legacy ampersand pairs only after a full-name card lookup fails.
+- Combine both color identities, deduplicate colors, and retain unknown identity as unknown. Fetch individual cards through the shared Scryfall cache; never send a combined explicit pair as one card lookup. Preserve public sharing and independent shared-game rules.

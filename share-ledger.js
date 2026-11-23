@@ -5,7 +5,7 @@ import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=playgroups-1';
 import {rankingPeriods,rankingRange} from './friend-ranking-period.js?v=1';
 import {loadShareLedger} from './share-ledger-data.js?v=2';
 import {buildShareStats,resolveRivalColors,resolveOwnColors,availableShareCards,periodHeading} from './share-ledger-stats.js?v=nav-notices-1';
-import {loadShareAssets} from './share-ledger-assets.js?v=nav-notices-1';
+import {loadShareAssets} from './share-ledger-assets.js?v=second-commanders-1';
 import {renderShareCard,shareCardTypes} from './share-ledger-renderer.js?v=nav-notices-1';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT'),$=id=>document.getElementById(id);
 let user=null,epoch=0,busy=false,controller=null,urls=[],files=[],starting=false;
