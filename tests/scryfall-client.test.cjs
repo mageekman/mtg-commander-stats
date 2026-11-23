@@ -26,10 +26,10 @@ test('artwork preserves ampersands in a single commander name',async()=>{
  assert.equal(await c.art('Minsc & Boo, Timeless Heroes'),'minsc.jpg');
  assert.deepEqual(c.calls,['Minsc & Boo, Timeless Heroes']);
 });
-test('partner artwork falls back only after an unmatched full name and supports card faces',async()=>{
+test('explicit partner artwork looks up the first card directly and supports card faces',async()=>{
  const c=artworkClient(name=>name.includes(' / ')?new Response('{}',{status:404}):new Response(JSON.stringify({card_faces:[{}, {image_uris:{art_crop:'partner.jpg'}}]})));
  assert.equal(await c.art('Tymna the Weaver / Thrasios, Triton Hero'),'partner.jpg');
- assert.deepEqual(c.calls,['Tymna the Weaver / Thrasios, Triton Hero','Tymna the Weaver']);
+ assert.deepEqual(c.calls,['Tymna the Weaver']);
 });
 test('temporary artwork failure remains retryable without splitting a card name',async()=>{
  let fail=true;

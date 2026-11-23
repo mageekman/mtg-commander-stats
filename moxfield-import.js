@@ -1,9 +1,11 @@
+import {attachSecondCommander,attachSecondCommanderSearch} from './commander-pairs.js?v=1';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=playgroups-1';
 import {setupDeckRemoval} from './deck-removal.js?v=1';
 import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const $=id=>document.getElementById(id);
 const section=$('moxImport');
+const primaryCommander=$('importCommander');const primaryLabel=document.querySelector('label[for=importCommander]');primaryLabel.append(primaryCommander.closest('.commander-picker')||primaryCommander);const commanderPairField=attachSecondCommander(primaryCommander,{attachSearch:attachSecondCommanderSearch});
 $('importText').addEventListener('input',()=>{listVersion++;suggestionVersion++;parsed=null;validatedText=null;correctedList=false;saveButton.disabled=false;preview.replaceChildren();const text=$('importText').value;status.textContent=savedDecklist!==null&&text===savedDecklist?'Decklist unchanged. You can save without validating again.':text.trim()?'Decklist changed. Preview and validate before saving.':'Decklist cleared. You can save without one.'});
 const status=$('importStatus'), preview=$('importPreview'), saveButton=$('saveImported');
 let parsed=null,savedDecklist=null,validatedText=null,listVersion=0,correctedList=false;
@@ -26,7 +28,7 @@ async function loadExisting(){
  if(error||!data){status.textContent='Deck not found or you do not have permission to edit it.';return}
  setupDeckRemoval({sb,deckId:editId,ownerId:user.id,onComplete:()=>{window.location.href='./index.html#profiles'}});
  $('importDeckName').value=data.name;
- $('importCommander').value=data.commander;
+ commanderPairField.set(data.commander);
  $('importText').value=data.decklist||'';$('importDeckUrl').value=data.decklist_url||'';$('importBracket').value=data.bracket_level==null?'':String(data.bracket_level);$('importTheme').value=data.theme||'';$('importNotes').value=data.notes||'';
  savedDecklist=$('importText').value;editLoaded=true;saveButton.disabled=false;status.textContent='Deck loaded. Only changes to the decklist require validation.';
 }
@@ -34,7 +36,7 @@ loadExisting().catch(e=>status.textContent='Unable to load deck: '+e.message);
 const commanderInput=$('importCommander'),matches=$('commanderMatches'),hint=$('commanderHint');
 let searchTimer=null,searchController=null,searchToken=0,commanderManuallyEdited=false;
 function closeCommanderMatches(){matches.hidden=true;matches.replaceChildren();commanderInput.setAttribute('aria-expanded','false')}
-function selectCommander(name,manual=true){commanderInput.value=name;commanderManuallyEdited=manual;closeCommanderMatches();if(manual)hint.textContent='Commander selected from Scryfall.'}
+function selectCommander(name,manual=true){commanderPairField.set(name);commanderManuallyEdited=manual;closeCommanderMatches();if(manual)hint.textContent='Commander selected from Scryfall.'}
 commanderInput.addEventListener('input',()=>{
  commanderManuallyEdited=true;clearTimeout(searchTimer);searchController?.abort();const token=++searchToken;
  closeCommanderMatches();const q=commanderInput.value.trim();hint.textContent='';
@@ -57,7 +59,7 @@ commanderInput.addEventListener('input',()=>{
 });
 commanderInput.addEventListener('keydown',e=>{if(e.key==='Escape')closeCommanderMatches();if(e.key==='ArrowDown'&&!matches.hidden){e.preventDefault();matches.querySelector('button')?.focus()}});
 matches.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCommanderMatches();commanderInput.focus()}});
-commanderInput.addEventListener('blur',()=>setTimeout(closeCommanderMatches,150));
+commanderInput.addEventListener('blur',()=>{clearTimeout(searchTimer);searchController?.abort();searchToken++;setTimeout(closeCommanderMatches,150)});
 const zones={COMMANDER:'commander',COMMANDERS:'commander',MAINBOARD:'main',MAIN:'main',DECK:'main',SIDEBOARD:'side',MAYBEBOARD:'maybe',CONSIDERING:'maybe',COMPANION:'side',TOKENS:'side'};
 function parse(text){
  let zone='main',cards=[],invalid=[];
@@ -236,7 +238,8 @@ saveButton.onclick=async()=>{
  if(!editLoaded){status.textContent='Your deck has not loaded. Reload the page before saving changes.';return}
  const text=$('importText').value,hasList=!!text.trim(),unchanged=isEditing&&!correctedList&&savedDecklist!==null&&text===savedDecklist;
  if(hasList&&!unchanged&&(!parsed||validatedText!==text||parsed.invalid.length||parsed.missing.length)){status.textContent='Preview and resolve decklist errors before saving, or clear the decklist to skip it.';return}
- const name=$('importDeckName').value.trim(),commander=$('importCommander').value.trim();
+ if(!commanderPairField.valid()){status.textContent='Enter two different commanders, or uncheck Second Commander?.';return}
+ const name=$('importDeckName').value.trim(),commander=commanderPairField.value();
  if(!name||!commander){status.textContent='Enter a deck name and commander.';return}
  const bracket_level=$('importBracket').value?Number($('importBracket').value):null,theme=$('importTheme').value.trim()||null,notes=$('importNotes').value.trim()||null;
  const list=unchanged?savedDecklist:hasList?parsed.cards.filter(c=>['main','commander'].includes(c.zone)).map(c=>{const resolved=parsed.found.get(c.name.toLowerCase());const canonical=resolved?.name||c.name;const set=c.set&&c.number?' ('+c.set.toUpperCase()+') '+c.number:'';return c.qty+' '+canonical+set}).join('\n'):'';

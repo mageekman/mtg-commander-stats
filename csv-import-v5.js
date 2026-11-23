@@ -74,7 +74,7 @@ function csvSimilarity(a,b){
 }
 function csvDeckCandidates(name){
  return decks.map(deck=>{
-  const aliases=[deck.name,deck.commander,...String(deck.commander||'').split(/\s*\/\s*|\s*&\s*/)];
+  const aliases=[deck.name,deck.commander,...String(deck.commander||'').split(/\s+\/\s+/)];
   return {deck,score:Math.max(...aliases.map(alias=>csvSimilarity(name,alias)))};
  }).sort((a,b)=>b.score-a.score);
 }
@@ -94,6 +94,7 @@ const scryKey=name=>String(name||'').trim().toLowerCase().replace(/\s+/g,' ');
 async function lookupCommander(name){
  const key=scryKey(name);
  if(scryCache.has(key))return scryCache.get(key);
+ const parts=String(name||'').split(/\s+\/\s+/).map(n=>n.trim()).filter(Boolean);if(parts.length>1){const found=[];for(const part of parts)found.push(await lookupCommander(part));const pair={name:found.map(c=>c.name).join(' / '),matched:found.every(c=>c.matched)};scryCache.set(key,pair);return pair}
  let result={name,matched:false};
  try{
   const response=await window.commandLedgerScryfallFetch('https://api.scryfall.com/cards/named?fuzzy='+encodeURIComponent(name),{headers:{Accept:'application/json'}});

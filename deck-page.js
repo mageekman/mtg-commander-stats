@@ -1,5 +1,6 @@
+import {commanderNames as splitCommanders} from './commander-pairs.js?v=1';
 import {createDeckHero} from './deck-hero.js?v=details-row-1';
-import {renderSharedDeck} from './shared-deck.js?v=details-row-1';
+import {renderSharedDeck} from './shared-deck.js?v=second-commanders-1';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=playgroups-1';
 import {mountDeckPerformance} from './deck-performance.js?v=details-row-1';
 function colorIdentityIcons(colors){
@@ -88,13 +89,14 @@ async function run(){
   updateArchiveLabel();
  };
  actions.append(archiveButton,archiveStatus);$('deckTitle').after(actions);
- const items=parse(deck.decklist||''),commanderNames=deck.commander.split(/\s+\/\s+|\s+&\s+/).map(s=>s.trim()).filter(Boolean);
+ const items=parse(deck.decklist||'');let commanderNames=splitCommanders(deck.commander);
  const root=$('deckContent'),count=items.reduce((total,item)=>total+item.qty,0);
  const {hero,summary}=createDeckHero(deck,{commanders:commanderNames.map(name=>({name})),cardCount:count,placeholderArtwork:true,loadingArtwork:true});root.append(hero);
  // Records and reports render independently of optional card-list metadata.
  const performance=mountDeckPerformance(root,deck,user,sb,summary).catch(()=>{summary.replaceChildren(element('p','Deck record is unavailable. Reload to try again.'))});
  $('status').textContent='Loading card details…';
  let cards=new Map();try{cards=await fetchCards([...items.map(i=>i.name),...commanderNames])}catch(e){$('status').textContent=e.message+' — showing card names instead.'}
+ if(commanderNames.length===1&&!cards.has(commanderNames[0].toLowerCase())&&deck.commander.includes(' & ')){const legacy=deck.commander.split(/\s+&\s+/).map(n=>n.trim());try{const found=await fetchCards(legacy);if(legacy.every(n=>found.has(n.toLowerCase()))){commanderNames=legacy;for(const [name,card]of found)cards.set(name,card)}}catch{}}
  const knownColors=commanderNames.length&&commanderNames.every(name=>Array.isArray(cards.get(name.toLowerCase())?.color_identity));
  const hydrated=createDeckHero(deck,{commanders:commanderNames.map(name=>({name,url:art(cards.get(name.toLowerCase()))})),colors:knownColors?[...new Set(commanderNames.flatMap(name=>cards.get(name.toLowerCase()).color_identity))]:null,cardCount:count,placeholderArtwork:true});
  hero.replaceChildren(...[hydrated.hero.querySelector('.deck-hero-art'),hydrated.hero.querySelector('.deck-hero-details'),summary].filter(Boolean));

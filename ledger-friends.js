@@ -14,7 +14,7 @@ export function createGameFriendService(sb,{groupMembers=async()=>[]}={}){
   decks(id){return request('get_friend_game_decks',{target_id:id})}
  };
 }
-export function gamePlayerSnapshot(row){return {name:row.querySelector('.player-name').value.trim(),commander:row.querySelector('.player-commander').value.trim(),...(row.recordedParticipantId?{participant_id:row.recordedParticipantId,...(row.recordedDeckId?{participant_deck_id:row.recordedDeckId}:{})}:{}),...(row.friendSelection||{})}}
+export function gamePlayerSnapshot(row){return {name:row.querySelector('.player-name').value.trim(),commander:row.querySelector('.player-commander').secondCommander?.value()||row.querySelector('.player-commander').value.trim(),...(row.recordedParticipantId?{participant_id:row.recordedParticipantId,...(row.recordedDeckId?{participant_deck_id:row.recordedDeckId}:{})}:{}),...(row.friendSelection||{})}}
 let nextMenuId=0;
 export function attachGameFriend({row,name,commander,snapshot,service,onCommander}){
  row.recordedParticipantId=snapshot?.participant_id||snapshot?.friend_id||null;row.recordedDeckId=snapshot?.participant_deck_id||snapshot?.friend_deck_id||null;
@@ -24,9 +24,9 @@ export function attachGameFriend({row,name,commander,snapshot,service,onCommande
  const status=document.createElement('span');status.className='game-friend-status';status.setAttribute('role','status');label.append(status);
  name.autocomplete='off';name.setAttribute('role','combobox');name.setAttribute('aria-autocomplete','list');name.setAttribute('aria-controls',menu.id);name.setAttribute('aria-expanded','false');name.placeholder='Player name or @player';
  let sequence=0,picker=null;
- const setCommander=value=>{commander.value=value;commander.setSelectedCommander?.(value);onCommander(value)};
+ const setCommander=value=>{commander.secondCommander?.set(value);if(!commander.secondCommander)commander.value=value;commander.setSelectedCommander?.(commander.value);onCommander(value)};
  const close=()=>{menu.hidden=true;menu.replaceChildren();name.setAttribute('aria-expanded','false')};
- function manual(){picker?.remove();picker=null;if(wrap)wrap.hidden=false;commander.required=true;commander.disabled=false;row.friendSelection=null;row.friendLoading=false}
+ function manual(){commander.secondCommander?.editable(true);picker?.remove();picker=null;if(wrap)wrap.hidden=false;commander.required=true;commander.disabled=false;row.friendSelection=null;row.friendLoading=false}
  async function choose(friend,restoring=false){
   const current=++sequence;close();manual();if(!restoring){row.recordedParticipantId=null;row.recordedDeckId=null;}if(!restoring)name.value='@'+friend.handle;
   if(friend.playgroup_only){row.friendSelection={participant_id:friend.id};row.friendLoading=false;commander.disabled=false;status.textContent='Playgroup member tagged. Enter their commander.';row.dispatchEvent(new CustomEvent('game-participants-changed',{bubbles:true}));return}
@@ -40,7 +40,7 @@ export function attachGameFriend({row,name,commander,snapshot,service,onCommande
    picker=document.createElement('select');picker.className='game-friend-deck';picker.required=true;picker.setAttribute('aria-label','Deck for @'+friend.handle);
    const blank=document.createElement('option');blank.value='';blank.textContent='Choose their deck';picker.append(blank);
    for(const deck of decks){const option=document.createElement('option');option.value=deck.id;option.textContent=deck.name+' — '+deck.commander;picker.append(option)}
-   wrap.hidden=true;commander.required=false;wrap.after(picker);
+   wrap.hidden=true;commander.secondCommander?.editable(false);commander.required=false;wrap.after(picker);
    if(restoring&&snapshot.friend_deck_id){picker.value=snapshot.friend_deck_id;row.friendSelection.friend_deck_id=snapshot.friend_deck_id;setCommander(snapshot.commander||'');const selected=decks.find(deck=>deck.id===snapshot.friend_deck_id);if(selected.commander!==snapshot.commander)picker.selectedOptions[0].textContent+=' (recorded: '+snapshot.commander+')'}
    else setCommander('');
    picker.onchange=()=>{const selected=decks.find(deck=>deck.id===picker.value);row.friendSelection=selected?{friend_id:friend.id,friend_deck_id:selected.id}:{friend_id:friend.id};setCommander(selected?.commander||'')};

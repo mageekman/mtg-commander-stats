@@ -2,7 +2,7 @@ import {commanderKey} from './share-ledger-stats.js?v=nav-notices-1';
 const cards=new Map(),imageCache=new Map();
 const timed=(promise,ms,fallback=null)=>new Promise(resolve=>{const timer=setTimeout(()=>resolve(fallback),ms);Promise.resolve(promise).then(value=>{clearTimeout(timer);resolve(value)},()=>{clearTimeout(timer);resolve(fallback)})});
 const art=card=>card?.image_uris?.art_crop||card?.card_faces?.find(f=>f.image_uris?.art_crop)?.image_uris?.art_crop||card?.image_uris?.large||card?.card_faces?.find(f=>f.image_uris?.large)?.image_uris?.large||null;
-export function metadataFor(name,lookup){const full=lookup.get(commanderKey(name));if(full)return {colors:Array.isArray(full.color_identity)?[...'WUBRG'].filter(c=>full.color_identity.includes(c)).join(''):null,art:art(full)};const parts=String(name||'').split(/\s+\/\s+|\s+&\s+/).map(commanderKey);if(parts.length<2)return {colors:null,art:null};const found=parts.map(p=>lookup.get(p));return {colors:found.every(c=>Array.isArray(c?.color_identity))?[...'WUBRG'].filter(c=>found.some(p=>p.color_identity.includes(c))).join(''):null,art:art(found[0])}}
+export function metadataFor(name,lookup){const full=lookup.get(commanderKey(name));if(full)return {colors:Array.isArray(full.color_identity)?[...'WUBRG'].filter(c=>full.color_identity.includes(c)).join(''):null,art:art(full)};const explicit=String(name||'').split(/\s+\/\s+/);const parts=(explicit.length>1?explicit:String(name||'').split(/\s+&\s+/)).map(commanderKey);if(parts.length<2)return {colors:null,art:null};const found=parts.map(p=>lookup.get(p));return {colors:found.every(c=>Array.isArray(c?.color_identity))?[...'WUBRG'].filter(c=>found.some(p=>p.color_identity.includes(c))).join(''):null,art:art(found[0])}}
 function decodeImage(url){return new Promise(resolve=>{const image=new Image(),timer=setTimeout(()=>{image.src='';resolve(null)},8000);image.crossOrigin='anonymous';image.referrerPolicy='no-referrer';image.onload=()=>{clearTimeout(timer);resolve(image)};image.onerror=()=>{clearTimeout(timer);resolve(null)};image.src=url})}
 export function loadShareImage(url){
  if(!url)return Promise.resolve(null);if(imageCache.has(url))return imageCache.get(url);
@@ -21,7 +21,7 @@ export async function loadShareAssets(stats,profile,decks=[]){
   if((!response||response.status>=500)&&Date.now()<deadline)response=await timed(window.commandLedgerScryfallFetch(url+'&command-ledger-share='+Date.now(),{headers:{Accept:'application/json'}}),Math.max(1,deadline-Date.now()));
   if(!response?.ok)return null;const card=await timed(response.json(),Math.max(1,deadline-Date.now()));remember(card,name);return card;
  }
- async function resolveName(name){if(await named(name))return;const parts=name.split(/\s+\/\s+|\s+&\s+/).map(p=>p.trim()).filter(Boolean);if(parts.length>1)for(const part of parts)await named(part)}
+ async function resolveName(name){const explicit=name.split(/\s+\/\s+/).map(p=>p.trim()).filter(Boolean);if(explicit.length>1){for(const part of explicit)await named(part);return}if(await named(name))return;const parts=name.split(/\s+\/\s+|\s+&\s+/).map(p=>p.trim()).filter(Boolean);if(parts.length>1)for(const part of parts)await named(part)}
  // Artwork uses simple GETs and the shared named-card cache. It never depends
  // on a collection POST/preflight succeeding, and visible commanders go first.
  for(const name of shown){if(Date.now()>=deadline)break;await resolveName(name)}

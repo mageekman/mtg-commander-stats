@@ -5,7 +5,7 @@ import {node,pct,ring,rateBar,artPanel,pagedCards} from './deck-visuals.js?v=pre
 import {createLedgerReport} from './ledger-report-tabs.js?v=mockup-1';
 import {mountLedgerTrend} from './ledger-trend-controls.js?v=loading-3';
 import {renderColorUsage} from './color-combo-usage.js?v=public-3';
-import {commanderColors} from './ledger-commander-colors.js?v=1';
+import {commanderColors} from './ledger-commander-colors.js?v=second-commanders-1';
 import {rankingPeriods,rankingRange} from './friend-ranking-period.js?v=1';
 import {applyFrame} from './ledger-art-adjustment.js?v=history-2';
 

@@ -1,3 +1,4 @@
+import {attachSecondCommander,commanderNames} from './commander-pairs.js?v=1';
 import {createPlaygroupGameField} from './ledger-playgroup-field.js?v=1';
 import {attachLedgerPie} from './ledger-pie-motion.js?v=1';
 import {createLedgerFriendArtwork} from './ledger-friend-art.js?v=prepared-perf-1';
@@ -11,11 +12,11 @@ import {selectStrongestColor,selectMostPlayedColor} from './strongest-color.js?v
 import {normalizeLedgerSettings,readLedgerState,mountLedgerSettings,applyLedgerVisibility} from './ledger-settings.js?v=nav-notices-1';
 import {selectBestDeck} from './best-deck.js?v=2';
 import {createGameHistoryLinker,historyDeckTitle,markHistoryPlayer,historyFriendDeckSlot} from './game-history-links.js?v=1';
-import {commanderColors} from './ledger-commander-colors.js?v=1';
+import {commanderColors} from './ledger-commander-colors.js?v=second-commanders-1';
 import {renderAdditionalLedgerStats} from './ledger-additional-stats.js?v=prepared-perf-1';
 import {createLedgerArtController} from './ledger-art-adjustment.js?v=history-2';
 import {loadFriendDisplayNames,gamePlayerDisplayName} from './friend-display-names.js?v=identities-6';
-import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=group-games-1';
+import {attachGameFriend,createGameFriendService,gamePlayerSnapshot} from './ledger-friends.js?v=second-commanders-1';
 import {confirmGameDeletion} from './game-delete-dialog.js?v=1';
 import {demoDecks,demoGames} from './demo-data.js?v=1';
 import {gameMatchesSearch} from './game-history-search.js?v=search-4';
@@ -67,7 +68,7 @@ function getCommanderArtwork(name){
 }
 
 async function showCommanderArt(row,name){
- const art=row.querySelector('.commander-art');if(!art)return;
+ if(!row)return;const art=row.querySelector('.commander-art');if(!art)return;
  const token=String((Number(row.dataset.artToken)||0)+1);row.dataset.artToken=token;
  art.style.backgroundImage='';row.classList.remove('has-commander-art');
  if(!name?.trim())return;
@@ -121,8 +122,8 @@ function drawPlayers(prefill=null){
   const row=el('div');row.className='player-row';const art=el('div');art.className='commander-art';art.setAttribute('aria-hidden','true');row.append(art,el('h4',i===0?'Player 1 · You':'Player '+(i+1)));
   const fields=el('div');fields.className='player-fields';
   const nameLabel=el('label',i===0?'Player name':'Player name (optional)');const name=el('input');name.className='player-name';name.placeholder=i===0?'You':'Player '+(i+1);name.required=false;name.maxLength=80;name.value=old[i]?.name||'';if(i===0){name.value='You';name.readOnly=true}nameLabel.append(name);
-  const commanderLabel=el('label',i===0?'Your deck':'Commander');const commander=el('input');commander.className='player-commander';commander.required=true;commander.maxLength=200;commander.placeholder='Commander name';commander.value=old[i]?.commander||'';if(i===0){commander.readOnly=true;commander.type='hidden';commander.required=false;commanderLabel.append(ownDeckPicker)}commanderLabel.append(commander);if(i!==0)attachCommanderSearch(commander);
-  fields.append(nameLabel,commanderLabel);row.append(fields);container.append(row);if(i!==0)attachGameFriend({row,name,commander,snapshot:old[i],service:friendService,onCommander:value=>showCommanderArt(row,value)});if(i!==0&&old[i]?.commander)showCommanderArt(row,old[i].commander);
+  const commanderLabel=el('label',i===0?'Your deck':'Commander');const commander=el('input');commander.className='player-commander';commander.required=true;commander.maxLength=200;commander.placeholder='Commander name';commander.value=old[i]?.commander||'';if(i===0){commander.readOnly=true;commander.type='hidden';commander.required=false;commanderLabel.append(ownDeckPicker)}commanderLabel.append(commander);if(i!==0){attachCommanderSearch(commander);attachSecondCommander(commander,{attachSearch:attachCommanderSearch,changed:()=>{row.recordedDeckId=null}});}
+  fields.append(nameLabel,commander.secondCommander?.root||commanderLabel);row.append(fields);container.append(row);if(i!==0)attachGameFriend({row,name,commander,snapshot:old[i],service:friendService,onCommander:value=>showCommanderArt(row,value)});if(i!==0&&old[i]?.commander)showCommanderArt(row,old[i].commander);
  }
  const table=el('div');table.className='pod-table';table.setAttribute('aria-hidden','true');table.append(el('strong','COMMANDER'),el('span','The Pod'));container.append(table);
  const first=$('firstPlayer'),winner=$('winnerPlayer'),previousFirst=first.value,previousWinner=winner.value;first.replaceChildren();winner.replaceChildren();
@@ -130,7 +131,7 @@ function drawPlayers(prefill=null){
  first.value=previousFirst&&Number(previousFirst)<playerCount?previousFirst:'0';winner.value=previousWinner&&Number(previousWinner)<playerCount?previousWinner:'0';$('addPlayer').disabled=playerCount>=6;$('removePlayer').disabled=playerCount<=2;
  syncOwnCommander();
 }
-function syncOwnCommander(){const deck=decks.find(d=>d.id===$('deck').value);const input=$('playerRows').querySelector('.player-commander');if(input){input.value=deck?.commander||'';showCommanderArt(input.closest('.player-row'),input.value)}updateHistoryArtworkControl()}
+function syncOwnCommander(){const deck=decks.find(d=>d.id===$('deck').value);const input=$('playerRows').querySelector('.player-commander');if(input){input.value=deck?.commander||'';const row=input.closest('.player-row');let summary=row.querySelector('.own-commanders');if(!summary){summary=el('div');summary.className='own-commanders';input.after(summary)}summary.replaceChildren();const names=commanderNames(input.value);if(names.length){summary.append(el('small',names[0]));const label=el('label');label.className='second-commander-toggle';const check=el('input');check.type='checkbox';check.checked=names.length>1;check.disabled=true;label.title='Commanders are saved on the selected deck.';label.append(check,document.createTextNode('Second Commander?'));summary.append(label);if(names[1])summary.append(el('small',names.slice(1).join(' / ')))}showCommanderArt(row,input.value)}updateHistoryArtworkControl()}
 $('addPlayer').onclick=()=>{if(playerCount<6){playerCount++;drawPlayers()}};
 $('removePlayer').onclick=()=>{if(playerCount>2){playerCount--;drawPlayers()}};
 function updateHistoryArtworkControl(){const deck=decks.find(d=>d.id===$('deck').value);$('adjustHistoryArtwork').hidden=!user||!deck?.commander;$('historyArtworkStatus').textContent=''}
@@ -545,11 +546,12 @@ $('gameForm').onsubmit=async e=>{
  const deck_id=$('deck').value;if(!decks.some(d=>d.id===deck_id)){message('Select one of your decks.');return}
  const played_at=$('date').value;
  if([...document.querySelectorAll('.player-row')].some(row=>row.friendLoading)){message('Wait for the friend deck choices to finish loading.');return}
+ if([...document.querySelectorAll('.player-commander')].some(input=>input.secondCommander&&!input.secondCommander.valid())){message('Select two different commanders, or uncheck Second Commander?.');return}
  const players=[...document.querySelectorAll('.player-row')].map((row,i)=>({...gamePlayerSnapshot(row),...(i===0?{name:'You'}:{})}));
  if(!played_at||players.length<2||players.length>6||players.some(p=>!p.commander)){message('Enter a date and select a commander for everyone. Player names are optional.');return}
  const taggedIds=players.map(p=>p.friend_id||p.participant_id).filter(Boolean);if(new Set(taggedIds).size!==taggedIds.length){message('Tag each player only once in a game.');return}
  const opponentInputs=[...document.querySelectorAll('.player-row')].slice(1).map(r=>r.querySelector('.player-commander'));
- if(opponentInputs.some(input=>input.getSelectedCommander?.()!==input.value.trim())){message('Select each opponent commander from the Scryfall suggestions.');return}
+ if(opponentInputs.some(input=>input.getSelectedCommander?.()!==input.value.trim()||input.secondCommander&&!input.secondCommander.valid())){message('Select each opponent commander from the Scryfall suggestions.');return}
  const first_player=Number($('firstPlayer').value),winner_player=Number($('winnerPlayer').value);
  if(!Number.isInteger(first_player)||!Number.isInteger(winner_player)||first_player<0||winner_player<0||first_player>=players.length||winner_player>=players.length){message('Select who went first and who won.');return}
  const button=$('save');button.disabled=true;savingGame=true;message('Saving game…');

@@ -1,6 +1,6 @@
 import {planShareLayout,hasShareValue,shareCount} from './share-card-layout.js?v=1';
 import {deckShareInsights} from './share-deck-insights.js?v=1';
-import {record,tableSizeStats,dailyWinrate} from './deck-performance-stats.js?v=participants-3';
+import {record,tableSizeStats,dailyWinrate} from './deck-performance-stats.js?v=second-commanders-1';
 import {firstPlayerStats} from './player-game-stats.js?v=participants-2';
 import {normalizeDeckSettings} from './deck-settings.js?v=prepared-perf-1';
 import {commanderKey} from './share-ledger-stats.js?v=nav-notices-1';

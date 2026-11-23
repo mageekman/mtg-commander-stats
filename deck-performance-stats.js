@@ -1,4 +1,4 @@
-const commanderKey=name=>String(name||'').trim().replace(/\s+/g,' ').toLowerCase();
+const commanderKey=name=>String(name||'').trim().replace(/\s+/g,' ').toLowerCase().split(/\s+\/\s+/).sort().join(' / ');
 export function record(games){const wins=games.filter(game=>game.won).length;return {games:games.length,wins,losses:games.length-wins,rate:games.length?100*wins/games.length:null}}
 export function commanderMatchups(games){
  const rows=new Map();let missing=0;

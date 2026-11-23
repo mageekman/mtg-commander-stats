@@ -39,3 +39,7 @@ test('colorless commander identity remains valid rather than unavailable',async(
   assert.equal(await commanderColors('Colorless Commander'),'');
  }finally{delete global.window}
 });
+
+test('explicit pairs combine both identities once, preserving ampersands and unknown data',async()=>{
+ const calls=[],cards={'Minsc & Boo, Timeless Heroes':['R','G'],'Tymna the Weaver':['W','B'],'Thrasios, Triton Hero':['G','U']};global.window={commandLedgerScryfallFetch:async url=>{const name=new URL(url).searchParams.get('exact');calls.push(name);return cards[name]?{ok:true,json:async()=>({color_identity:cards[name]})}:{ok:false}}};try{const{commanderColors}=await load();assert.equal(await commanderColors('Minsc & Boo, Timeless Heroes / Tymna the Weaver'),'WBRG');assert.equal(await commanderColors('Tymna the Weaver / Thrasios, Triton Hero'),'WUBG');assert.equal(await commanderColors('Tymna the Weaver / Unknown'),null);assert.ok(!calls.some(name=>name.includes(' / ')))}finally{delete global.window}
+});
