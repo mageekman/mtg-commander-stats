@@ -1,4 +1,4 @@
-import {pendingLedgerUpdates} from './ledger-stat-updates.js?v=nav-notices-1';
+import {pendingLedgerUpdates} from './ledger-stat-updates.js?v=partner-support-1';
 const noticeKey='command-ledger:site-info-intro:dismissed:';
 const read=key=>{try{return localStorage.getItem(key)==='true'}catch{return false}};
 export function createSiteAnnouncements(client){

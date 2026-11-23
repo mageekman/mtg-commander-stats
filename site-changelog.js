@@ -1,6 +1,11 @@
 // Newest first. Summarize shipped features, fixes, and stability improvements.
 // Dates reflect publication; group related changes and omit minor layout tweaks.
 export const changelogEntries=[
+ {date:'2026-11-23',title:'Partner Support',updates:[
+  'Record two commanders on a deck or for an opponent using the Second Commander? checkbox.',
+  'Both commanders stay together in game history, friend-deck selections, shared views, and deck profiles. Your own game uses the commanders saved on your selected deck.',
+  'Color statistics combine both commanders’ color identities, while the pair counts as one entry without adding extra games or wins.'
+ ]},
  {date:'2026-11-19',title:'Playgroups are here',updates:[
   'Create private playgroups, invite players by username or a reusable link, and manage owners, admins, and members.',
   'Invited players can review the group roster before accepting. New accounts keep their invitation, and Friends now shows playgroup requests with Accept, View Playgroup, and Decline.',

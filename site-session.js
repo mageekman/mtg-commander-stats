@@ -1,5 +1,5 @@
 import {createPlaygroupInviteClaimer} from './playgroup-invite-link.js?v=group-invites-1';
-import {createSiteAnnouncements} from './site-announcements.js?v=1';
+import {createSiteAnnouncements} from './site-announcements.js?v=partner-support-1';
 import './personal-invites.js?v=1';
 import {createPlayerOnboarding} from './player-onboarding.js?v=cleanup-5';
 import {setFriendNotificationUser} from './friend-notifications.js?v=group-invites-1';

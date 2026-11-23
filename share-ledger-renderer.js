@@ -1,5 +1,5 @@
 import {planShareLayout,hasShareValue,hasShareColor,populatedLedgerShareCards,shareCount} from './share-card-layout.js?v=1';
-import {normalizeLedgerSettings} from './ledger-settings.js?v=nav-notices-1';
+import {normalizeLedgerSettings} from './ledger-settings.js?v=partner-support-1';
 import {commanderKey} from './share-ledger-stats.js?v=nav-notices-1';
 const W=1080,H=1920,ivory='#f4edd9',gold='#d6b46f',teal='#7fe2cd',muted='#bdd1c3';
 export const shareCardTypes=[{id:'ledger',title:'My Ledger'},{id:'rivalries',title:'My Rivalries'},{id:'decks',title:'My Decks'}];

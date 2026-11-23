@@ -1,5 +1,5 @@
 import {populatedLedgerShareCards} from './share-card-layout.js?v=1';
-import {normalizeLedgerSettings} from './ledger-settings.js?v=nav-notices-1';
+import {normalizeLedgerSettings} from './ledger-settings.js?v=partner-support-1';
 import {createClient} from './vendor/supabase-js.mjs';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=playgroups-1';
 import {rankingPeriods,rankingRange} from './friend-ranking-period.js?v=1';
