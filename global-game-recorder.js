@@ -22,5 +22,5 @@ export function createGlobalGameRecorder(getUser){
   if(data.type==='recorder-close')close();
   if(data.type==='recorder-saved'&&data.ownerId===getUser()?.id){const ownerId=data.ownerId;close();document.dispatchEvent(new CustomEvent('command-ledger-game-recorded',{detail:{ownerId}}));document.dispatchEvent(new Event('onboarding-progress'));notice.textContent='Game saved.';notice.hidden=false;setTimeout(()=>notice.hidden=true,5000);if(data.goToLedger===true)location.assign('./ledger.html#gameHistorySection')}
  });
- return{update(user){const nav=document.getElementById('siteNavigation');if(nav&&!nav.querySelector('[data-record-game]')){const link=document.createElement('a');link.href='./ledger.html#gameEditor';link.textContent='Record a Game';link.className='site-record-game';link.dataset.recordGame='true';link.addEventListener('click',open);nav.append(link)}if(dialog&&user?.id!==openOwner)close()}};
+ return{update(user){const nav=document.getElementById('siteNavigation');if(nav&&!nav.querySelector('[data-record-game]')){const link=document.createElement('a');link.href='./ledger.html#gameEditor';link.textContent='Record a Game';link.className='site-record-game';link.dataset.recordGame='true';link.addEventListener('click',open);nav.prepend(link)}if(dialog&&user?.id!==openOwner)close()}};
 }
