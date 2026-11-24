@@ -1,5 +1,5 @@
-import {mountPlaygroupDashboard} from './playgroup-dashboard.js?v=1';
-import {mountPlaygroupGames} from './playgroup-games.js?v=1';
+import {mountPlaygroupDashboard} from './playgroup-dashboard.js?v=global-recorder-1';
+import {mountPlaygroupGames} from './playgroup-games.js?v=global-recorder-1';
 import {clearPlaygroupInvite} from './playgroup-invite-link.js?v=group-invites-1';
 import {mountFriendAction} from './friends.js?v=playgroup-popup-1';
 import {createPlayerPassportCards} from './player-passport-card.js?v=popup-2';

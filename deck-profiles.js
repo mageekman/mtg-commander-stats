@@ -254,3 +254,5 @@ const refreshButton=$('refreshProfiles');if(refreshButton)refreshButton.onclick=
 for(const id of ['homeDeckSort','homeDeckDirection','homeDeckSearch','archivedDeckSearch'])$(id)?.addEventListener(id.includes('Search')?'input':'change',()=>rerenderDeckGallery?.());
 sb.auth.onAuthStateChange(()=>setTimeout(refresh,0));
 window.commandLedgerLoading.track(refresh(),'Loading your decks…').catch(console.error);
+
+document.addEventListener('command-ledger-game-recorded',()=>refresh());

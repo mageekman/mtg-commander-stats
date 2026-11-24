@@ -46,5 +46,5 @@ export function mountPlaygroupDashboard(host,client,group,{passport=createPlayer
  }
  preset.onchange=()=>{custom.hidden=preset.value!=='custom';if(custom.hidden){start.disabled=end.disabled=true;load()}else{request++;refresh.disabled=false;host.setAttribute('aria-busy','false');data=null;content.replaceChildren();status.textContent='Choose dates and select Apply.';start.disabled=end.disabled=false;start.value||=playgroupStatsRange('30').range_start;end.value||=playgroupStatsRange('30').range_end;start.focus()}};
  start.disabled=end.disabled=true;start.oninput=end.oninput=()=>end.setCustomValidity('');tools.onsubmit=e=>{e.preventDefault();if(preset.value!=='custom')return;if(start.value>end.value){end.setCustomValidity('End date must be on or after the start date.');end.reportValidity();return}end.setCustomValidity('');load()};
- refresh.onclick=()=>{if(preset.value==='custom'){tools.requestSubmit();return}load()};load();
+ refresh.onclick=()=>{if(preset.value==='custom'){tools.requestSubmit();return}load()};document.addEventListener('command-ledger-game-recorded',()=>{if(host.isConnected&&(preset.value!=='custom'||start.value&&end.value&&start.value<=end.value))load()});load();
 }

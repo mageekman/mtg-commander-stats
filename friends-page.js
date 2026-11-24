@@ -100,3 +100,5 @@ start();
 function updateNotifications(){if(activeUser)showFriendNotifications(document.getElementById('friendUpdates'),{markSeen:document.body.dataset.friendsPage==='requests'})}
 document.addEventListener('friend-notifications-updated',updateNotifications);
 window.addEventListener('focus',updateNotifications);
+
+document.addEventListener('command-ledger-game-recorded',event=>{if(activeUser?.id===event.detail?.ownerId&&document.body.dataset.friendsPage==='friends')loadFriends()});

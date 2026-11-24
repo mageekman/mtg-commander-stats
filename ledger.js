@@ -1,3 +1,6 @@
+const embeddedRecorder=new URLSearchParams(location.search).get('record_embed')==='1';
+const tellRecorder=(type,details={})=>{if(embeddedRecorder&&window.parent!==window)window.parent.postMessage({type,...details},location.origin)};
+let editorReady=false,pendingGlobalEditor=false;
 import {attachSecondCommander,commanderNames} from './commander-pairs.js?v=1';
 import {createPlaygroupGameField} from './ledger-playgroup-field.js?v=1';
 import {attachLedgerPie} from './ledger-pie-motion.js?v=1';
@@ -155,11 +158,12 @@ async function loadLedger(){
  historyLinker.clear();
  const auth=await sb.auth.getUser();user=auth.data.user;statGames.refresh();await ledgerArt.load(user);friendService.clear();friendDisplayNames=new Map();
  $('openLedgerSettings').hidden=!user;
- if(user){try{const state=await readLedgerState(sb,user);ledgerSettings=state.settings;updateSettingsForm(ledgerSettings);updateLedgerNotices(state.updates);if(openSettingsFromUrl){openSettingsFromUrl=false;$('openLedgerSettings').click()}$('statisticsSection').hidden=false;$('shareLedgerLink').hidden=false}catch(error){$('statisticsSection').hidden=true;message('Unable to load Ledger settings. Reload to try again.');return}}else{updateLedgerNotices([]);ledgerSettings=normalizeLedgerSettings();$('statisticsSection').hidden=false}
+ if(user&&!embeddedRecorder){try{const state=await readLedgerState(sb,user);ledgerSettings=state.settings;updateSettingsForm(ledgerSettings);updateLedgerNotices(state.updates);if(openSettingsFromUrl){openSettingsFromUrl=false;$('openLedgerSettings').click()}$('statisticsSection').hidden=false;$('shareLedgerLink').hidden=false}catch(error){$('statisticsSection').hidden=true;message('Unable to load Ledger settings. Reload to try again.');return}}else{updateLedgerNotices([]);ledgerSettings=normalizeLedgerSettings();$('statisticsSection').hidden=false}
+ if(!user&&embeddedRecorder){tellRecorder('recorder-error',{message:'Sign in again to record a game.'});return}
  if(!user){decks=demoDecks;games=demoGames;$('save').disabled=true;const filter=$('historyDeckFilter');filter.replaceChildren(el('option','All decks'));filter.firstChild.value='';for(const deck of decks){const option=el('option',deck.name);option.value=deck.id;filter.append(option)}message('');render();return}
  $('save').disabled=false;
  const d=await sb.from('decks').select('id,name,commander,created_at,archived_at').eq('owner_id',user.id).order('name');
- if(d.error){message('Unable to load decks: '+d.error.message);return}
+ if(d.error){message('Unable to load decks: '+d.error.message);tellRecorder('recorder-error',{message:'Your decks could not load. Close this window and try again.'});return}
  decks=d.data||[];const select=$('deck');select.replaceChildren(el('option','Select your deck'));select.firstChild.value='';
  const alphabetical=(a,b)=>a.name.localeCompare(b.name,undefined,{sensitivity:'base',numeric:true})||a.commander.localeCompare(b.commander,undefined,{sensitivity:'base',numeric:true});
  const activeDecks=decks.filter(d=>!d.archived_at).sort(alphabetical);
@@ -172,7 +176,7 @@ async function loadLedger(){
  }
  const filter=$('historyDeckFilter');filter.replaceChildren();const all=el('option','All decks');all.value='';filter.append(all);for(const deck of decks){const option=el('option',deck.name+(deck.archived_at?' (Archived)':'')+' — '+deck.commander);option.value=deck.id;filter.append(option)}
  const requestedDeck=new URLSearchParams(location.search).get('deck');if(requestedDeck&&decks.some(d=>d.id===requestedDeck))filter.value=requestedDeck;
- syncOwnCommander();await refresh();
+ syncOwnCommander();editorReady=true;if(embeddedRecorder){resetEditor();setEditorOpen(true);if(!decks.length){message('Add a deck before recording your first game. ');const link=el('a','Create a deck');link.href='./import.html';link.target='_top';$('gameFormStatus').append(link);$('save').disabled=$('saveGoToLedger').disabled=true}tellRecorder('recorder-ready',{ownerId:user.id})}else{await refresh();if(pendingGlobalEditor){pendingGlobalEditor=false;resetEditor();setEditorOpen(true)}}
 }
 async function refresh(){
  const done=startStatLoading($('statisticsSection'));
@@ -188,7 +192,7 @@ function setEditorOpen(open){
  if(open)gamePlaygroup.load(true);
  const dialog=$('gameEditor');
  if(open&&!dialog.open){dialog.showModal();requestAnimationFrame(()=>$('deck').focus())}
- else if(!open&&dialog.open)dialog.close();
+ else if(!open&&dialog.open){dialog.close();tellRecorder('recorder-close')}
  document.body.classList.toggle('game-editor-open',open);
  $('openGameForm').setAttribute('aria-expanded',String(open));
 }
@@ -201,7 +205,7 @@ $('gameEditor').addEventListener('cancel',event=>{event.preventDefault();if(!sav
 $('gameEditor').addEventListener('close',()=>{if(!$('gameEditor').open){document.body.classList.remove('game-editor-open');$('openGameForm').setAttribute('aria-expanded','false')}});
 function resetEditor(){
  gamePlaygroup.reset();
- editingGameId=null;$('formTitle').textContent='Record a game';$('save').textContent='Save game';$('cancelEdit').hidden=false;
+ editingGameId=null;$('formTitle').textContent='Record a game';$('save').textContent='Save';$('cancelEdit').hidden=false;
  $('deck').value='';$('notes').value='';$('date').value=new Date().toLocaleDateString('en-CA');
  playerCount=4;drawPlayers([]);$('firstPlayer').value='0';$('winnerPlayer').value='0';setEditorOpen(false);
 }
@@ -554,17 +558,18 @@ $('gameForm').onsubmit=async e=>{
  if(opponentInputs.some(input=>input.getSelectedCommander?.()!==input.value.trim()||input.secondCommander&&!input.secondCommander.valid())){message('Select each opponent commander from the Scryfall suggestions.');return}
  const first_player=Number($('firstPlayer').value),winner_player=Number($('winnerPlayer').value);
  if(!Number.isInteger(first_player)||!Number.isInteger(winner_player)||first_player<0||winner_player<0||first_player>=players.length||winner_player>=players.length){message('Select who went first and who won.');return}
- const button=$('save');button.disabled=true;savingGame=true;message('Saving game…');
+ const savingOwner=user.id;const goToLedger=e.submitter?.id==='saveGoToLedger';const button=$('save');button.disabled=true;$('saveGoToLedger').disabled=true;savingGame=true;message('Saving game…');
  const payload={deck_id,played_at,playgroup_id:gamePlaygroup.value(),won:winner_player===0,opponents:players.slice(1).map(p=>p.commander),players,first_player,winner_player,notes:$('notes').value.trim()};
  try{
   const r=editingGameId?await sb.from('personal_games').update(payload).eq('id',editingGameId).eq('owner_id',user.id):await sb.from('personal_games').insert({...payload,owner_id:user.id});
+  if(user?.id!==savingOwner)return;
   if(r.error){message('Save failed: '+r.error.message+(r.error.message.includes('column')?' — Please contact the app administrator.':''));return}
-  savingGame=false;resetEditor();await refresh();document.dispatchEvent(new Event('onboarding-progress'));
- }catch(error){message('Save failed: '+error.message)}finally{button.disabled=false;savingGame=false}
+  savingGame=false;if(embeddedRecorder){tellRecorder('recorder-saved',{ownerId:user.id,goToLedger});return}resetEditor();await refresh();document.dispatchEvent(new Event('onboarding-progress'));if(goToLedger)location.assign('./ledger.html#gameHistorySection');
+ }catch(error){message('Save failed: '+error.message)}finally{button.disabled=false;$('saveGoToLedger').disabled=false;savingGame=false}
 
 };
 
-window.commandLedgerLoading.track(load(),'Loading your Ledger…').catch(e=>message('Unable to load Ledger: '+e.message));
+window.commandLedgerLoading.track(load(),'Loading your Ledger…').catch(e=>{message('Unable to load Ledger: '+e.message);tellRecorder('recorder-error',{message:'The game editor could not load. Close this window and try again.'})});
 if(location.hash==='#gameForm'||location.hash==='#gameEditor'){
  setEditorOpen(true);
  requestAnimationFrame(()=>$('deck').focus());
@@ -576,3 +581,7 @@ window.addEventListener('hashchange',()=>{
 
 
 sb.auth.onAuthStateChange((_event,session)=>{if((session?.user?.id||null)!==(user?.id||null))setTimeout(()=>load().catch(e=>message(e.message)),0)});
+
+document.addEventListener('open-global-game-editor',()=>{if(!editorReady){pendingGlobalEditor=true;return}resetEditor();message('');setEditorOpen(true)});
+window.addEventListener('message',event=>{if(embeddedRecorder&&event.origin===location.origin&&event.source===window.parent&&event.data?.type==='recorder-request-close'&&!savingGame)resetEditor()});
+document.addEventListener('command-ledger-game-recorded',event=>{if(user?.id===event.detail?.ownerId)refresh().catch(()=>{})});

@@ -58,3 +58,10 @@ When adding any new Ledger statistic:
 - Use separate, optional second-commander controls. Own-game commanders come from the selected deck; tagged friend decks retain both commanders and their deck association. Clearing the checkbox removes only the second commander from future saves, not historical snapshots.
 - A spaced single slash is the pair separator. Preserve ampersands in real card names (Minsc & Boo) and double-faced `//` names. Resolve legacy ampersand pairs only after a full-name card lookup fails.
 - Combine both color identities, deduplicate colors, and retain unknown identity as unknown. Fetch individual cards through the shared Scryfall cache; never send a combined explicit pair as one card lookup. Preserve public sharing and independent shared-game rules.
+
+# Global game recorder
+
+- The green navigation action opens the existing Ledger editor in a same-origin on-demand modal; on the Ledger itself, use the native editor. Embedded mode must skip full history/report loads and hide global navigation/onboarding overlays.
+- Save keeps the current URL and refreshes affected data through the owner-scoped `command-ledger-game-recorded` event. Save and go to Ledger navigates only after a successful write. Preserve partner commanders, friend/game invitations, playgroup consent, and artwork controls.
+- Accept recorder messages only from the current iframe and exact origin, with the current owner ID. Close on account changes, prevent duplicate saves and cancellation during writes, and return focus to the navigation action.
+- Keep loading/error/no-deck states actionable, and route signed-out players through sign-in without ever saving example data.
