@@ -5,5 +5,5 @@ export function mountPlaygroupGames(host,client,group){
   for(const game of data.games){const snapshot=game.snapshot,players=snapshot.players||[];const card=node('article');card.className='pg-group-game';const date=node('time',game.played_at);date.dateTime=game.played_at;const title=node('strong',snapshot.deck_name||players[0]?.commander||'Group game');const names=node('p',players.map(p=>p.name||p.commander).join(' · '));const winner=node('small','Winner: '+(players[snapshot.winner_player]?.name||'Unknown'));card.append(date,title,names,winner);list.append(card)}
   const pages=Math.max(1,Math.ceil(data.total/5));if(pages>1){const prev=node('button','Previous'),next=node('button','Next');prev.type=next.type='button';prev.disabled=page===1;next.disabled=page>=pages;prev.onclick=()=>{page--;load()};next.onclick=()=>{page++;load()};controls.append(prev,node('span',page+' / '+pages),next)}status.textContent=data.total+' shared game'+(data.total===1?'':'s');
  }catch{if(current===request&&host.isConnected)status.textContent='Group games could not load. Use Refresh to try again.'}finally{if(current===request)refresh.disabled=false}}
- refresh.onclick=()=>{page=1;load()};load();
+ refresh.onclick=()=>{page=1;load()};document.addEventListener('command-ledger-game-recorded',()=>{if(host.isConnected){page=1;load()}});load();
 }

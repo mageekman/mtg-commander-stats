@@ -1,3 +1,4 @@
+import {createGlobalGameRecorder} from './global-game-recorder.js?v=1';
 import {createPlaygroupInviteClaimer} from './playgroup-invite-link.js?v=group-invites-1';
 import {createSiteAnnouncements} from './site-announcements.js?v=partner-support-1';
 import './personal-invites.js?v=1';
@@ -7,9 +8,10 @@ import {createClient} from './vendor/supabase-js.mjs';
 const sb=createClient('https://enhzzsjccvthrwolxobr.supabase.co','sb_publishable_Vu_wsXslcziuawF7L8cfrw_p9QKmZMT');
 const onboarding=createPlayerOnboarding(sb),claimPlaygroupInvite=createPlaygroupInviteClaimer(sb);
 const announcements=createSiteAnnouncements(sb);let sessionKnown=false;
-let guest=true,currentUser=null;
+const embeddedRecorder=new URLSearchParams(location.search).get('record_embed')==='1';
+let guest=true,currentUser=null;const gameRecorder=embeddedRecorder?null:createGlobalGameRecorder(()=>currentUser);
 function update(user){
- currentUser=user;onboarding.update(user);if(sessionKnown&&user)setTimeout(()=>{if(currentUser?.id===user.id)claimPlaygroupInvite(user)},0);if(sessionKnown)announcements.update(user);guest=!user;setFriendNotificationUser(user);document.body.classList.toggle('guest-preview',guest);
+ currentUser=user;if(embeddedRecorder)return;gameRecorder.update(user);onboarding.update(user);if(sessionKnown&&user)setTimeout(()=>{if(currentUser?.id===user.id)claimPlaygroupInvite(user)},0);if(sessionKnown)announcements.update(user);guest=!user;setFriendNotificationUser(user);document.body.classList.toggle('guest-preview',guest);
  for(const nav of document.querySelectorAll('#siteNavigation,#siteFooter nav'))for(const link of nav.querySelectorAll('a')){
   // Popup anchors are not page destinations (especially on Profile/Friends pages).
   if(link.getAttribute('href')?.startsWith('#'))continue;

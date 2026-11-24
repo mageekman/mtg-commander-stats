@@ -2,7 +2,7 @@ import {commanderNames as splitCommanders} from './commander-pairs.js?v=1';
 import {createDeckHero} from './deck-hero.js?v=details-row-1';
 import {renderSharedDeck} from './shared-deck.js?v=second-commanders-1';
 import {readPageUser,showAuthPrompt} from './auth-page-state.js?v=playgroups-1';
-import {mountDeckPerformance} from './deck-performance.js?v=details-row-1';
+import {mountDeckPerformance} from './deck-performance.js?v=global-recorder-1';
 function colorIdentityIcons(colors){
  const wrap=document.createElement('p');wrap.style.cssText='display:flex;align-items:center;gap:7px;flex-wrap:wrap';
  const label=document.createElement('span');label.textContent='Color identity:';wrap.append(label);
